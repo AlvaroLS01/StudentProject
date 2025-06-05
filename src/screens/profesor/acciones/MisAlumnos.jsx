@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useNotification } from "../../../NotificationContext";
 import styled, { keyframes } from 'styled-components';
 import { auth, db } from '../../../firebase/firebaseConfig';
 import {
@@ -260,6 +261,7 @@ export default function MisAlumnos() {
   const [proposals, setProposals] = useState([]);
   const [input, setInput] = useState('');
   const [openProposalModal, setOpenProposalModal] = useState(false);
+  const { show } = useNotification();
   const [selectedUnion, setSelectedUnion] = useState(null);
   const [fechaClase, setFechaClase] = useState('');
   const [duracion, setDuracion] = useState('');
@@ -342,7 +344,8 @@ export default function MisAlumnos() {
   // 6. Envía la propuesta de clase
   const submitProposal = async () => {
     if (!fechaClase || !duracion || !asignMateria) {
-      return alert('Rellena todos los campos de la propuesta de clase');
+      show('Rellena todos los campos de la propuesta de clase');
+      return;
     }
     const durNum = parseFloat(duracion);
 
@@ -361,7 +364,7 @@ export default function MisAlumnos() {
       }
     );
     setOpenProposalModal(false);
-    alert('Propuesta de clase enviada al alumno');
+    show('Propuesta de clase enviada al alumno');
     // NOTA: **No** agregamos un mensaje separado en “chats”;
     // la burbuja desaparecerá de “proposals” cuando el alumno responda.
   };

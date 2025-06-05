@@ -14,6 +14,7 @@ import {
   signInWithEmailAndPassword
 } from 'firebase/auth';
 import { doc, getDoc } from 'firebase/firestore';
+import { useNotification } from '../NotificationContext';
 
 const slideDown = keyframes`
   from { opacity: 0; transform: translateY(-10px); }
@@ -244,6 +245,8 @@ const PopupButton = styled.button`
   font-weight: 700;
   cursor: pointer;
   margin-bottom: 1rem;
+  opacity: ${p => (p.disabled ? 0.6 : 1)};
+  pointer-events: ${p => (p.disabled ? 'none' : 'auto')};
   transition: background-color 0.2s ease, transform 0.2s ease;
   &:hover {
     background-color: ${({ theme }) => theme.colors.accent};
@@ -319,12 +322,14 @@ const InfoText = styled.p`
 `;
 
 export default function Navbar() {
+  const { show } = useNotification();
   const [open, setOpen] = useState(false);
   const [user, setUser] = useState(null);
   const [userData, setUserData] = useState(null);
   const [loginEmail, setLoginEmail] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
   const [loginOpen, setLoginOpen] = useState(false);
+  const [loggingIn, setLoggingIn] = useState(false);
   const loginRef = useRef(null);
   const navigate = useNavigate();
 
@@ -360,6 +365,8 @@ export default function Navbar() {
   };
 
   const handleLogin = async () => {
+    if (loggingIn) return;
+    setLoggingIn(true);
     try {
       const userCredential = await signInWithEmailAndPassword(auth, loginEmail, loginPassword);
       const u = userCredential.user;
@@ -379,7 +386,9 @@ export default function Navbar() {
       setLoginPassword('');
       setLoginOpen(false);
     } catch (err) {
-      alert('Error al iniciar sesión: ' + err.message);
+      show(`Error al iniciar sesión: ${err.message}`);
+    } finally {
+      setLoggingIn(false);
     }
   };
 
@@ -466,7 +475,7 @@ export default function Navbar() {
                     value={loginPassword}
                     onChange={e => setLoginPassword(e.target.value)}
                   />
-                  <PopupButton onClick={handleLogin}>
+                  <PopupButton onClick={handleLogin} disabled={loggingIn}>
                     Iniciar sesión
                   </PopupButton>
                   <PopupRegister>

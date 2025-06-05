@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import styled, { keyframes } from 'styled-components';
 import { useNavigate } from 'react-router-dom';
+import { useNotification } from "../../../NotificationContext";
 import { auth, db } from '../../../firebase/firebaseConfig';
 import {
   collection,
@@ -143,6 +144,8 @@ const DropdownHeader = styled.div`
   justify-content: space-between;
   align-items: center;
   cursor: pointer;
+  opacity: ${p => (p.disabled ? 0.6 : 1)};
+  pointer-events: ${p => (p.disabled ? 'none' : 'auto')};
 `;
 const ArrowSpan = styled.span`
   font-size: 0.8rem;
@@ -171,6 +174,8 @@ const DropdownGroupLabel = styled.li`
 const DropdownItem = styled.li`
   padding: 0.5rem 0.8rem;
   cursor: pointer;
+  opacity: ${p => (p.disabled ? 0.6 : 1)};
+  pointer-events: ${p => (p.disabled ? 'none' : 'auto')};
   &:hover { background: #e6f7f2; }
 `;
 const Button = styled.button`
@@ -183,6 +188,8 @@ const Button = styled.button`
   border: none;
   border-radius: 6px;
   cursor: pointer;
+  opacity: ${p => (p.disabled ? 0.6 : 1)};
+  pointer-events: ${p => (p.disabled ? 'none' : 'auto')};
 `;
 const ScheduleContainer = styled.div`
   margin-top: 0.5rem;
@@ -211,6 +218,8 @@ const SlotCell = styled.div`
   height: 32px;
   background: ${p => (p.selected ? '#046654' : '#fff')};
   cursor: pointer;
+  opacity: ${p => (p.disabled ? 0.6 : 1)};
+  pointer-events: ${p => (p.disabled ? 'none' : 'auto')};
 `;
 const Overlay = styled.div`
   position: fixed; inset: 0;
@@ -240,6 +249,8 @@ const ModalButton = styled.button`
   border-radius: 6px;
   font-size: 0.9rem;
   cursor: pointer;
+  opacity: ${p => (p.disabled ? 0.6 : 1)};
+  pointer-events: ${p => (p.disabled ? 'none' : 'auto')};
   ${p => p.primary
     ? `background: #006D5B; color: #fff;`
     : `background: #f0f0f0; color: #333;`
@@ -322,6 +333,7 @@ export default function NuevaClase() {
   const [openCity, setOpenCity]                 = useState(false);
   const [selectedSlots, setSelectedSlots]       = useState(new Set());
   const [confirmModal, setConfirmModal]         = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
   const [alumnoNombre, setAlumnoNombre]         = useState('');
   const [alumnoApellidos, setAlumnoApellidos]   = useState('');
@@ -329,6 +341,7 @@ export default function NuevaClase() {
   const cursoRef = useRef();
   const cityRef  = useRef();
   const navigate = useNavigate();
+  const { show } = useNotification();
 
   // Datos de usuario
   useEffect(() => {
@@ -434,13 +447,16 @@ export default function NuevaClase() {
       parseInt(horasSemana, 10) < 1 ||
       selectedSlots.size === 0
     ) {
-      return alert('Completa todos los campos obligatorios antes de continuar');
+      show('Completa todos los campos obligatorios antes de continuar');
+      return;
     }
     setConfirmModal(true);
   };
 
   // Confirmar y guardar
   const confirmRequest = async () => {
+    if (submitting) return;
+    setSubmitting(true);
     try {
       await addDoc(collection(db,'clases'), {
         alumnoId: auth.currentUser.uid,
@@ -462,11 +478,14 @@ export default function NuevaClase() {
         estado: 'pendiente',
         createdAt: serverTimestamp()
       });
-      alert('Clase solicitada con éxito');
+      show('Clase solicitada con éxito');
+      setConfirmModal(false);
       navigate('/alumno/calendario');
     } catch (err) {
       console.error(err);
-      alert('Error: ' + err.message);
+      show('Error: ' + err.message);
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -728,7 +747,7 @@ export default function NuevaClase() {
               <ModalText>¿Confirmar solicitud de clase?</ModalText>
               <ModalActions>
                 <ModalButton onClick={() => setConfirmModal(false)}>Cancelar</ModalButton>
-                <ModalButton primary onClick={confirmRequest}>Confirmar</ModalButton>
+                <ModalButton primary onClick={confirmRequest} disabled={submitting}>Confirmar</ModalButton>
               </ModalActions>
             </Modal>
           </Overlay>
