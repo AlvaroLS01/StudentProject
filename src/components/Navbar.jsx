@@ -21,7 +21,7 @@ const slideDown = keyframes`
 `;
 
 const Nav = styled.nav`
-  background-color: #034640;
+  background-color: ${({ theme }) => theme.colors.primary};
   padding: 1rem 2rem;
   box-shadow: 0 2px 4px rgba(0,0,0,0.1);
   position: relative;
@@ -91,7 +91,7 @@ const Menu = styled.div`
     top: 100%;
     left: 0;
     right: 0;
-    background-color: #034640;
+    background-color: ${({ theme }) => theme.colors.primary};
     flex-direction: column;
     align-items: center;
     padding: 2rem 0;
@@ -112,11 +112,11 @@ const MenuItem = styled(Link)`
     left: 0;
     height: 2px;
     width: 0;
-    background: #ccf3e5;
+    background: ${({ theme }) => theme.colors.secondary};
     transition: width 0.3s ease;
   }
   &:hover {
-    color: #ccf3e5;
+    color: ${({ theme }) => theme.colors.secondary};
   }
   &:hover:after {
     width: 100%;
@@ -140,7 +140,7 @@ const PanelLink = styled(Link)`
 
   &:hover {
     background-color: #fff;
-    color: #034640;
+    color: ${({ theme }) => theme.colors.primary};
     transform: translateY(-1px);
   }
 
@@ -155,8 +155,8 @@ const MobileAccessButton = styled(Link)`
   display: none;
   @media (max-width: 768px) {
     display: inline-block;
-    background-color: #ccf3e5;
-    color: #034640;
+    background-color: ${({ theme }) => theme.colors.secondary};
+    color: ${({ theme }) => theme.colors.primary};
     padding: 0.75rem 2.5rem;
     border-radius: 24px;
     text-decoration: none;
@@ -165,7 +165,7 @@ const MobileAccessButton = styled(Link)`
     margin: 1.5rem 0;
     transition: background-color 0.3s ease, transform 0.3s ease;
     &:hover {
-      background-color: #b4f0c5;
+      background-color: ${({ theme }) => theme.colors.accent};
       transform: translateY(-2px);
     }
   }
@@ -180,8 +180,8 @@ const AccessWrapper = styled.div`
 `;
 
 const AccessButton = styled.button`
-  background-color: #ccf3e5;
-  color: #034640;
+  background-color: ${({ theme }) => theme.colors.secondary};
+  color: ${({ theme }) => theme.colors.primary};
   padding: 0.5rem 1.5rem;
   border-radius: 24px;
   border: none;
@@ -190,7 +190,7 @@ const AccessButton = styled.button`
   cursor: pointer;
   transition: background-color 0.3s ease, transform 0.2s ease;
   &:hover {
-    background-color: #b4f0c5;
+    background-color: ${({ theme }) => theme.colors.accent};
     transform: translateY(-2px);
   }
 `;
@@ -201,7 +201,7 @@ const LoginPopup = styled.div`
   top: calc(100% + 0.5rem);
   right: 0;
   width: 320px;
-  background: #004640CC;
+  background: ${({ theme }) => theme.colors.primary}CC;
   backdrop-filter: blur(8px);
   border: 1px solid rgba(255,255,255,0.15);
   border-radius: 12px;
@@ -235,8 +235,8 @@ const PopupInput = styled.input`
 const PopupButton = styled.button`
   width: 100%;
   box-sizing: border-box;
-  background-color: #ccf3e5;
-  color: #004640;
+  background-color: ${({ theme }) => theme.colors.secondary};
+  color: ${({ theme }) => theme.colors.primary};
   padding: 0.75rem;
   border: none;
   border-radius: 4px;
@@ -246,7 +246,7 @@ const PopupButton = styled.button`
   margin-bottom: 1rem;
   transition: background-color 0.2s ease, transform 0.2s ease;
   &:hover {
-    background-color: #b4f0c5;
+    background-color: ${({ theme }) => theme.colors.accent};
     transform: translateY(-2px);
   }
 `;

@@ -5,7 +5,7 @@ import logo from '../assets/logo-sin-fondo-negro.png';
 import { Link } from 'react-router-dom';
 
 const FooterContainer = styled.footer`
-  background-color: #ccf3e5;
+  background-color: ${({ theme }) => theme.colors.secondary};
   padding: 4rem 1rem 3rem;
 `;
 
@@ -50,14 +50,14 @@ const ContactLabel = styled.strong`
   font-size: 1rem;
   font-weight: 700;          /* Negrita */
   margin-bottom: 0.5rem;
-  color: #014F40;
+  color: ${({ theme }) => theme.colors.text};
   letter-spacing: 1px;
   text-align: center;
 `;
 
 const ContactText = styled.p`
   margin: 0.25rem 0;
-  color: #014F40;
+  color: ${({ theme }) => theme.colors.text};
   font-size: 1.125rem;
   text-align: center;
 `;
@@ -71,7 +71,7 @@ const ServicesLabel = styled.strong`
   letter-spacing: 1px;
   text-transform: uppercase;
   margin-bottom: 1rem;
-  color: #014F40;
+  color: ${({ theme }) => theme.colors.text};
   text-align: center;
 `;
 
@@ -87,7 +87,7 @@ const ServicesItem = styled.li`
 `;
 
 const ServicesLink = styled(Link)`
-  color: #014F40;
+  color: ${({ theme }) => theme.colors.text};
   text-decoration: none;
   font-size: 1.125rem;
 `;
