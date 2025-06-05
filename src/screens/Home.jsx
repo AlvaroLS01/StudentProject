@@ -1,5 +1,6 @@
 import React, { useRef, useState, useEffect } from 'react';
 import styled, { keyframes } from 'styled-components';
+import { useTheme } from 'styled-components';
 import { Link } from 'react-router-dom';
 import banner from '../assets/banner.jpg';
 import personas from '../assets/personas.jpg';
@@ -39,7 +40,7 @@ const TitlesWrapper = styled.div`
 
 const Title = styled.h1`
   font-size: clamp(2rem, 5vw, 3rem);
-  color: #2d4149;
+  color: ${({ theme }) => theme.colors.heading};
   line-height: 1.2;
   margin: 0;
   font-weight: 700;
@@ -48,7 +49,7 @@ const Title = styled.h1`
 const TitleAccent = styled.span`
   display: block;
   font-size: clamp(2rem, 5vw, 3rem);
-  color: #2d4149;
+  color: ${({ theme }) => theme.colors.heading};
   margin-top: 0.5rem;
   font-weight: 700;
 `;
@@ -64,14 +65,14 @@ const Content = styled.div`
 
 const Subtitle = styled.p`
   font-size: clamp(1rem, 2.5vw, 1.25rem);
-  color: #014f40;
+  color: ${({ theme }) => theme.colors.text};
   margin: 2rem 0 3rem;
 `;
 
 const Button = styled(Link)`
   display: inline-block;
-  background-color: #ccf3e5;
-  color: #034640;
+  background-color: ${({ theme }) => theme.colors.secondary};
+  color: ${({ theme }) => theme.colors.primary};
   padding: 0.75rem 1.5rem;
   border-radius: 4px;
   font-weight: 700;
@@ -80,14 +81,14 @@ const Button = styled(Link)`
   margin-bottom: 1rem;
   transition: background-color 0.3s, transform 0.3s;
   &:hover {
-    background-color: #b2e8d4;
+    background-color: ${({ theme }) => theme.colors.accent};
     transform: translateY(-4px);
   }
 `;
 
 const InfoText = styled.p`
   font-size: 1rem;
-  color: #014f40;
+  color: ${({ theme }) => theme.colors.text};
   margin: 0;
 `;
 
@@ -96,7 +97,7 @@ const CardSection = styled.div`
   width: 90%;
   max-width: 1000px;
   margin: 2rem auto;
-  background-color: #004640;
+  background-color: ${({ theme }) => theme.colors.primary};
   color: white;
   border-radius: 16px;
   padding: 2rem 3rem;
@@ -154,13 +155,13 @@ const SubtitleText = styled.p`
   font-size: clamp(0.9rem, 2.2vw, 1rem);
   line-height: 1.4;
   margin: 0;
-  color: #e8fff7;
+  color: ${({ theme }) => theme.colors.secondary};
 `;
 
 const CardButton = styled(Link)`
   display: block;
-  background-color: #e8fff7;
-  color: #004640;
+  background-color: ${({ theme }) => theme.colors.secondary};
+  color: ${({ theme }) => theme.colors.primary};
   padding: 0.65rem 1.25rem;
   border-radius: 4px;
   font-weight: 700;
@@ -170,7 +171,7 @@ const CardButton = styled(Link)`
   margin: 2rem auto 0;
   transition: background-color 0.3s, transform 0.3s;
   &:hover {
-    background-color: #cbe9e0;
+    background-color: ${({ theme }) => theme.colors.accent};
     transform: translateY(-4px);
   }
 `;
@@ -180,7 +181,7 @@ const RevealSection = styled.section`
   width: 90%;
   max-width: 1000px;
   margin: 4rem auto;
-  background-color: #d3f5e6;
+  background-color: ${({ theme }) => theme.colors.secondary};
   border-radius: 16px;
   padding: 1.5rem 3rem;
   box-shadow: 0 12px 24px rgba(0,0,0,0.3);
@@ -203,7 +204,7 @@ const RevealRow = styled(Row)`
 const RevealTitle = styled.h2`
   text-align: center;
   font-size: clamp(1.75rem, 4vw, 2.5rem);
-  color: #2d4149;
+  color: ${({ theme }) => theme.colors.heading};
   margin-bottom: 1.5rem;
 `;
 
@@ -218,7 +219,7 @@ const RevealColImage = styled(ColImage)`
 
 const RevealButton = styled(Link)`
   display: block;
-  background-color: #02c37e;
+  background-color: ${({ theme }) => theme.colors.accent};
   color: #ffffff;
   padding: 0.75rem 1.5rem;
   border-radius: 4px;
@@ -230,7 +231,7 @@ const RevealButton = styled(Link)`
   box-shadow: 0 12px 24px rgba(0,0,0,0.3);
   transition: background-color 0.3s, transform 0.3s;
   &:hover {
-    background-color: #02b36e;
+    background-color: ${({ theme }) => theme.colors.accentHover};
     transform: translateY(-4px);
   }
 `;
@@ -267,20 +268,20 @@ const InfoSection = styled.section`
 
 const InfoTitle = styled.h2`
   font-size: clamp(1.5rem, 3.5vw, 2rem);
-  color: #2d4149;
+  color: ${({ theme }) => theme.colors.heading};
   margin-bottom: 0.75rem;
 `;
 
 const InfoSub = styled.p`
   font-size: clamp(0.875rem, 2vw, 1rem);
-  color: #014f40;
+  color: ${({ theme }) => theme.colors.text};
   margin-bottom: 1.5rem;
   line-height: 1.4;
 `;
 
 const StartButton = styled(Link)`
   display: block;
-  background-color: #02c37e;
+  background-color: ${({ theme }) => theme.colors.accent};
   color: #ffffff;
   padding: 0.75rem 1.5rem;
   border-radius: 4px;
@@ -291,7 +292,7 @@ const StartButton = styled(Link)`
   margin: 1rem auto 0;
   transition: background-color 0.3s, transform 0.3s;
   &:hover {
-    background-color: #02b36e;
+    background-color: ${({ theme }) => theme.colors.accentHover};
     transform: translateY(-4px);
   }
 `;
@@ -300,7 +301,7 @@ const StartButton = styled(Link)`
 const PartnerSection = styled.section`
   width: 100%;
   padding: 1rem 0;
-  background-color: #ffffff;
+  background-color: ${({ theme }) => theme.colors.background};
   display: flex;
   justify-content: center;
 `;
@@ -312,6 +313,7 @@ const PartnerImage = styled.img`
 const Home = () => {
   const revealRef = useRef(null);
   const [revealed, setRevealed] = useState(false);
+  const theme = useTheme();
 
   useEffect(() => {
     const obs = new IntersectionObserver(
@@ -377,12 +379,12 @@ const Home = () => {
         <RevealTitle>Prueba nuestras clases dobles y triples</RevealTitle>
         <RevealRow>
           <RevealColText>
-            <SubtitleText style={{ color: '#2d4149', marginBottom: '1rem' }}>
+            <SubtitleText style={{ color: theme.colors.heading, marginBottom: '1rem' }}>
               Nuestras clases dobles y triples son la opción perfecta para aquellos estudiantes
               que desean aprender junto a sus amigos o familiares del mismo curso. Obtén un ahorro
               económico en comparación con las clases individuales.
             </SubtitleText>
-            <SubtitleText style={{ color: '#2d4149', marginTop: '0.5rem' }}>
+            <SubtitleText style={{ color: theme.colors.heading, marginTop: '0.5rem' }}>
               ¡Unidos hacia tu éxito académico!
             </SubtitleText>
           </RevealColText>
