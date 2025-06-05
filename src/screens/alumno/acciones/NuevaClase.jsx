@@ -11,6 +11,7 @@ import {
   getDoc,
   doc
 } from 'firebase/firestore';
+import { useAlert } from '../../../context/AlertContext';
 
 // Animación fade-in
 const fadeIn = keyframes`
@@ -322,6 +323,7 @@ export default function NuevaClase() {
   const [openCity, setOpenCity]                 = useState(false);
   const [selectedSlots, setSelectedSlots]       = useState(new Set());
   const [confirmModal, setConfirmModal]         = useState(false);
+  const [loading, setLoading]                   = useState(false);
 
   const [alumnoNombre, setAlumnoNombre]         = useState('');
   const [alumnoApellidos, setAlumnoApellidos]   = useState('');
@@ -329,6 +331,7 @@ export default function NuevaClase() {
   const cursoRef = useRef();
   const cityRef  = useRef();
   const navigate = useNavigate();
+  const { showAlert } = useAlert();
 
   // Datos de usuario
   useEffect(() => {
@@ -434,13 +437,14 @@ export default function NuevaClase() {
       parseInt(horasSemana, 10) < 1 ||
       selectedSlots.size === 0
     ) {
-      return alert('Completa todos los campos obligatorios antes de continuar');
+      return showAlert('Completa todos los campos obligatorios antes de continuar');
     }
     setConfirmModal(true);
   };
 
   // Confirmar y guardar
   const confirmRequest = async () => {
+    setLoading(true);
     try {
       await addDoc(collection(db,'clases'), {
         alumnoId: auth.currentUser.uid,
@@ -462,11 +466,13 @@ export default function NuevaClase() {
         estado: 'pendiente',
         createdAt: serverTimestamp()
       });
-      alert('Clase solicitada con éxito');
+      showAlert('Clase solicitada con éxito');
       navigate('/alumno/calendario');
     } catch (err) {
       console.error(err);
-      alert('Error: ' + err.message);
+      showAlert('Error: ' + err.message);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -728,7 +734,9 @@ export default function NuevaClase() {
               <ModalText>¿Confirmar solicitud de clase?</ModalText>
               <ModalActions>
                 <ModalButton onClick={() => setConfirmModal(false)}>Cancelar</ModalButton>
-                <ModalButton primary onClick={confirmRequest}>Confirmar</ModalButton>
+                <ModalButton primary onClick={confirmRequest} disabled={loading}>
+                  {loading ? 'Confirmando...' : 'Confirmar'}
+                </ModalButton>
               </ModalActions>
             </Modal>
           </Overlay>

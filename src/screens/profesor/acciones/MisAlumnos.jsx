@@ -14,6 +14,7 @@ import {
   doc
 } from 'firebase/firestore';
 import { useNavigate } from 'react-router-dom';
+import { useAlert } from '../../../context/AlertContext';
 
 // Animación de entrada
 const fadeIn = keyframes`
@@ -266,6 +267,7 @@ export default function MisAlumnos() {
   const [asignMateria, setAsignMateria] = useState('');
   const scrollRef = useRef();
   const navigate = useNavigate();
+  const { showAlert } = useAlert();
 
   // 1. Carga las uniones (clase-alumno-profesor) donde el usuario es profesor
   useEffect(() => {
@@ -342,7 +344,7 @@ export default function MisAlumnos() {
   // 6. Envía la propuesta de clase
   const submitProposal = async () => {
     if (!fechaClase || !duracion || !asignMateria) {
-      return alert('Rellena todos los campos de la propuesta de clase');
+      return showAlert('Rellena todos los campos de la propuesta de clase');
     }
     const durNum = parseFloat(duracion);
 
@@ -361,7 +363,7 @@ export default function MisAlumnos() {
       }
     );
     setOpenProposalModal(false);
-    alert('Propuesta de clase enviada al alumno');
+    showAlert('Propuesta de clase enviada al alumno');
     // NOTA: **No** agregamos un mensaje separado en “chats”;
     // la burbuja desaparecerá de “proposals” cuando el alumno responda.
   };

@@ -7,6 +7,7 @@ import { useNavigate } from 'react-router-dom';
 import { auth, db } from '../firebase/firebaseConfig';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
 import { collection, getDocs, doc, setDoc } from 'firebase/firestore';
+import { useAlert } from '../context/AlertContext';
 
 // Animación de entrada
 const fadeIn = keyframes`
@@ -235,7 +236,9 @@ export default function SignUpAlumno() {
   const [nombreHijo, setNombreHijo] = useState('');
   const [fechaNacHijo, setFechaNacHijo] = useState('');
   const [modalOpen, setModalOpen]   = useState(false);
+  const [loading, setLoading]       = useState(false);
   const navigate = useNavigate();
+  const { showAlert } = useAlert();
   const cityRef = useRef();
   const courseRef = useRef();
 
@@ -264,6 +267,7 @@ export default function SignUpAlumno() {
   }, []);
 
   const handleSubmit = async () => {
+    setLoading(true);
     if (
       !email ||
       !password ||
@@ -274,13 +278,13 @@ export default function SignUpAlumno() {
       !ciudad ||
       !curso
     )
-      return alert('Completa todos los campos');
+      return showAlert('Completa todos los campos');
     if (password !== confirmPwd)
-      return alert('Las contraseñas no coinciden');
+      return showAlert('Las contraseñas no coinciden');
     if (rolUser === 'alumno' && !fechaNac)
-      return alert('Añade tu fecha de nacimiento');
+      return showAlert('Añade tu fecha de nacimiento');
     if (rolUser === 'padre' && (!nombreHijo || !fechaNacHijo))
-      return alert('Completa datos del hijo');
+      return showAlert('Completa datos del hijo');
 
     try {
       const { user } = await createUserWithEmailAndPassword(auth, email, password);
@@ -301,11 +305,13 @@ export default function SignUpAlumno() {
         data.hijo = { nombre: nombreHijo, fechaNacimiento: fechaNacHijo };
       }
       await setDoc(doc(db, 'usuarios', user.uid), data);
-      alert('Alumno registrado con éxito');
+      showAlert('Alumno registrado con éxito');
       navigate('/');
     } catch (err) {
       console.error(err);
-      alert('Error: ' + err.message);
+      showAlert('Error: ' + err.message);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -449,7 +455,9 @@ export default function SignUpAlumno() {
           )}
         </FormGrid>
 
-        <Button onClick={handleSubmit}>Crear cuenta</Button>
+        <Button onClick={handleSubmit} disabled={loading}>
+          {loading ? 'Registrando...' : 'Crear cuenta'}
+        </Button>
       </Card>
 
       {modalOpen && (

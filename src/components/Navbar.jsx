@@ -14,6 +14,7 @@ import {
   signInWithEmailAndPassword
 } from 'firebase/auth';
 import { doc, getDoc } from 'firebase/firestore';
+import { useAlert } from '../context/AlertContext';
 
 const slideDown = keyframes`
   from { opacity: 0; transform: translateY(-10px); }
@@ -327,6 +328,7 @@ export default function Navbar() {
   const [loginOpen, setLoginOpen] = useState(false);
   const loginRef = useRef(null);
   const navigate = useNavigate();
+  const { showAlert } = useAlert();
 
   // cerrar popup al click fuera
   useEffect(() => {
@@ -379,7 +381,7 @@ export default function Navbar() {
       setLoginPassword('');
       setLoginOpen(false);
     } catch (err) {
-      alert('Error al iniciar sesión: ' + err.message);
+      showAlert('Error al iniciar sesión: ' + err.message);
     }
   };
 

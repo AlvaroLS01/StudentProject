@@ -7,6 +7,7 @@ import { useNavigate } from 'react-router-dom';
 import { auth, db } from '../firebase/firebaseConfig';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
 import { collection, getDocs, doc, setDoc } from 'firebase/firestore';
+import { useAlert } from '../context/AlertContext';
 
 // Animación de entrada
 const fadeIn = keyframes`
@@ -218,7 +219,9 @@ export default function SignUpProfesor() {
   const [cities, setCities]           = useState([]);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [modalOpen, setModalOpen]     = useState(false);
+  const [loading, setLoading]         = useState(false);
   const navigate = useNavigate();
+  const { showAlert } = useAlert();
   const ref = useRef();
 
   // Carga ciudades
@@ -245,11 +248,12 @@ export default function SignUpProfesor() {
   }, []);
 
   const handleSubmit = async () => {
+    setLoading(true);
     if (!email || !password || !confirmPassword || !nombre || !apellido || !telefono || !ciudad) {
-      return alert('Completa todos los campos');
+      return showAlert('Completa todos los campos');
     }
     if (password !== confirmPassword) {
-      return alert('Las contraseñas no coinciden');
+      return showAlert('Las contraseñas no coinciden');
     }
     try {
       const { user } = await createUserWithEmailAndPassword(auth, email, password);
@@ -263,11 +267,13 @@ export default function SignUpProfesor() {
         rol: 'profesor',
         createdAt: new Date()
       });
-      alert('Profesor registrado con éxito');
+      showAlert('Profesor registrado con éxito');
       navigate('/');
     } catch (err) {
       console.error(err);
-      alert('Error: ' + err.message);
+      showAlert('Error: ' + err.message);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -350,7 +356,9 @@ export default function SignUpProfesor() {
             </DropdownContainer>
           </Field>
         </FormGrid>
-        <Button onClick={handleSubmit}>Crear cuenta de profesor</Button>
+        <Button onClick={handleSubmit} disabled={loading}>
+          {loading ? 'Registrando...' : 'Crear cuenta de profesor'}
+        </Button>
       </Card>
 
       {modalOpen && (
