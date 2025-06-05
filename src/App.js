@@ -20,7 +20,7 @@ import QuienesSomos    from './screens/QuienesSomos';
 import Contacto        from './screens/Contacto';
 import InicioSesion    from './screens/InicioSesion';
 import SignUpProfesor  from './screens/SignUpProfesor';
-import SignUpAlumno    from './screens/SingUpAlumno';
+import SignUpAlumno    from './screens/SignUpAlumno';
 import PanelProfesor   from './screens/profesor/PanelProfesor';
 import PanelAlumno     from './screens/alumno/PanelAlumno';
 import PanelAdmin      from './screens/admin/PanelAdmin';
