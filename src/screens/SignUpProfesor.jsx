@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import styled, { keyframes } from 'styled-components';
 import { useNavigate } from 'react-router-dom';
+import { useNotification } from "../NotificationContext";
 
 // Firebase (inicializado en firebaseConfig.js)
 import { auth, db } from '../firebase/firebaseConfig';
@@ -31,6 +32,8 @@ const Card = styled.div`
   box-shadow: 0 14px 36px rgba(0,0,0,0.15);
   padding: 3rem 2rem;
   width: 100%;
+  opacity: ${p => (p.disabled ? 0.6 : 1)};
+  pointer-events: ${p => (p.disabled ? "none" : "auto")};
   max-width: 520px;
   animation: ${fadeIn} 0.6s ease-out;
 `;
@@ -103,6 +106,8 @@ const Field = styled.div`
 const DropdownContainer = styled.div`
   position: relative;
   width: 100%;
+  opacity: ${p => (p.disabled ? 0.6 : 1)};
+  pointer-events: ${p => (p.disabled ? "none" : "auto")};
 `;
 const DropdownHeader = styled.div`
   padding: 0.7rem 0.9rem;
@@ -148,6 +153,8 @@ const Arrow = styled.span`
 // Botón principal
 const Button = styled.button`
   width: 100%;
+  opacity: ${p => (p.disabled ? 0.6 : 1)};
+  pointer-events: ${p => (p.disabled ? "none" : "auto")};
   padding: 0.9rem;
   margin-top: 1.8rem;
   background: #034640;
@@ -218,7 +225,9 @@ export default function SignUpProfesor() {
   const [cities, setCities]           = useState([]);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [modalOpen, setModalOpen]     = useState(false);
+  const [submitting, setSubmitting] = useState(false);
   const navigate = useNavigate();
+  const { show } = useNotification();
   const ref = useRef();
 
   // Carga ciudades
@@ -245,12 +254,15 @@ export default function SignUpProfesor() {
   }, []);
 
   const handleSubmit = async () => {
+    if (submitting) return;
     if (!email || !password || !confirmPassword || !nombre || !apellido || !telefono || !ciudad) {
-      return alert('Completa todos los campos');
+      show('Completa todos los campos');
+      return;
     }
     if (password !== confirmPassword) {
-      return alert('Las contraseñas no coinciden');
+      return show('Las contraseñas no coinciden');
     }
+    setSubmitting(true);
     try {
       const { user } = await createUserWithEmailAndPassword(auth, email, password);
       await setDoc(doc(db, 'usuarios', user.uid), {
@@ -263,11 +275,13 @@ export default function SignUpProfesor() {
         rol: 'profesor',
         createdAt: new Date()
       });
-      alert('Profesor registrado con éxito');
+      show('Profesor registrado con éxito');
       navigate('/');
     } catch (err) {
       console.error(err);
-      alert('Error: ' + err.message);
+      show('Error: ' + err.message);
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -350,7 +364,7 @@ export default function SignUpProfesor() {
             </DropdownContainer>
           </Field>
         </FormGrid>
-        <Button onClick={handleSubmit}>Crear cuenta de profesor</Button>
+        <Button onClick={handleSubmit} disabled={submitting}>Crear cuenta de profesor</Button>
       </Card>
 
       {modalOpen && (

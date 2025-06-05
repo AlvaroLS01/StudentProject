@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import styled, { keyframes } from 'styled-components';
 import { useNavigate } from 'react-router-dom';
+import { useNotification } from "../NotificationContext";
 
 // Firebase (inicializado en firebaseConfig.js)
 import { auth, db } from '../firebase/firebaseConfig';
@@ -29,6 +30,8 @@ const Card = styled.div`
   padding: 3rem 2rem;
   box-shadow: 0 14px 36px rgba(0,0,0,0.15);
   width: 100%;
+  opacity: ${p => (p.disabled ? 0.6 : 1)};
+  pointer-events: ${p => (p.disabled ? "none" : "auto")};
   max-width: 520px;
   animation: ${fadeIn} 0.6s ease-out;
 `;
@@ -118,6 +121,8 @@ const ToggleOption = styled.button`
 
 // Dropdown
 const DropdownContainer = styled.div` position: relative; width: 100%; `;
+  opacity: ${p => (p.disabled ? 0.6 : 1)};
+  pointer-events: ${p => (p.disabled ? "none" : "auto")};
 const DropdownHeader = styled.div`
   padding: 0.7rem 0.9rem;
   border: 1px solid #ccc;
@@ -161,6 +166,8 @@ const Arrow = styled.span`
 // Botón de enviar
 const Button = styled.button`
   width: 100%;
+  opacity: ${p => (p.disabled ? 0.6 : 1)};
+  pointer-events: ${p => (p.disabled ? "none" : "auto")};
   padding: 0.9rem;
   margin-top: 1.5rem;
   background: #034640;
@@ -235,7 +242,9 @@ export default function SignUpAlumno() {
   const [nombreHijo, setNombreHijo] = useState('');
   const [fechaNacHijo, setFechaNacHijo] = useState('');
   const [modalOpen, setModalOpen]   = useState(false);
+  const [submitting, setSubmitting] = useState(false);
   const navigate = useNavigate();
+  const { show } = useNotification();
   const cityRef = useRef();
   const courseRef = useRef();
 
@@ -264,6 +273,7 @@ export default function SignUpAlumno() {
   }, []);
 
   const handleSubmit = async () => {
+    if (submitting) return;
     if (
       !email ||
       !password ||
@@ -273,15 +283,18 @@ export default function SignUpAlumno() {
       !telefono ||
       !ciudad ||
       !curso
-    )
-      return alert('Completa todos los campos');
+    ) {
+      show('Completa todos los campos');
+      return;
+    }
     if (password !== confirmPwd)
-      return alert('Las contraseñas no coinciden');
+      return show('Las contraseñas no coinciden');
     if (rolUser === 'alumno' && !fechaNac)
-      return alert('Añade tu fecha de nacimiento');
+      return show('Añade tu fecha de nacimiento');
     if (rolUser === 'padre' && (!nombreHijo || !fechaNacHijo))
-      return alert('Completa datos del hijo');
+      return show('Completa datos del hijo');
 
+    setSubmitting(true);
     try {
       const { user } = await createUserWithEmailAndPassword(auth, email, password);
       const data = {
@@ -301,11 +314,13 @@ export default function SignUpAlumno() {
         data.hijo = { nombre: nombreHijo, fechaNacimiento: fechaNacHijo };
       }
       await setDoc(doc(db, 'usuarios', user.uid), data);
-      alert('Alumno registrado con éxito');
+      show('Alumno registrado con éxito');
       navigate('/');
     } catch (err) {
       console.error(err);
-      alert('Error: ' + err.message);
+      show('Error: ' + err.message);
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -449,7 +464,7 @@ export default function SignUpAlumno() {
           )}
         </FormGrid>
 
-        <Button onClick={handleSubmit}>Crear cuenta</Button>
+        <Button onClick={handleSubmit} disabled={submitting}>Crear cuenta</Button>
       </Card>
 
       {modalOpen && (

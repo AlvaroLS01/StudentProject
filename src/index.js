@@ -3,6 +3,7 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import './index.css';
 import App from './App';
+import { NotificationProvider } from "./NotificationContext";
 import reportWebVitals from './reportWebVitals';
 import { ThemeProvider } from 'styled-components';
 import { theme, GlobalStyle } from './theme';
@@ -12,7 +13,9 @@ root.render(
   <React.StrictMode>
     <ThemeProvider theme={theme}>
       <GlobalStyle />
-      <App />
+            <NotificationProvider>
+        <App />
+      </NotificationProvider>
     </ThemeProvider>
   </React.StrictMode>
 );
