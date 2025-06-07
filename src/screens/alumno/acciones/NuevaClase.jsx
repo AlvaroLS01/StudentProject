@@ -480,7 +480,7 @@ export default function NuevaClase() {
       });
       show('Clase solicitada con éxito');
       setConfirmModal(false);
-      navigate('/alumno/calendario');
+      navigate('/alumno?tab=calendario');
     } catch (err) {
       console.error(err);
       show('Error: ' + err.message);

@@ -218,6 +218,12 @@ const InputDate = styled.input`
   border-radius: 6px;
 `;
 
+const InputTime = styled.input`
+  padding: 0.5rem;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+`;
+
 const InputNumber = styled.input`
   padding: 0.5rem;
   border: 1px solid #ccc;
@@ -281,6 +287,7 @@ export default function MisAlumnos() {
   const { show } = useNotification();
   const [selectedUnion, setSelectedUnion] = useState(null);
   const [fechaClase, setFechaClase] = useState('');
+  const [hora, setHora] = useState('');
   const [duracion, setDuracion] = useState('');
   const [asignMateria, setAsignMateria] = useState('');
   const [modalidad, setModalidad] = useState('online');
@@ -375,6 +382,7 @@ export default function MisAlumnos() {
     setSelectedUnion(union);
     setOpenProposalModal(true);
     setFechaClase('');
+    setHora('');
     setDuracion('');
     setAsignMateria('');
     setModalidad('online');
@@ -382,7 +390,7 @@ export default function MisAlumnos() {
 
   // 6. Envía la propuesta de clase
   const submitProposal = async () => {
-    if (!fechaClase || !duracion || !asignMateria) {
+    if (!fechaClase || !hora || !duracion || !asignMateria) {
       show('Rellena todos los campos de la propuesta de clase');
       return;
     }
@@ -400,6 +408,7 @@ export default function MisAlumnos() {
         profesorId: auth.currentUser.uid,
         alumnoId: selectedUnion.alumnoId,
         fecha: fechaClase,
+        hora,
         duracion: durNum,
         asignatura: asignMateria,
         modalidad,
@@ -506,7 +515,7 @@ export default function MisAlumnos() {
                       <Bubble mine={mine}>
                         <div>
                           <strong>{item.asignatura}</strong> para el{' '}
-                          <strong>{item.fecha}</strong> ({item.duracion}h)
+                          <strong>{item.fecha}</strong> {item.hora} ({item.duracion}h)
                         </div>
                         <CancelButton onClick={() => cancelProposal(item)}>
                           Cancelar
@@ -562,6 +571,12 @@ export default function MisAlumnos() {
                 type="date"
                 value={fechaClase}
                 onChange={e => setFechaClase(e.target.value)}
+              />
+              <Label>Hora:</Label>
+              <InputTime
+                type="time"
+                value={hora}
+                onChange={e => setHora(e.target.value)}
               />
               <Label>Duración (horas):</Label>
               <InputNumber

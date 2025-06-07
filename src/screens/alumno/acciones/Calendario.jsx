@@ -107,36 +107,52 @@ const EventItem = styled.div`
   padding: 4px;
   font-size: 0.75rem;
   border-radius: 4px;
-  background: ${p => p.status === 'pendiente' ? '#FFD700' : '#28a745'};
+  background: ${p => {
+    if (p.status === 'facturacion') return '#800080';
+    return p.status === 'pendiente' ? '#FFD700' : '#28a745';
+  }};
   color: #fff;
   line-height: 1.2;
 `;
 
 // Mapeo de nombres de día (español) a getDay() numérico
-const dayNameToNum = {
-  'Domingo': 0,
-  'Lunes':   1,
-  'Martes':  2,
-  'Miércoles': 3,
-  'Jueves':  4,
-  'Viernes': 5,
-  'Sábado':  6
-};
+
 
 export default function Calendario() {
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [clases, setClases] = useState([]);
+  const [facturacion, setFacturacion] = useState([]);
 
   useEffect(() => {
     const fetchClases = async () => {
+      const u = auth.currentUser;
+      if (!u) return;
       const q = query(
-        collection(db, 'clases'),
-        where('alumnoId', '==', auth.currentUser.uid)
+        collection(db, 'clases_union'),
+        where('alumnoId', '==', u.uid)
       );
       const snap = await getDocs(q);
-      setClases(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+      let all = [];
+      for (const docu of snap.docs) {
+        const unionData = docu.data();
+        const subSnap = await getDocs(
+          query(
+            collection(db, 'clases_union', docu.id, 'clases_asignadas'),
+            where('estado', '==', 'aceptada')
+          )
+        );
+        subSnap.docs.forEach(d => {
+          all.push({ id: d.id, profesorNombre: unionData.profesorNombre, ...d.data() });
+        });
+      }
+      setClases(all);
+    };
+    const fetchFact = async () => {
+      const snap = await getDocs(collection(db, 'facturacion'));
+      setFacturacion(snap.docs.map(d => d.data()));
     };
     fetchClases();
+    fetchFact();
   }, []);
 
   const prevMonth = () =>
@@ -149,37 +165,19 @@ export default function Calendario() {
   const startDate  = startOfWeek(monthStart, { locale: es });
   const endDate    = endOfWeek(monthEnd,   { locale: es });
 
-  // Agrupa eventos (fijos y recurrentes) por fecha "yyyy-MM-dd"
   const eventsByDate = {};
 
-  // 1) Eventos con fecha fija (ev.fecha)
   clases.forEach(ev => {
-    if (ev.fecha) {
-      const key = format(parseISO(ev.fecha), 'yyyy-MM-dd');
-      if (!eventsByDate[key]) eventsByDate[key] = [];
-      eventsByDate[key].push(ev);
-    }
-    // 2) Eventos recurrentes según ev.schedule (["Lunes-8",...])
-    if (Array.isArray(ev.schedule)) {
-      ev.schedule.forEach(slot => {
-        const [dayName, hour] = slot.split('-');
-        const dow = dayNameToNum[dayName];
-        // Recorre todo el mes, añade un evento cada fecha que coincida con dow
-        eachDayOfInterval({ start: monthStart, end: monthEnd })
-          .filter(d => getDay(d) === dow)
-          .forEach(d => {
-            const dateKey = format(d, 'yyyy-MM-dd');
-            if (!eventsByDate[dateKey]) eventsByDate[dateKey] = [];
-            eventsByDate[dateKey].push({
-              id: ev.id + '-' + slot + '-' + dateKey,
-              asignatura: ev.asignatura,
-              hora: hour + ':00',
-              estado: ev.estado,
-              profesorSeleccionado: ev.profesorSeleccionado
-            });
-          });
-      });
-    }
+    if (!ev.fecha) return;
+    const key = format(parseISO(ev.fecha), 'yyyy-MM-dd');
+    if (!eventsByDate[key]) eventsByDate[key] = [];
+    eventsByDate[key].push(ev);
+  });
+
+  facturacion.forEach(f => {
+    const key = f.fecha;
+    if (!eventsByDate[key]) eventsByDate[key] = [];
+    eventsByDate[key].push({ id: 'f-' + key, mensaje: f.mensaje, estado: 'facturacion' });
   });
 
   const weekdays = Array.from({ length: 7 }).map((_, i) =>
@@ -202,10 +200,14 @@ export default function Calendario() {
           <DayNumber>{format(day, 'd', { locale: es })}</DayNumber>
           <EventsList>
             {dayEvents.map(ev => {
-              const profLabel =
-                ev.estado === 'pendiente'
-                  ? 'Profesor: Sin asignar'
-                  : `Profesor: ${ev.profesorSeleccionado || 'N/A'}`;
+              if (ev.estado === 'facturacion') {
+                return (
+                  <EventItem key={ev.id} status="facturacion">
+                    {ev.mensaje}
+                  </EventItem>
+                );
+              }
+              const profLabel = `Profesor: ${ev.profesorNombre || 'N/A'}`;
               return (
                 <EventItem key={ev.id} status={ev.estado}>
                   <strong>{ev.hora}</strong><br/>
