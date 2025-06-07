@@ -94,7 +94,7 @@ const AddButton = styled.button`
 const Overlay = styled.div`
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.3);
+  background: rgba(0,0,0,0.4);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -110,6 +110,27 @@ const Modal = styled.div`
   display: flex;
   flex-direction: column;
   overflow: hidden;
+`;
+
+// Modal más pequeño para propuesta de clase
+const ProposalModal = styled.div`
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 2rem;
+  max-width: 440px;
+  width: 90%;
+  text-align: left;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.15);
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+`;
+
+const ProposalHeader = styled.h3`
+  margin: 0;
+  color: #014F40;
+  text-align: center;
+  margin-bottom: 0.5rem;
 `;
 
 const Header = styled.div`
@@ -530,11 +551,11 @@ export default function MisAlumnos() {
       {/* ------------- Modal Propuesta de Clase ------------- */}
       {openProposalModal && selectedUnion && (
         <Overlay onClick={() => setOpenProposalModal(false)}>
-          <Modal onClick={e => e.stopPropagation()}>
-            <Header>
+          <ProposalModal onClick={e => e.stopPropagation()}>
+            <ProposalHeader>
               Proponer nueva clase a {selectedUnion.alumnoNombre}{' '}
               {selectedUnion.alumnoApellidos}
-            </Header>
+            </ProposalHeader>
             <Form>
               <Label>Fecha de clase:</Label>
               <InputDate
@@ -572,7 +593,7 @@ export default function MisAlumnos() {
                 Enviar propuesta
               </ModalButton>
             </ModalActions>
-          </Modal>
+          </ProposalModal>
         </Overlay>
       )}
       {/* --------- /Modal Propuesta de Clase --------- */}
