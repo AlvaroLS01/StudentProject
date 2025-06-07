@@ -1,6 +1,7 @@
 // src/screens/alumno/PanelAlumno.jsx
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
+import { useSearchParams } from 'react-router-dom';
 
 // importa tus pantallas “incrustadas”
 import NuevaClase    from './acciones/NuevaClase';
@@ -69,13 +70,15 @@ const Content = styled.div`
 `;
 
 export default function PanelAlumno() {
-  // Por defecto abrimos "Solicitar nueva clase"
-  const [view, setView] = useState('nueva-clase');
+  const [searchParams, setSearchParams] = useSearchParams();
+  const initialTab = searchParams.get('tab') || 'nueva-clase';
+  const [view, setView] = useState(initialTab);
 
-  // Al cambiar de pestaña, subimos arriba
+  // Al cambiar de pestaña, subimos arriba y actualizamos la URL
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
-  }, [view]);
+    setSearchParams({ tab: view });
+  }, [view, setSearchParams]);
 
   const renderView = () => {
     switch(view) {

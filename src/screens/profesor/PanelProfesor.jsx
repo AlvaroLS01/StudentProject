@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
+import { useSearchParams } from 'react-router-dom';
 
 // importa tus pantallas “incrustadas” para profesor
 import Ofertas                from './acciones/Ofertas';
@@ -68,13 +69,15 @@ const Content = styled.div`
 `;
 
 export default function PanelProfesor() {
-  // Por defecto abrimos "Ofertas"
-  const [view, setView] = useState('ofertas');
+  const [searchParams, setSearchParams] = useSearchParams();
+  const initialTab = searchParams.get('tab') || 'ofertas';
+  const [view, setView] = useState(initialTab);
 
-  // Al cambiar de pestaña, subimos arriba
+  // Al cambiar de pestaña, subimos arriba y actualizamos la URL
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
-  }, [view]);
+    setSearchParams({ tab: view });
+  }, [view, setSearchParams]);
 
   const renderView = () => {
     switch(view) {

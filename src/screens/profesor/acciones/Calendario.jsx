@@ -106,7 +106,10 @@ const EventItem = styled.div`
   padding: 4px;
   font-size: 0.75rem;
   border-radius: 4px;
-  background: ${p => p.status === 'pendiente' ? '#FFD700' : '#28a745'};
+  background: ${p => {
+    if (p.status === 'facturacion') return '#800080';
+    return p.status === 'pendiente' ? '#FFD700' : '#28a745';
+  }};
   color: #fff;
   line-height: 1.2;
 `;
@@ -125,20 +128,33 @@ const dayNameToNum = {
 export default function CalendarioProfesor() {
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [clases, setClases] = useState([]);
+  const [facturacion, setFacturacion] = useState([]);
 
   useEffect(() => {
     (async () => {
-      // Obtener datos de profe
       const uSnap = await getDoc(doc(db, 'usuarios', auth.currentUser.uid));
       const nombre = uSnap.exists() ? `${uSnap.data().nombre} ${uSnap.data().apellidos || ''}`.trim() : '';
-      // Clases aceptadas por este profe
       const q = query(
-        collection(db, 'clases'),
-        where('estado', '==', 'aceptada'),
-        where('profesorSeleccionado', '==', nombre)
+        collection(db, 'clases_union'),
+        where('profesorId', '==', auth.currentUser.uid)
       );
       const snap = await getDocs(q);
-      setClases(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+      let all = [];
+      for (const docu of snap.docs) {
+        const unionData = docu.data();
+        const subSnap = await getDocs(
+          query(
+            collection(db, 'clases_union', docu.id, 'clases_asignadas'),
+            where('estado', '==', 'aceptada')
+          )
+        );
+        subSnap.docs.forEach(d => {
+          all.push({ id: d.id, alumnoNombre: unionData.alumnoNombre, ...d.data() });
+        });
+      }
+      setClases(all);
+      const factSnap = await getDocs(collection(db, 'facturacion'));
+      setFacturacion(factSnap.docs.map(d => d.data()));
     })();
   }, []);
 
@@ -152,42 +168,25 @@ export default function CalendarioProfesor() {
   const startDate  = startOfWeek(monthStart, { locale: es });
   const endDate    = endOfWeek(monthEnd,   { locale: es });
 
-  // Agrupar eventos por fecha considerando fijos y recurrentes
   const eventsByDate = {};
 
   clases.forEach(ev => {
-    // Fecha fija
-    if (ev.fecha) {
-      const key = format(parseISO(ev.fecha), 'yyyy-MM-dd');
-      eventsByDate[key] = eventsByDate[key] || [];
-      eventsByDate[key].push({
-        id: ev.id,
-        asignatura: ev.asignatura,
-        hora: ev.hora || '',
-        status: ev.estado,
-        alumno: `${ev.alumnoNombre} ${ev.alumnoApellidos}`
-      });
-    }
-    // Recurrentes
-    if (Array.isArray(ev.schedule)) {
-      ev.schedule.forEach(slot => {
-        const [dayName, hour] = slot.split('-');
-        const dow = dayNameToNum[dayName];
-        eachDayOfInterval({ start: monthStart, end: monthEnd })
-          .filter(d => getDay(d) === dow)
-          .forEach(d => {
-            const dateKey = format(d, 'yyyy-MM-dd');
-            eventsByDate[dateKey] = eventsByDate[dateKey] || [];
-            eventsByDate[dateKey].push({
-              id: `${ev.id}-${slot}-${dateKey}`,
-              asignatura: ev.asignatura,
-              hora: `${hour}:00`, 
-              status: ev.estado,
-              alumno: `${ev.alumnoNombre} ${ev.alumnoApellidos}`
-            });
-          });
-      });
-    }
+    if (!ev.fecha) return;
+    const key = format(parseISO(ev.fecha), 'yyyy-MM-dd');
+    eventsByDate[key] = eventsByDate[key] || [];
+    eventsByDate[key].push({
+      id: ev.id,
+      asignatura: ev.asignatura,
+      hora: ev.hora || '',
+      status: ev.estado,
+      alumno: ev.alumnoNombre || ''
+    });
+  });
+
+  facturacion.forEach(f => {
+    const key = f.fecha;
+    eventsByDate[key] = eventsByDate[key] || [];
+    eventsByDate[key].push({ id: 'f-' + key, mensaje: f.mensaje, status: 'facturacion' });
   });
 
   const weekdays = Array.from({ length: 7 }).map((_, i) =>
@@ -209,13 +208,22 @@ export default function CalendarioProfesor() {
         >
           <DayNumber>{format(day, 'd', { locale: es })}</DayNumber>
           <EventsList>
-            {dayEvents.map(ev => (
-              <EventItem key={ev.id} status={ev.status}>
-                <strong>{ev.hora}</strong><br/>
-                {ev.asignatura}<br/>
-                <em>Alumno: {ev.alumno}</em>
-              </EventItem>
-            ))}
+            {dayEvents.map(ev => {
+              if (ev.status === 'facturacion') {
+                return (
+                  <EventItem key={ev.id} status="facturacion">
+                    {ev.mensaje}
+                  </EventItem>
+                );
+              }
+              return (
+                <EventItem key={ev.id} status={ev.status}>
+                  <strong>{ev.hora}</strong><br/>
+                  {ev.asignatura}<br/>
+                  <em>Alumno: {ev.alumno}</em>
+                </EventItem>
+              );
+            })}
           </EventsList>
         </DayCell>
       );
