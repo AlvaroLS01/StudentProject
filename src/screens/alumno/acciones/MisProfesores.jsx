@@ -194,6 +194,17 @@ export default function MisProfesores() {
   const scrollRef = useRef();
   const navigate = useNavigate();
 
+  // Bloquea el scroll de la página cuando el chat está abierto
+  useEffect(() => {
+    if (chatUnionId) {
+      const prev = document.body.style.overflow;
+      document.body.style.overflow = 'hidden';
+      return () => {
+        document.body.style.overflow = prev;
+      };
+    }
+  }, [chatUnionId]);
+
   // 1. Carga las uniones (clase-alumno-profesor) donde el usuario es alumno
   useEffect(() => {
     async function fetchUnions() {
