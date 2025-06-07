@@ -1,14 +1,19 @@
 // src/screens/shared/Perfil.jsx
 import { useState, useEffect } from 'react';
 import styled, { keyframes } from 'styled-components';
-import { auth, db } from '../../firebase/firebaseConfig';
+import { useParams } from 'react-router-dom';
+import { auth, db, storage } from '../../firebase/firebaseConfig';
 import {
   collection,
   query,
   where,
   getDocs,
   onSnapshot,
+  doc,
+  getDoc,
+  updateDoc,
 } from 'firebase/firestore';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import {
   BarChart,
   Bar,
@@ -77,12 +82,60 @@ const CardValue = styled.div`
   color: #006D5B;
 `;
 
+const ProfileHeader = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+  margin-bottom: 2rem;
+`;
+
+const PhotoWrapper = styled.div`
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: #e2e8f0;
+  flex-shrink: 0;
+`;
+
+const Photo = styled.img`
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+`;
+
+const EditButton = styled.button`
+  background: #006D5B;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+  margin-top: 0.5rem;
+  &:hover {
+    background: #005047;
+  }
+`;
+
+const TextInput = styled.input`
+  display: block;
+  width: 100%;
+  padding: 0.4rem 0.5rem;
+  margin-bottom: 0.5rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+`;
+
 const ChartContainer = styled.div`
   width: 100%;
   height: 300px;
 `;
 
 export default function Perfil() {
+  const { userId } = useParams();
+  const [profile, setProfile] = useState(null);
+  const [isEditing, setIsEditing] = useState(false);
+  const [formData, setFormData] = useState({ telefono: '', ciudad: '' });
   const [role, setRole] = useState(null); // 'alumno' o 'profesor'
   const [unions, setUnions] = useState([]); // todas las uniones del usuario
   const [acceptedClasses, setAcceptedClasses] = useState([]); // solo las clases aceptadas
@@ -94,42 +147,62 @@ export default function Perfil() {
   });
   const [chartData, setChartData] = useState([]); // datos para gráficas mensuales
 
-  // 1) Determinar rol y cargar uniones
+  const isOwnProfile = auth.currentUser && auth.currentUser.uid === userId;
+
+  const handleSave = async () => {
+    await updateDoc(doc(db, 'usuarios', userId), {
+      telefono: formData.telefono,
+      ciudad: formData.ciudad,
+    });
+    setProfile(p => ({ ...p, telefono: formData.telefono, ciudad: formData.ciudad }));
+    setIsEditing(false);
+  };
+
+  const handlePhotoChange = async e => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const storageRef = ref(storage, `perfiles/${userId}`);
+    await uploadBytes(storageRef, file);
+    const url = await getDownloadURL(storageRef);
+    await updateDoc(doc(db, 'usuarios', userId), { photoURL: url });
+    setProfile(p => ({ ...p, photoURL: url }));
+  };
+
+  // 1) Cargar datos de perfil y determinar rol/uniones
   useEffect(() => {
-    async function fetchUnions() {
-      const user = auth.currentUser;
-      if (!user) return;
+    async function fetchData() {
+      if (!userId) return;
 
-      // Verificar si es alumno
-      const qAlumno = query(
+      const userSnap = await getDoc(doc(db, 'usuarios', userId));
+      if (userSnap.exists()) {
+        const data = userSnap.data();
+        setProfile(data);
+        setFormData({ telefono: data.telefono || '', ciudad: data.ciudad || '' });
+        setRole(data.rol || null);
+      }
+
+      // Cargar uniones según rol
+      const alumnoQuery = query(
         collection(db, 'clases_union'),
-        where('alumnoId', '==', user.uid)
+        where('alumnoId', '==', userId)
       );
-      const snapAlumno = await getDocs(qAlumno);
-      if (!snapAlumno.empty) {
-        setRole('alumno');
-        setUnions(snapAlumno.docs.map((d) => ({ id: d.id, ...d.data() })));
+      const alumnoSnap = await getDocs(alumnoQuery);
+      if (!alumnoSnap.empty) {
+        setUnions(alumnoSnap.docs.map(d => ({ id: d.id, ...d.data() })));
         return;
       }
 
-      // Si no es alumno, verificar si es profesor
-      const qProfesor = query(
+      const profQuery = query(
         collection(db, 'clases_union'),
-        where('profesorId', '==', user.uid)
+        where('profesorId', '==', userId)
       );
-      const snapProfesor = await getDocs(qProfesor);
-      if (!snapProfesor.empty) {
-        setRole('profesor');
-        setUnions(snapProfesor.docs.map((d) => ({ id: d.id, ...d.data() })));
-        return;
+      const profSnap = await getDocs(profQuery);
+      if (!profSnap.empty) {
+        setUnions(profSnap.docs.map(d => ({ id: d.id, ...d.data() })));
       }
-
-      // Si no pertenece a ninguna unión
-      setRole(null);
-      setUnions([]);
     }
-    fetchUnions();
-  }, []);
+    fetchData();
+  }, [userId]);
 
   // 2) Suscribirse a “clases_asignadas” aceptadas de cada unión
   useEffect(() => {
@@ -223,13 +296,13 @@ export default function Perfil() {
     setChartData(dataGrafico);
   }, [acceptedClasses, role]);
 
-  if (role === null) {
+  if (!profile) {
     return (
       <Page>
         <Container>
           <Title>Perfil</Title>
           <p style={{ textAlign: 'center', color: '#666' }}>
-            No tienes un perfil asociado, o no perteneces a ninguna unión activa.
+            No se encontró el perfil solicitado.
           </p>
         </Container>
       </Page>
@@ -240,6 +313,50 @@ export default function Perfil() {
     <Page>
       <Container>
         <Title>Mi Perfil ({role === 'alumno' ? 'Alumno' : 'Profesor'})</Title>
+
+        <ProfileHeader>
+          <PhotoWrapper>
+            {profile.photoURL && <Photo src={profile.photoURL} alt="Foto" />}
+            {isOwnProfile && (
+              <input type="file" onChange={handlePhotoChange} />
+            )}
+          </PhotoWrapper>
+          <div>
+            <h2>
+              {profile.nombre} {profile.apellido}
+            </h2>
+            <p>{profile.email}</p>
+            {isEditing ? (
+              <>
+                <TextInput
+                  value={formData.telefono}
+                  onChange={e =>
+                    setFormData({ ...formData, telefono: e.target.value })
+                  }
+                  placeholder="Teléfono"
+                />
+                <TextInput
+                  value={formData.ciudad}
+                  onChange={e =>
+                    setFormData({ ...formData, ciudad: e.target.value })
+                  }
+                  placeholder="Ciudad"
+                />
+                <EditButton onClick={handleSave}>Guardar</EditButton>
+              </>
+            ) : (
+              <>
+                <p>Teléfono: {profile.telefono || '-'}</p>
+                <p>Ciudad: {profile.ciudad || '-'}</p>
+                {isOwnProfile && (
+                  <EditButton onClick={() => setIsEditing(true)}>
+                    Editar datos
+                  </EditButton>
+                )}
+              </>
+            )}
+          </div>
+        </ProfileHeader>
 
         {/* Métricas generales */}
         <Section>
