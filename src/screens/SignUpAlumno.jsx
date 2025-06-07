@@ -120,9 +120,12 @@ const ToggleOption = styled.button`
 `;
 
 // Dropdown
-const DropdownContainer = styled.div` position: relative; width: 100%; `;
+const DropdownContainer = styled.div`
+  position: relative;
+  width: 100%;
   opacity: ${p => (p.disabled ? 0.6 : 1)};
   pointer-events: ${p => (p.disabled ? "none" : "auto")};
+`;
 const DropdownHeader = styled.div`
   padding: 0.7rem 0.9rem;
   border: 1px solid #ccc;
