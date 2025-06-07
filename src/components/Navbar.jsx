@@ -255,22 +255,16 @@ const PopupButton = styled.button`
 `;
 
 const PopupLink = styled(Link)`
-  width: 100%;
-  box-sizing: border-box;
-  background-color: ${({ theme }) => theme.colors.secondary};
-  color: ${({ theme }) => theme.colors.primary};
-  padding: 0.75rem;
-  border: none;
-  border-radius: 4px;
-  font-size: 1rem;
-  font-weight: 700;
-  text-align: center;
+  display: block;
+  color: #fff;
   text-decoration: none;
-  margin-bottom: 1rem;
-  transition: background-color 0.2s ease, transform 0.2s ease;
+  padding: 0.5rem 0.25rem;
+  margin-bottom: 0.75rem;
+  text-align: center;
+  font-size: 1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
   &:hover {
-    background-color: ${({ theme }) => theme.colors.accent};
-    transform: translateY(-2px);
+    color: ${({ theme }) => theme.colors.accent};
   }
 `;
 
