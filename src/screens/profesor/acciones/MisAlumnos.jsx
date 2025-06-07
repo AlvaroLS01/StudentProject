@@ -7,6 +7,7 @@ import {
   query,
   where,
   getDocs,
+  getDoc,
   addDoc,
   serverTimestamp,
   onSnapshot,
@@ -202,11 +203,6 @@ const InputNumber = styled.input`
   border-radius: 6px;
 `;
 
-const InputText = styled.input`
-  padding: 0.5rem;
-  border: 1px solid #ccc;
-  border-radius: 6px;
-`;
 
 const ModalActions = styled.div`
   display: flex;
@@ -266,6 +262,8 @@ export default function MisAlumnos() {
   const [fechaClase, setFechaClase] = useState('');
   const [duracion, setDuracion] = useState('');
   const [asignMateria, setAsignMateria] = useState('');
+  const [modalidad, setModalidad] = useState('online');
+  const [asignaturasList, setAsignaturasList] = useState([]);
   const scrollRef = useRef();
   const navigate = useNavigate();
 
@@ -282,6 +280,14 @@ export default function MisAlumnos() {
       setUnions(snap.docs.map(d => ({ id: d.id, ...d.data() })));
     }
     fetchUnions();
+  }, []);
+
+  // Cargar lista de asignaturas para el desplegable
+  useEffect(() => {
+    (async () => {
+      const snap = await getDocs(collection(db, 'asignaturas'));
+      setAsignaturasList(snap.docs.map(d => d.data().asignatura));
+    })();
   }, []);
 
   // 2. Escucha los mensajes del chat activo
@@ -339,6 +345,7 @@ export default function MisAlumnos() {
     setFechaClase('');
     setDuracion('');
     setAsignMateria('');
+    setModalidad('online');
   };
 
   // 6. Envía la propuesta de clase
@@ -348,6 +355,11 @@ export default function MisAlumnos() {
       return;
     }
     const durNum = parseFloat(duracion);
+    // Obtener precios de la clase principal
+    const claseSnap = await getDoc(doc(db, 'clases', selectedUnion.claseId));
+    const data = claseSnap.exists() ? claseSnap.data() : {};
+    const precioProf = parseFloat(data.precioSeleccionado || data.precioProfesores || 0);
+    const precioPad = parseFloat(data.precioPadres || 0);
 
     // Guardamos la propuesta en subcolección 'clases_asignadas'
     await addDoc(
@@ -358,6 +370,11 @@ export default function MisAlumnos() {
         fecha: fechaClase,
         duracion: durNum,
         asignatura: asignMateria,
+        modalidad,
+        precioProfesor: precioProf,
+        precioPadres: precioPad,
+        precioTotalProfesor: +(precioProf * durNum).toFixed(2),
+        precioTotalPadres: +(precioPad * durNum).toFixed(2),
         estado: 'pendiente',
         confirmada: false,
         createdAt: serverTimestamp() // timestamp para ordenar
@@ -522,13 +539,19 @@ export default function MisAlumnos() {
                 value={duracion}
                 onChange={e => setDuracion(e.target.value)}
               />
+              <Label>Modalidad:</Label>
+              <select value={modalidad} onChange={e => setModalidad(e.target.value)}>
+                <option value="online">Online</option>
+                <option value="presencial">Presencial</option>
+              </select>
+
               <Label>Asignatura:</Label>
-              <InputText
-                type="text"
-                value={asignMateria}
-                onChange={e => setAsignMateria(e.target.value)}
-                placeholder="Ej. Matemáticas"
-              />
+              <select value={asignMateria} onChange={e => setAsignMateria(e.target.value)}>
+                <option value="" disabled>Selecciona asignatura</option>
+                {asignaturasList.map((a,i) => (
+                  <option key={i} value={a}>{a}</option>
+                ))}
+              </select>
             </Form>
             <ModalActions>
               <ModalButton onClick={() => setOpenProposalModal(false)}>

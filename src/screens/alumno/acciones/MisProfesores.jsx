@@ -355,6 +355,7 @@ export default function MisProfesores() {
                           <strong>{item.asignatura}</strong> para el{' '}
                           <strong>{item.fecha}</strong> ({item.duracion}h)
                         </div>
+                        <div>Coste: €{(item.precioTotalPadres || 0).toFixed(2)}</div>
                         <AcceptButton onClick={() => acceptProposal(item)}>
                           Aceptar
                         </AcceptButton>

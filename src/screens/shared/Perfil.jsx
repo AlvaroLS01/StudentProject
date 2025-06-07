@@ -182,9 +182,9 @@ export default function Perfil() {
       0
     );
 
-    // 3.2) Total facturado (sumar precioTotal)
+    // 3.2) Total facturado (sumar precioTotalPadres)
     const totalFacturado = acceptedClasses.reduce(
-      (acc, c) => acc + (c.precioTotal || 0),
+      (acc, c) => acc + (c.precioTotalPadres || 0),
       0
     );
 
@@ -192,14 +192,14 @@ export default function Perfil() {
     const totalGastado =
       role === 'alumno'
         ? acceptedClasses.reduce(
-            (acc, c) => acc + (c.precioTotal || 0),
+            (acc, c) => acc + (c.precioTotalPadres || 0),
             0
           )
         : 0;
     const totalGanado =
       role === 'profesor'
         ? acceptedClasses.reduce(
-            (acc, c) => acc + (c.precioTotal || 0),
+            (acc, c) => acc + (c.precioTotalProfesor || 0),
             0
           )
         : 0;
@@ -212,7 +212,7 @@ export default function Perfil() {
       const mes = c.fecha.slice(0, 7); // "YYYY-MM"
       if (!agrupado[mes]) agrupado[mes] = { mes, horas: 0, facturado: 0 };
       agrupado[mes].horas += c.duracion || 0;
-      agrupado[mes].facturado += c.precioTotal || 0;
+      agrupado[mes].facturado += c.precioTotalPadres || 0;
     });
     const dataGrafico = Object.values(agrupado).sort((a, b) => {
       return (
