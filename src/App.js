@@ -2,6 +2,7 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate, Outlet } from 'react-router-dom';
 import RequireAuth from './components/RequireAuth';
+import RedirectLoggedIn from './components/RedirectLoggedIn';
 import styled from 'styled-components';
 
 import ScrollToTop     from './components/ScrollToTop';
@@ -61,7 +62,12 @@ export default function App() {
 
           {/* Con Navbar/Footer */}
           <Route element={<Layout />}>
-            <Route path="/home"                 element={<Home />} />
+            <Route element={<RedirectLoggedIn />}>
+              <Route path="/home"             element={<Home />} />
+              <Route path="/reserva-tu-clase" element={<ReservaClase />} />
+              <Route path="/ser-profesor"     element={<SerProfesor />} />
+              <Route path="/quienes-somos"    element={<QuienesSomos />} />
+            </Route>
 
             {/* Ruta de perfil con parámetro userId */}
             <Route path="/perfil/:userId"       element={<Perfil />} />
@@ -87,12 +93,9 @@ export default function App() {
               <Route path="/profesor/mis-alumnos" element={<MisAlumnos />} />
             </Route>
 
-            {/* Rutas públicas */}
-            <Route path="/reserva-tu-clase"     element={<ReservaClase />} />
-            <Route path="/ser-profesor"         element={<SerProfesor />} />
-            <Route path="/quienes-somos"        element={<QuienesSomos />} />
-            <Route path="/contacto"             element={<Contacto />} />
-            <Route path="/alta"                 element={<Alta />} />
+              {/* Rutas públicas */}
+              <Route path="/contacto"             element={<Contacto />} />
+              <Route path="/alta"                 element={<Alta />} />
 
             {/* Cualquier otra ruta redirige a /home */}
             <Route path="*" element={<Navigate to="/home" replace />} />
