@@ -12,9 +12,7 @@ import {
   format,
   isSameMonth,
   isSameDay,
-  parseISO,
-  getDay,
-  eachDayOfInterval
+  parseISO
 } from 'date-fns';
 import { es } from 'date-fns/locale';
 

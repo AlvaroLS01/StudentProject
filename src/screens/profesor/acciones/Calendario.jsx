@@ -11,9 +11,7 @@ import {
   format,
   isSameMonth,
   isSameDay,
-  parseISO,
-  getDay,
-  eachDayOfInterval
+  parseISO
 } from 'date-fns';
 import { es } from 'date-fns/locale';
 
@@ -114,16 +112,6 @@ const EventItem = styled.div`
   line-height: 1.2;
 `;
 
-// Mapeo de días para recurrentes
-const dayNameToNum = {
-  'Domingo': 0,
-  'Lunes':   1,
-  'Martes':  2,
-  'Miércoles': 3,
-  'Jueves':  4,
-  'Viernes': 5,
-  'Sábado':  6
-};
 
 export default function CalendarioProfesor() {
   const [currentMonth, setCurrentMonth] = useState(new Date());
@@ -132,8 +120,6 @@ export default function CalendarioProfesor() {
 
   useEffect(() => {
     (async () => {
-      const uSnap = await getDoc(doc(db, 'usuarios', auth.currentUser.uid));
-      const nombre = uSnap.exists() ? `${uSnap.data().nombre} ${uSnap.data().apellidos || ''}`.trim() : '';
       const q = query(
         collection(db, 'clases_union'),
         where('profesorId', '==', auth.currentUser.uid)
