@@ -1,6 +1,7 @@
 // src/App.js
 import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate, Outlet } from 'react-router-dom';
+import RequireAuth from './components/RequireAuth';
 import styled from 'styled-components';
 
 import ScrollToTop     from './components/ScrollToTop';
@@ -65,20 +66,26 @@ export default function App() {
             {/* Ruta de perfil con parámetro userId */}
             <Route path="/perfil/:userId"       element={<Perfil />} />
 
-            <Route path="/alumno"               element={<PanelAlumno />} />
-            <Route path="/alumno/nueva-clase"   element={<NuevaClase />} />
-            <Route path="/alumno/clases"        element={<Clases />} />
-            <Route path="/alumno/calendario"    element={<CalendarioA />} />
-            <Route path="/profesor/mis-profesores" element={<MisProfesores />} />
+            <Route element={<RequireAuth allowedRoles={['alumno','padre','admin']} />}>
+              <Route path="/alumno"               element={<PanelAlumno />} />
+              <Route path="/alumno/nueva-clase"   element={<NuevaClase />} />
+              <Route path="/alumno/clases"        element={<Clases />} />
+              <Route path="/alumno/calendario"    element={<CalendarioA />} />
+              <Route path="/profesor/mis-profesores" element={<MisProfesores />} />
+            </Route>
 
-            <Route path="/admin"                element={<PanelAdmin />} />
-            <Route path="/admin/acciones/gestion-clases" element={<GestionClases />} />
+            <Route element={<RequireAuth allowedRoles={['admin']} />}>
+              <Route path="/admin"                element={<PanelAdmin />} />
+              <Route path="/admin/acciones/gestion-clases" element={<GestionClases />} />
+            </Route>
 
-            <Route path="/profesor"             element={<PanelProfesor />} />
-            <Route path="/profesor/ofertas"     element={<Ofertas />} />
-            <Route path="/profesor/calendario"  element={<CalendarioP />} />
-            <Route path="/profesor/mis-clases"  element={<ClasesProfesor />} />
-            <Route path="/profesor/mis-alumnos" element={<MisAlumnos />} />
+            <Route element={<RequireAuth allowedRoles={['profesor','admin']} />}>
+              <Route path="/profesor"             element={<PanelProfesor />} />
+              <Route path="/profesor/ofertas"     element={<Ofertas />} />
+              <Route path="/profesor/calendario"  element={<CalendarioP />} />
+              <Route path="/profesor/mis-clases"  element={<ClasesProfesor />} />
+              <Route path="/profesor/mis-alumnos" element={<MisAlumnos />} />
+            </Route>
 
             {/* Rutas públicas */}
             <Route path="/reserva-tu-clase"     element={<ReservaClase />} />
