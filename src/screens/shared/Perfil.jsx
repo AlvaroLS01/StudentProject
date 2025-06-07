@@ -14,6 +14,7 @@ import {
   updateDoc,
 } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import cameraIcon from '../../assets/icons/camara.png';
 import {
   BarChart,
   Bar,
@@ -96,12 +97,36 @@ const PhotoWrapper = styled.div`
   overflow: hidden;
   background: #e2e8f0;
   flex-shrink: 0;
+  position: relative;
 `;
 
 const Photo = styled.img`
   width: 100%;
   height: 100%;
   object-fit: cover;
+`;
+
+const HiddenFileInput = styled.input`
+  display: none;
+`;
+
+const PhotoLabel = styled.label`
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+`;
+
+const CameraOverlay = styled.img`
+  width: 40px;
+  height: 40px;
+  opacity: ${({ hasPhoto }) => (hasPhoto ? 1 : 0.7)};
+  filter: ${({ hasPhoto }) => (hasPhoto ? 'invert(1)' : 'none')};
 `;
 
 const EditButton = styled.button`
@@ -312,13 +337,28 @@ export default function Perfil() {
   return (
     <Page>
       <Container>
-        <Title>Mi Perfil ({role === 'alumno' ? 'Alumno' : 'Profesor'})</Title>
+        <Title>{profile.nombre} {profile.apellido}</Title>
 
         <ProfileHeader>
           <PhotoWrapper>
             {profile.photoURL && <Photo src={profile.photoURL} alt="Foto" />}
             {isOwnProfile && (
-              <input type="file" onChange={handlePhotoChange} />
+              <>
+                <HiddenFileInput
+                  id="photo-input"
+                  type="file"
+                  onChange={handlePhotoChange}
+                />
+                <PhotoLabel htmlFor="photo-input">
+                  <CameraOverlay
+                    src={cameraIcon}
+                    hasPhoto={!!profile.photoURL}
+                  />
+                </PhotoLabel>
+              </>
+            )}
+            {!profile.photoURL && !isOwnProfile && (
+              <CameraOverlay src={cameraIcon} hasPhoto={false} />
             )}
           </PhotoWrapper>
           <div>
