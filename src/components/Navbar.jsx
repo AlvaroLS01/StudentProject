@@ -254,6 +254,26 @@ const PopupButton = styled.button`
   }
 `;
 
+const PopupLink = styled(Link)`
+  width: 100%;
+  box-sizing: border-box;
+  background-color: ${({ theme }) => theme.colors.secondary};
+  color: ${({ theme }) => theme.colors.primary};
+  padding: 0.75rem;
+  border: none;
+  border-radius: 4px;
+  font-size: 1rem;
+  font-weight: 700;
+  text-align: center;
+  text-decoration: none;
+  margin-bottom: 1rem;
+  transition: background-color 0.2s ease, transform 0.2s ease;
+  &:hover {
+    background-color: ${({ theme }) => theme.colors.accent};
+    transform: translateY(-2px);
+  }
+`;
+
 const PopupRegister = styled.p`
   font-size: 0.9rem;
   text-align: center;
@@ -443,6 +463,7 @@ export default function Navbar() {
                   Hola, {userData?.nombre}
                 </AccessButton>
                 <LoginPopup show={loginOpen}>
+                  <PopupLink to={`/perfil/${user?.uid}`}>Mi Cuenta</PopupLink>
                   <PopupButton onClick={handleLogout}>
                     Cerrar sesión
                   </PopupButton>
