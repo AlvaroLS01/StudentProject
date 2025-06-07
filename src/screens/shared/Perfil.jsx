@@ -341,8 +341,14 @@ export default function Perfil() {
 
         <ProfileHeader>
           <PhotoWrapper>
-            {profile.photoURL && <Photo src={profile.photoURL} alt="Foto" />}
-            {isOwnProfile && (
+            {profile.photoURL ? (
+              <Photo src={profile.photoURL} alt="Foto" />
+            ) : (
+              (!isOwnProfile || !isEditing) && (
+                <CameraOverlay src={cameraIcon} hasPhoto={false} />
+              )
+            )}
+            {isOwnProfile && isEditing && (
               <>
                 <HiddenFileInput
                   id="photo-input"
@@ -356,9 +362,6 @@ export default function Perfil() {
                   />
                 </PhotoLabel>
               </>
-            )}
-            {!profile.photoURL && !isOwnProfile && (
-              <CameraOverlay src={cameraIcon} hasPhoto={false} />
             )}
           </PhotoWrapper>
           <div>
