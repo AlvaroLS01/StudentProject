@@ -559,6 +559,13 @@ export default function Ofertas() {
     setSelected(null);
     setSelectedSlots(new Set());
 
+    // Aviso de proceso de selección
+    window.alert(
+      'Has entrado en el proceso de selección de esta clase. ' +
+      'Aún no has sido seleccionado, pero si los administradores deciden asignarte ' +
+      'recibirás un correo en la dirección con la que te registraste.'
+    );
+
     // Construir el texto de notificación
     const inicioTxt = clase.fechaInicio ? formatSpanishDate(new Date(clase.fechaInicio)) : '—';
     const finTxt = clase.fechaFin ? formatSpanishDate(new Date(clase.fechaFin)) : '—';
