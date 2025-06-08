@@ -12,9 +12,12 @@ export const ChildProvider = ({ children }) => {
     if (userData?.rol === 'padre') {
       const hijos = userData.hijos || [];
       setChildList(hijos);
-      if (!selectedChild && hijos.length) {
-        setSelectedChild(hijos[0]);
-      }
+      setSelectedChild(prev => {
+        if (prev && hijos.includes(prev)) {
+          return prev;
+        }
+        return hijos[0] || null;
+      });
     } else {
       setChildList([]);
       setSelectedChild(null);
