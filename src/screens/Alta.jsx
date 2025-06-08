@@ -125,7 +125,7 @@ const Alta = () => (
             Cuéntanos tus objetivos y recibe una sesión de demostración gratis. Nuestro equipo te ayudará a diseñar un plan de estudios único para ti.
           </CardDesc>
           <CardButton to="/alta-alumno">
-            Se uno de nuestros alumnos
+            Quiero una clase
           </CardButton>
         </CardContent>
       </Card>
