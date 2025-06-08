@@ -16,6 +16,10 @@ export const theme = {
 };
 
 export const GlobalStyle = createGlobalStyle`
+  *, *::before, *::after {
+    box-sizing: border-box;
+  }
+
   html, body, #root {
     margin: 0;
     padding: 0;
@@ -25,6 +29,8 @@ export const GlobalStyle = createGlobalStyle`
     -moz-osx-font-smoothing: grayscale;
     background-color: ${({ theme }) => theme.colors.background};
     color: ${({ theme }) => theme.colors.text};
+    transition: background-color 0.3s ease, color 0.3s ease;
+    scroll-behavior: smooth;
   }
 
   a {
