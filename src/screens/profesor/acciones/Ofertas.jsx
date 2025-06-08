@@ -411,6 +411,7 @@ export default function Ofertas() {
   const [selected, setSelected] = useState(null);
   const [selectedSlots, setSelectedSlots] = useState(new Set());
   const [confirmModal, setConfirmModal] = useState(false);
+  const [infoModal, setInfoModal] = useState(false);
 
   // Notificaciones
   const [successNotification, setSuccessNotification] = useState('');
@@ -559,12 +560,8 @@ export default function Ofertas() {
     setSelected(null);
     setSelectedSlots(new Set());
 
-    // Aviso de proceso de selección
-    window.alert(
-      'Has entrado en el proceso de selección de esta clase. ' +
-      'Aún no has sido seleccionado, pero si los administradores deciden asignarte ' +
-      'recibirás un correo en la dirección con la que te registraste.'
-    );
+    // Mostrar información de proceso de selección en un modal
+    setInfoModal(true);
 
     // Construir el texto de notificación
     const inicioTxt = clase.fechaInicio ? formatSpanishDate(new Date(clase.fechaInicio)) : '—';
@@ -895,6 +892,24 @@ export default function Ofertas() {
                 </ModalButton>
                 <ModalButton primary onClick={confirmRequest}>
                   Confirmar oferta
+                </ModalButton>
+              </ModalActions>
+            </Modal>
+          </Overlay>
+        )}
+
+        {/* Modal informativo tras enviar oferta */}
+        {infoModal && (
+          <Overlay>
+            <Modal>
+              <ModalText>
+                Has entrado en el proceso de selección de esta clase.<br/>
+                Aún no has sido seleccionado, pero si los administradores deciden asignarte
+                recibirás un correo en la dirección con la que te registraste.
+              </ModalText>
+              <ModalActions>
+                <ModalButton primary onClick={() => setInfoModal(false)}>
+                  Entendido
                 </ModalButton>
               </ModalActions>
             </Modal>
