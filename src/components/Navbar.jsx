@@ -22,11 +22,12 @@ const slideDown = keyframes`
 `;
 
 const Nav = styled.nav`
-  background-color: ${({ theme }) => theme.colors.primary};
+  background: linear-gradient(90deg, ${({ theme }) => theme.colors.primary} 0%, #056a5c 100%);
   padding: 1rem 2rem;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
   position: relative;
   z-index: 1000;
+  transition: background 0.3s ease;
 `;
 
 const Container = styled.div`
