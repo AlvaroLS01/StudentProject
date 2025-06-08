@@ -5,6 +5,7 @@ import styled from 'styled-components';
 // Importa tu componente de gestión de clases para admin
 import GestionClases from './acciones/GestionClases';
 import Facturacion   from './acciones/Facturacion';
+import Profesores    from './acciones/Profesores';
 
 const Container = styled.div`
   display: flex;
@@ -81,6 +82,8 @@ export default function PanelAdmin() {
         return <GestionClases />;
       case 'facturacion':
         return <Facturacion />;
+      case 'profesores':
+        return <Profesores />;
       default:
         return <GestionClases />;
     }
@@ -105,6 +108,14 @@ export default function PanelAdmin() {
               onClick={() => setView('facturacion')}
             >
               Facturación
+            </Button>
+          </MenuItem>
+          <MenuItem>
+            <Button
+              active={view === 'profesores'}
+              onClick={() => setView('profesores')}
+            >
+              Profesores
             </Button>
           </MenuItem>
         </Menu>

@@ -281,7 +281,8 @@ export default function MisProfesores() {
     await updateDoc(propRef, {
       confirmada: true,
       estado: 'aceptada',
-      confirmadaEn: serverTimestamp()
+      confirmadaEn: serverTimestamp(),
+      pendienteAdmin: true
     });
     // NOTA: no agregamos mensaje extra al chat; el propio bubble desaparecerá
   };
