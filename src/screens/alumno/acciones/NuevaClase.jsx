@@ -453,6 +453,24 @@ export default function NuevaClase() {
     setConfirmModal(true);
   };
 
+  // Restablecer todos los campos del formulario
+  const resetForm = () => {
+    setAsignatura('');
+    setCurso('');
+    setTipoClase('individual');
+    setModalidad('online');
+    setCiudad('');
+    setZona('');
+    setStartDate('');
+    setEndDate('');
+    setNoEndDate(false);
+    setHorasSemana('');
+    setNotas('');
+    setPrecioPadres(0);
+    setPrecioProfesores(0);
+    setSelectedSlots(new Set());
+  };
+
   // Confirmar y guardar
   const confirmRequest = async () => {
     if (submitting) return;
@@ -479,6 +497,7 @@ export default function NuevaClase() {
         createdAt: serverTimestamp()
       });
       show('Clase solicitada con éxito');
+      resetForm();
       setConfirmModal(false);
       navigate('/alumno?tab=calendario');
     } catch (err) {
