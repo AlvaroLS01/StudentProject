@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import styled, { keyframes } from 'styled-components';
 import { Link, useNavigate } from 'react-router-dom';
-import logo from '../assets/logo-fondo.jpg';
+import logo from '../assets/logonavbar.png';
 import googleLogo from '../assets/google.png';
 import appleLogo from '../assets/apple.png';
 
