@@ -190,7 +190,7 @@ export default function GestionClases() {
     })();
   }, []);
 
-  const assignOffer = async (classId, offer, alumnoId, alumnoNombre) => {
+  const assignOffer = async (classId, offer, alumnoId, alumnoNombre, padreNombre, hijoId) => {
     await updateDoc(doc(db, 'clases', classId, 'ofertas', offer.id), {
       estado: 'aceptada',
       updatedAt: serverTimestamp()
@@ -207,6 +207,8 @@ export default function GestionClases() {
       alumnoNombre,
       profesorId: offer.profesorId,
       profesorNombre: offer.profesorNombre,
+      padreNombre: padreNombre || null,
+      hijoId: hijoId || null,
       createdAt: serverTimestamp()
     });
     setClases(cs => cs.filter(c => c.id !== classId));
@@ -333,7 +335,14 @@ export default function GestionClases() {
                       </div>
                       <AcceptText
                         onClick={() =>
-                          assignOffer(c.id, o, c.alumnoId, c.alumnoNombre)
+                          assignOffer(
+                            c.id,
+                            o,
+                            c.alumnoId,
+                            c.alumnoNombre,
+                            c.padreNombre,
+                            c.hijoId
+                          )
                         }
                       >
                         Aceptar oferta

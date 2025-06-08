@@ -4,6 +4,8 @@ import styled, { keyframes } from 'styled-components';
 import { useNavigate } from 'react-router-dom';
 import { useNotification } from "../../../NotificationContext";
 import { auth, db } from '../../../firebase/firebaseConfig';
+import { useAuth } from '../../../AuthContext';
+import { useChild } from '../../../ChildContext';
 import {
   collection,
   getDocs,
@@ -335,6 +337,9 @@ export default function NuevaClase() {
   const [confirmModal, setConfirmModal]         = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
+  const { userData } = useAuth();
+  const { selectedChild } = useChild();
+
   const [alumnoNombre, setAlumnoNombre]         = useState('');
   const [alumnoApellidos, setAlumnoApellidos]   = useState('');
   const asignRef = useRef();
@@ -348,14 +353,19 @@ export default function NuevaClase() {
     (async () => {
       const u = auth.currentUser;
       if (!u) return;
-      const snap = await getDoc(doc(db,'usuarios',u.uid));
+      const snap = await getDoc(doc(db, 'usuarios', u.uid));
       if (snap.exists()) {
         const d = snap.data();
-        setAlumnoNombre(d.nombre);
-        setAlumnoApellidos(d.apellidos || d.apellido || '');
+        if (d.rol === 'padre' && selectedChild) {
+          setAlumnoNombre(selectedChild.nombre);
+          setAlumnoApellidos('');
+        } else {
+          setAlumnoNombre(d.nombre);
+          setAlumnoApellidos(d.apellidos || d.apellido || '');
+        }
       }
     })();
-  }, []);
+  }, [selectedChild]);
 
   // Carga asignaturas y ciudades
   useEffect(() => {
@@ -480,6 +490,8 @@ export default function NuevaClase() {
         alumnoId: auth.currentUser.uid,
         alumnoNombre,
         alumnoApellidos,
+        hijoId: userData?.rol === 'padre' ? selectedChild?.id : null,
+        padreNombre: userData?.rol === 'padre' ? userData.nombre : null,
         asignatura,
         curso,
         tipoClase,

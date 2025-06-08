@@ -764,7 +764,10 @@ export default function Ofertas() {
             <Card key={c.id}>
               <CardHeader>
                 <HeaderLeft>
-                  <StudentName>{c.alumnoNombre} {c.alumnoApellidos}</StudentName>
+                  <StudentName>
+                    {c.alumnoNombre}
+                    {c.padreNombre ? ` (${c.padreNombre})` : ` ${c.alumnoApellidos || ''}`}
+                  </StudentName>
                   <HeaderBadges>
                     <Badge variant="asignatura">{c.asignatura}</Badge>
                     <Badge variant="curso">{c.curso}</Badge>

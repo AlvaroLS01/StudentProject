@@ -5,6 +5,7 @@ import './index.css';
 import App from './App';
 import { NotificationProvider } from './NotificationContext';
 import { AuthProvider } from './AuthContext';
+import { ChildProvider } from './ChildContext';
 import reportWebVitals from './reportWebVitals';
 import { ThemeProvider } from 'styled-components';
 import { theme, GlobalStyle } from './theme';
@@ -15,9 +16,11 @@ root.render(
     <ThemeProvider theme={theme}>
       <GlobalStyle />
       <AuthProvider>
-        <NotificationProvider>
-          <App />
-        </NotificationProvider>
+        <ChildProvider>
+          <NotificationProvider>
+            <App />
+          </NotificationProvider>
+        </ChildProvider>
       </AuthProvider>
     </ThemeProvider>
   </React.StrictMode>
