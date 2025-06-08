@@ -76,16 +76,15 @@ const AddButton = styled.button`
   background: #006D5B;
   color: #fff;
   border: none;
-  border-radius: 50%;
-  width: 1.5rem;
-  height: 1.5rem;
-  font-size: 1.2rem;
-  line-height: 1;
+  border-radius: 6px;
+  padding: 0.3rem 0.6rem;
+  font-size: 0.85rem;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
   margin-left: auto;
+  white-space: nowrap;
   &:hover {
     background: #005047;
   }
@@ -277,6 +276,18 @@ const CancelButton = styled.button`
   }
 `;
 
+const AcceptedBadge = styled.button`
+  margin-top: 0.5rem;
+  background: #e2e8f0;
+  color: #4a5568;
+  border: none;
+  border-radius: 6px;
+  padding: 0.3rem 0.5rem;
+  font-size: 0.85rem;
+  cursor: default;
+  pointer-events: none;
+`;
+
 export default function MisAlumnos() {
   const [unions, setUnions] = useState([]);
   const [chatUnionId, setChatUnionId] = useState(null);
@@ -346,7 +357,7 @@ export default function MisAlumnos() {
     return unsub;
   }, [chatUnionId]);
 
-  // 3. Escucha las propuestas de clase pendientes (confirmada == false, estado = 'pendiente')
+  // 3. Escucha las propuestas de clase (pendientes y aceptadas)
   useEffect(() => {
     if (!chatUnionId) {
       setProposals([]);
@@ -354,8 +365,7 @@ export default function MisAlumnos() {
     }
     const q2 = query(
       collection(db, 'clases_union', chatUnionId, 'clases_asignadas'),
-      where('confirmada', '==', false),
-      where('estado', '==', 'pendiente')
+      orderBy('createdAt')
     );
     const unsub2 = onSnapshot(q2, snap => {
       setProposals(snap.docs.map(d => ({ id: d.id, ...d.data() })));
@@ -449,8 +459,10 @@ export default function MisAlumnos() {
   const feedItems = React.useMemo(() => {
     // Cada mensaje: tipo = 'message', conserva senderId, text, createdAt
     const msgs = messages.map(m => ({ ...m, type: 'message' }));
-    // Cada propuesta: tipo = 'proposal', conserva id, asignatura, fecha, duracion, createdAt, etc.
-    const props = proposals.map(p => ({ ...p, type: 'proposal' }));
+    // Cada propuesta: tipo = 'proposal', sólo las pendientes o aceptadas
+    const props = proposals
+      .filter(p => p.estado === 'pendiente' || p.estado === 'aceptada')
+      .map(p => ({ ...p, type: 'proposal' }));
     // Mezclamos en un solo arreglo
     const combined = [...msgs, ...props];
     // Ordenamos por createdAt (Firestore Timestamp)
@@ -487,7 +499,7 @@ export default function MisAlumnos() {
                     openProposal(u);
                   }}
                 >
-                  +
+                  Subir clase +
                 </AddButton>
               </Item>
             ))
@@ -514,12 +526,22 @@ export default function MisAlumnos() {
                       <Sender>{mine ? 'Tú (Propuesta)' : 'Alumno (Propuesta)'}</Sender>
                       <Bubble mine={mine}>
                         <div>
+                          {item.estado === 'aceptada'
+                            ? 'Se ha introducido una hora'
+                            : 'He propuesto una hora'}
+                        </div>
+                        <div>
                           <strong>{item.asignatura}</strong> para el{' '}
                           <strong>{item.fecha}</strong> {item.hora} ({item.duracion}h)
                         </div>
-                        <CancelButton onClick={() => cancelProposal(item)}>
-                          Cancelar
-                        </CancelButton>
+                        {item.estado === 'pendiente' && (
+                          <CancelButton onClick={() => cancelProposal(item)}>
+                            Cancelar
+                          </CancelButton>
+                        )}
+                        {item.estado === 'aceptada' && (
+                          <AcceptedBadge>Clase aceptada</AcceptedBadge>
+                        )}
                       </Bubble>
                       <Timestamp mine={mine}>
                         {hh}:{mm}
