@@ -491,7 +491,8 @@ export default function MisAlumnos() {
                     navigate(`/perfil/${u.alumnoId}`);
                   }}
                 >
-                  {u.alumnoNombre} {u.alumnoApellidos}
+                  {u.alumnoNombre}
+                  {u.padreNombre ? ` (${u.padreNombre})` : ` ${u.alumnoApellidos || ''}`}
                 </NameLink>
                 <AddButton
                   onClick={e => {

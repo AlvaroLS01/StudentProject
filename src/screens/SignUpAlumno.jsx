@@ -339,7 +339,13 @@ export default function SignUpAlumno() {
       if (rolUser === 'alumno') {
         data.fechaNacimiento = fechaNac;
       } else {
-        data.hijo = { nombre: nombreHijo, fechaNacimiento: fechaNacHijo };
+        data.hijos = [
+          {
+            id: Date.now().toString(),
+            nombre: nombreHijo,
+            fechaNacimiento: fechaNacHijo,
+          },
+        ];
       }
       await setDoc(doc(db, 'usuarios', user.uid), data);
       show('Alumno registrado con éxito');
