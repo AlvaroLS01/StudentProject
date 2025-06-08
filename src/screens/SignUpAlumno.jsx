@@ -141,21 +141,29 @@ const DropdownHeader = styled.div`
 const DropdownList = styled.ul`
   position: absolute;
   top: calc(100% + 4px);
-  left: 0; right: 0;
+  left: 0;
+  right: 0;
   max-height: 200px;
   overflow-y: auto;
-  margin: 0; padding: 0;
+  margin: 0;
+  padding: 0;
   list-style: none;
   background: #fff;
   border: 1px solid #ccc;
   border-radius: 8px;
-  box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
   z-index: 10;
 `;
+const DropdownGroupLabel = styled.li`
+  padding: 0.5rem 0.8rem;
+  font-weight: 700;
+  background: #e6f7f2;
+  color: #014F40;
+`;
 const DropdownItem = styled.li`
-  padding: 0.6rem 0.9rem;
+  padding: 0.5rem 0.8rem;
   cursor: pointer;
-  &:hover { background: #f1f8f6; }
+  &:hover { background: #e6f7f2; }
 `;
 const Arrow = styled.span`
   border: solid #034640;
@@ -227,6 +235,26 @@ const ModalButton = styled.button`
   }
 `;
 
+// Cursos agrupados igual que en NuevaClase
+const cursosGrouped = [
+  {
+    group: 'Primaria',
+    options: [
+      '1º Primaria',
+      '2º Primaria',
+      '3º Primaria',
+      '4º Primaria',
+      '5º Primaria',
+      '6º Primaria'
+    ]
+  },
+  { group: 'ESO', options: ['1º ESO', '2º ESO', '3º ESO', '4º ESO'] },
+  {
+    group: 'Bachillerato',
+    options: ['1º Bachillerato', '2º Bachillerato']
+  }
+];
+
 export default function SignUpAlumno() {
   const [email, setEmail]           = useState('');
   const [password, setPassword]     = useState('');
@@ -238,7 +266,6 @@ export default function SignUpAlumno() {
   const [cities, setCities]         = useState([]);
   const [rolUser, setRolUser]       = useState('alumno');
   const [curso, setCurso]           = useState('');
-  const [courses, setCourses]       = useState([]);
   const [cityOpen, setCityOpen]     = useState(false);
   const [courseOpen, setCourseOpen] = useState(false);
   const [fechaNac, setFechaNac]     = useState('');
@@ -251,14 +278,12 @@ export default function SignUpAlumno() {
   const cityRef = useRef();
   const courseRef = useRef();
 
-  // Carga ciudades y cursos
+  // Carga ciudades
   useEffect(() => {
     (async () => {
       try {
         const snapCities = await getDocs(collection(db, 'ciudades'));
         setCities(snapCities.docs.map(d => d.data().ciudad));
-        const snapCourses = await getDocs(collection(db, 'cursos'));
-        setCourses(snapCourses.docs.map(d => d.data().curso));
       } catch (err) {
         console.error(err);
       }
@@ -425,10 +450,21 @@ export default function SignUpAlumno() {
               </DropdownHeader>
               {courseOpen && (
                 <DropdownList>
-                  {courses.map((c,i)=>(
-                    <DropdownItem key={i} onClick={()=>{setCurso(c);setCourseOpen(false)}}>
-                      {c}
-                    </DropdownItem>
+                  {cursosGrouped.map(({ group, options }) => (
+                    <React.Fragment key={group}>
+                      <DropdownGroupLabel>{group}</DropdownGroupLabel>
+                      {options.map((c, i) => (
+                        <DropdownItem
+                          key={i}
+                          onClick={() => {
+                            setCurso(c);
+                            setCourseOpen(false);
+                          }}
+                        >
+                          {c}
+                        </DropdownItem>
+                      ))}
+                    </React.Fragment>
                   ))}
                 </DropdownList>
               )}
