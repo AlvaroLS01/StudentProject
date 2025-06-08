@@ -166,9 +166,10 @@ export default function Perfil() {
   const [acceptedClasses, setAcceptedClasses] = useState([]); // solo las clases aceptadas
   const [metrics, setMetrics] = useState({
     totalHoras: 0,
-    totalFacturado: 0,
-    totalGastado: 0,
     totalGanado: 0,
+    totalClases: 0,
+    participantes: 0,
+    mediaHoras: 0,
   });
   const [chartData, setChartData] = useState([]); // datos para gráficas mensuales
 
@@ -266,34 +267,23 @@ export default function Perfil() {
     if (!acceptedClasses.length) {
       setMetrics({
         totalHoras: 0,
-        totalFacturado: 0,
-        totalGastado: 0,
         totalGanado: 0,
+        totalClases: 0,
+        participantes: 0,
+        mediaHoras: 0,
       });
       setChartData([]);
       return;
     }
 
-    // 3.1) Total de horas
+    // Horas totales y número de clases
     const totalHoras = acceptedClasses.reduce(
       (acc, c) => acc + (c.duracion || 0),
       0
     );
+    const totalClases = acceptedClasses.length;
 
-    // 3.2) Total facturado (sumar precioTotalPadres)
-    const totalFacturado = acceptedClasses.reduce(
-      (acc, c) => acc + (c.precioTotalPadres || 0),
-      0
-    );
-
-    // 3.3) Gasto de alumno vs Ganancia de profesor
-    const totalGastado =
-      role === 'alumno'
-        ? acceptedClasses.reduce(
-            (acc, c) => acc + (c.precioTotalPadres || 0),
-            0
-          )
-        : 0;
+    // Ganancias para los profesores
     const totalGanado =
       role === 'profesor'
         ? acceptedClasses.reduce(
@@ -302,24 +292,52 @@ export default function Perfil() {
           )
         : 0;
 
-    setMetrics({ totalHoras, totalFacturado, totalGastado, totalGanado });
-
-    // 3.4) Agrupar por mes para gráfico
-    const agrupado = {};
+    // Número de alumnos o profesores distintos
+    const partes = new Set();
     acceptedClasses.forEach((c) => {
-      const mes = c.fecha.slice(0, 7); // "YYYY-MM"
-      if (!agrupado[mes]) agrupado[mes] = { mes, horas: 0, facturado: 0 };
-      agrupado[mes].horas += c.duracion || 0;
-      agrupado[mes].facturado += c.precioTotalPadres || 0;
+      const u = unions.find((un) => un.id === c.unionId);
+      if (!u) return;
+      partes.add(role === 'profesor' ? u.alumnoId : u.profesorId);
     });
-    const dataGrafico = Object.values(agrupado).sort((a, b) => {
-      return (
-        new Date(a.mes + '-01').getTime() -
-        new Date(b.mes + '-01').getTime()
-      );
+    const participantes = partes.size;
+
+    const mediaHoras = totalClases ? totalHoras / totalClases : 0;
+
+    setMetrics({
+      totalHoras,
+      totalGanado,
+      totalClases,
+      participantes,
+      mediaHoras,
     });
-    setChartData(dataGrafico);
-  }, [acceptedClasses, role]);
+
+    // Datos para las gráficas
+    let agrupado = {};
+    if (role === 'profesor') {
+      acceptedClasses.forEach((c) => {
+        const mes = c.fecha.slice(0, 7); // YYYY-MM
+        if (!agrupado[mes]) agrupado[mes] = { mes, horas: 0, ganado: 0 };
+        agrupado[mes].horas += c.duracion || 0;
+        agrupado[mes].ganado += c.precioTotalProfesor || 0;
+      });
+      const dataGrafico = Object.values(agrupado).sort((a, b) => {
+        return (
+          new Date(a.mes + '-01').getTime() -
+          new Date(b.mes + '-01').getTime()
+        );
+      });
+      setChartData(dataGrafico);
+    } else {
+      acceptedClasses.forEach((c) => {
+        const u = unions.find((un) => un.id === c.unionId);
+        const prof = u?.profesorNombre || 'Profesor';
+        if (!agrupado[prof]) agrupado[prof] = { profesor: prof, horas: 0 };
+        agrupado[prof].horas += c.duracion || 0;
+      });
+      const dataGrafico = Object.values(agrupado).sort((a, b) => b.horas - a.horas);
+      setChartData(dataGrafico);
+    }
+  }, [acceptedClasses, role, unions]);
 
   if (!profile) {
     return (
@@ -408,39 +426,60 @@ export default function Perfil() {
               <CardLabel>Total de horas</CardLabel>
               <CardValue>{metrics.totalHoras.toFixed(1)}h</CardValue>
             </Card>
-            <Card>
-              <CardLabel>Total facturado</CardLabel>
-              <CardValue>€{metrics.totalFacturado.toFixed(2)}</CardValue>
-            </Card>
-            {role === 'alumno' && (
-              <Card>
-                <CardLabel>Total gastado</CardLabel>
-                <CardValue>€{metrics.totalGastado.toFixed(2)}</CardValue>
-              </Card>
-            )}
             {role === 'profesor' && (
-              <Card>
-                <CardLabel>Total ganado</CardLabel>
-                <CardValue>€{metrics.totalGanado.toFixed(2)}</CardValue>
-              </Card>
+              <>
+                <Card>
+                  <CardLabel>Ingresos totales</CardLabel>
+                  <CardValue>€{metrics.totalGanado.toFixed(2)}</CardValue>
+                </Card>
+                <Card>
+                  <CardLabel>Clases impartidas</CardLabel>
+                  <CardValue>{metrics.totalClases}</CardValue>
+                </Card>
+                <Card>
+                  <CardLabel>Alumnos distintos</CardLabel>
+                  <CardValue>{metrics.participantes}</CardValue>
+                </Card>
+              </>
+            )}
+            {role === 'alumno' && (
+              <>
+                <Card>
+                  <CardLabel>Clases recibidas</CardLabel>
+                  <CardValue>{metrics.totalClases}</CardValue>
+                </Card>
+                <Card>
+                  <CardLabel>Profesores distintos</CardLabel>
+                  <CardValue>{metrics.participantes}</CardValue>
+                </Card>
+                <Card>
+                  <CardLabel>Promedio h/clase</CardLabel>
+                  <CardValue>{metrics.mediaHoras.toFixed(1)}h</CardValue>
+                </Card>
+              </>
             )}
           </MetricsGrid>
         </Section>
 
-        {/* Gráfica mensual */}
+        {/* Gráficas */}
         <Section>
           <h2 style={{ textAlign: 'center', color: '#024837' }}>
-            Evolución mensual
+            {role === 'profesor' ? 'Evolución mensual' : 'Horas por profesor'}
           </h2>
           <ChartContainer>
             <ResponsiveContainer>
               <BarChart data={chartData}>
-                <XAxis dataKey="mes" stroke="#014F40" />
+                <XAxis
+                  dataKey={role === 'profesor' ? 'mes' : 'profesor'}
+                  stroke="#014F40"
+                />
                 <YAxis stroke="#014F40" />
                 <Tooltip />
                 <Legend verticalAlign="top" height={36} />
                 <Bar dataKey="horas" name="Horas" fill="#006D5B" />
-                <Bar dataKey="facturado" name="€ Facturado" fill="#2c7a7b" />
+                {role === 'profesor' && (
+                  <Bar dataKey="ganado" name="€ Ganado" fill="#2c7a7b" />
+                )}
               </BarChart>
             </ResponsiveContainer>
           </ChartContainer>
