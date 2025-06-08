@@ -30,7 +30,6 @@ const Sidebar = styled.nav`
   box-shadow: 2px 0 6px rgba(0,0,0,0.05);
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
   overflow-y: auto;
 `;
 
@@ -68,7 +67,8 @@ const Button = styled.button`
 `;
 
 const ChildSelect = styled.div`
-  margin-top: 1rem;
+  margin-top: auto;
+  padding-top: 1rem;
   label {
     display: block;
     margin-bottom: 0.25rem;
