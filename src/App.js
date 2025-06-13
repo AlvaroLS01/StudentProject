@@ -62,7 +62,7 @@ function AppContent() {
 
   return (
     <AppContainer>
-      {loading && <LoadingScreen />}
+      {loading && <LoadingScreen fullscreen />}
       <Routes>
           {/* Sin Navbar/Footer */}
           <Route path="/alta-profesor" element={<SignUpProfesor />} />
