@@ -17,7 +17,8 @@ const Overlay = styled.div`
   align-items: center;
   justify-content: center;
   background-color: ${({ theme }) => theme.colors.background};
-  z-index: 2000;
+  /* Mantener la pantalla de carga por debajo de la navbar y paneles */
+  z-index: 500;
 `;
 
 const Logo = styled.img`

@@ -25,6 +25,8 @@ const Sidebar = styled.nav`
   padding: 2rem 1rem;
   box-shadow: 2px 0 6px rgba(0,0,0,0.05);
   overflow-y: auto;
+  /* Mantener el panel por encima de la pantalla de carga */
+  z-index: 1000;
 `;
 
 const Logo = styled.h1`
