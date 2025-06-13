@@ -1,6 +1,6 @@
 // src/App.js
-import React from 'react';
-import { BrowserRouter, Routes, Route, Navigate, Outlet } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { BrowserRouter, Routes, Route, Navigate, Outlet, useLocation } from 'react-router-dom';
 import RequireAuth from './components/RequireAuth';
 import RedirectLoggedIn from './components/RedirectLoggedIn';
 import styled from 'styled-components';
@@ -30,6 +30,7 @@ import GestionClases   from './screens/admin/acciones/GestionClases';
 import MisProfesores   from './screens/alumno/acciones/MisProfesores';
 import MisAlumnos      from './screens/profesor/acciones/MisAlumnos';
 import Perfil          from './screens/shared/Perfil';
+import LoadingScreen   from './components/LoadingScreen';
 
 const AppContainer = styled.div`
   display: flex;
@@ -49,12 +50,20 @@ const Layout = () => (
   </>
 );
 
-export default function App() {
+function AppContent() {
+  const location = useLocation();
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    setLoading(true);
+    const timer = setTimeout(() => setLoading(false), 800);
+    return () => clearTimeout(timer);
+  }, [location]);
+
   return (
-    <BrowserRouter>
-      <ScrollToTop />
-      <AppContainer>
-        <Routes>
+    <AppContainer>
+      {loading && <LoadingScreen />}
+      <Routes>
           {/* Sin Navbar/Footer */}
           <Route path="/alta-profesor" element={<SignUpProfesor />} />
           <Route path="/alta-alumno"   element={<SignUpAlumno />} />
@@ -98,10 +107,18 @@ export default function App() {
               <Route path="/alta"                 element={<Alta />} />
 
             {/* Cualquier otra ruta redirige a /home */}
-            <Route path="*" element={<Navigate to="/home" replace />} />
-          </Route>
-        </Routes>
-      </AppContainer>
+          <Route path="*" element={<Navigate to="/home" replace />} />
+        </Route>
+      </Routes>
+    </AppContainer>
+  );
+}
+
+export default function App() {
+  return (
+    <BrowserRouter>
+      <ScrollToTop />
+      <AppContent />
     </BrowserRouter>
   );
 }
