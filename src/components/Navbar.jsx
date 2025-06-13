@@ -13,6 +13,7 @@ import {
   signOut,
   signInWithEmailAndPassword
 } from 'firebase/auth';
+import { getAuthErrorMessage } from '../utils/authErrorMessages';
 import { doc, getDoc } from 'firebase/firestore';
 import { useNotification } from '../NotificationContext';
 
@@ -401,7 +402,7 @@ export default function Navbar() {
       setLoginPassword('');
       setLoginOpen(false);
     } catch (err) {
-      show(`Error al iniciar sesión: ${err.message}`);
+      show(getAuthErrorMessage(err.code));
     } finally {
       setLoggingIn(false);
     }

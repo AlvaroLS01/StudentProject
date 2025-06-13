@@ -14,6 +14,7 @@ import {
   GoogleAuthProvider,
   OAuthProvider
 } from 'firebase/auth';
+import { getAuthErrorMessage } from '../utils/authErrorMessages';
 
 const PageWrapper = styled.div`
   min-height: 100vh;
@@ -182,7 +183,7 @@ const InicioSesion = () => {
       await signInWithEmailAndPassword(auth, email, password);
       navigate('/home');
     } catch (err) {
-      setError(err.message);
+      setError(getAuthErrorMessage(err.code));
     }
     setLoading(false);
   };
@@ -194,7 +195,7 @@ const InicioSesion = () => {
       await signInWithPopup(auth, googleProvider);
       navigate('/home');
     } catch (err) {
-      setError(err.message);
+      setError(getAuthErrorMessage(err.code));
     }
     setLoading(false);
   };
@@ -206,7 +207,7 @@ const InicioSesion = () => {
       await signInWithPopup(auth, appleProvider);
       navigate('/home');
     } catch (err) {
-      setError(err.message);
+      setError(getAuthErrorMessage(err.code));
     }
     setLoading(false);
   };
