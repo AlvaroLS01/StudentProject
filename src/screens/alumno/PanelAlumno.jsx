@@ -31,6 +31,8 @@ const Sidebar = styled.nav`
   display: flex;
   flex-direction: column;
   overflow-y: auto;
+  /* Mantener el panel por encima de la pantalla de carga */
+  z-index: 1000;
 `;
 
 const Logo = styled.h1`
