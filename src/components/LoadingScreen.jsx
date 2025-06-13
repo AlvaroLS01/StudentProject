@@ -1,6 +1,6 @@
 import React from 'react';
 import styled, { keyframes } from 'styled-components';
-import logo from '../assets/logo-sin-fondo.png';
+import logo from '../assets/logo-sin-fondo-negro.png';
 
 const pulse = keyframes`
   0%, 100% { opacity: 0.6; transform: scale(0.9); }
@@ -8,11 +8,11 @@ const pulse = keyframes`
 `;
 
 const Overlay = styled.div`
-  position: fixed;
+  position: ${({ fullscreen }) => (fullscreen ? 'fixed' : 'absolute')};
   top: 0;
   left: 0;
   width: 100%;
-  height: 100%;
+  height: ${({ fullscreen }) => (fullscreen ? '100vh' : '100%')};
   display: flex;
   align-items: center;
   justify-content: center;
@@ -25,9 +25,9 @@ const Logo = styled.img`
   animation: ${pulse} 1.6s ease-in-out infinite;
 `;
 
-export default function LoadingScreen() {
+export default function LoadingScreen({ fullscreen = false, ...rest }) {
   return (
-    <Overlay>
+    <Overlay fullscreen={fullscreen} {...rest}>
       <Logo src={logo} alt="Cargando..." />
     </Overlay>
   );
