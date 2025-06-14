@@ -31,6 +31,7 @@ import MisProfesores   from './screens/alumno/acciones/MisProfesores';
 import MisAlumnos      from './screens/profesor/acciones/MisAlumnos';
 import Perfil          from './screens/shared/Perfil';
 import LoadingScreen   from './components/LoadingScreen';
+import SeleccionRol    from './screens/SeleccionRol';
 
 const AppContainer = styled.div`
   display: flex;
@@ -68,6 +69,7 @@ function AppContent() {
           <Route path="/alta-profesor" element={<SignUpProfesor />} />
           <Route path="/alta-alumno"   element={<SignUpAlumno />} />
           <Route path="/inicio"        element={<InicioSesion />} />
+          <Route path="/seleccion-rol" element={<SeleccionRol />} />
 
           {/* Con Navbar/Footer */}
           <Route element={<Layout />}>

@@ -7,13 +7,14 @@ import googleLogo from '../assets/google.png';
 import appleLogo from '../assets/apple.png';
 
 // Firebase
-import { auth } from '../firebase/firebaseConfig';
+import { auth, db } from '../firebase/firebaseConfig';
 import {
   signInWithEmailAndPassword,
   signInWithPopup,
   GoogleAuthProvider,
   OAuthProvider
 } from 'firebase/auth';
+import { doc, getDoc } from 'firebase/firestore';
 import { getAuthErrorMessage } from '../utils/authErrorMessages';
 
 const PageWrapper = styled.div`
@@ -192,8 +193,13 @@ const InicioSesion = () => {
     setError('');
     setLoading(true);
     try {
-      await signInWithPopup(auth, googleProvider);
-      navigate('/home');
+      const { user } = await signInWithPopup(auth, googleProvider);
+      const snap = await getDoc(doc(db, 'usuarios', user.uid));
+      if (snap.exists()) {
+        navigate('/home');
+      } else {
+        navigate('/seleccion-rol');
+      }
     } catch (err) {
       setError(getAuthErrorMessage(err.code));
     }
