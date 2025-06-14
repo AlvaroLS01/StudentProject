@@ -125,6 +125,7 @@ export default function CompletarDatosGoogle() {
       const data = {
         uid: user.uid,
         email: user.email,
+        photoURL: user.photoURL,
         nombre,
         apellido,
         telefono,
