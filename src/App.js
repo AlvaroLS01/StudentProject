@@ -32,6 +32,7 @@ import MisAlumnos      from './screens/profesor/acciones/MisAlumnos';
 import Perfil          from './screens/shared/Perfil';
 import LoadingScreen   from './components/LoadingScreen';
 import SeleccionRol    from './screens/SeleccionRol';
+import CompletarDatosGoogle from './screens/CompletarDatosGoogle';
 
 const AppContainer = styled.div`
   display: flex;
@@ -70,6 +71,7 @@ function AppContent() {
           <Route path="/alta-alumno"   element={<SignUpAlumno />} />
           <Route path="/inicio"        element={<InicioSesion />} />
           <Route path="/seleccion-rol" element={<SeleccionRol />} />
+          <Route path="/google-datos" element={<CompletarDatosGoogle />} />
 
           {/* Con Navbar/Footer */}
           <Route element={<Layout />}>

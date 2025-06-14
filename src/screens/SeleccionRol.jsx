@@ -2,9 +2,6 @@ import React from 'react';
 import styled from 'styled-components';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../AuthContext';
-import { useNotification } from '../NotificationContext';
-import { db } from '../firebase/firebaseConfig';
-import { doc, setDoc } from 'firebase/firestore';
 
 const Page = styled.div`
   display: flex;
@@ -52,26 +49,11 @@ const Button = styled.button`
 
 export default function SeleccionRol() {
   const { user } = useAuth();
-  const { show } = useNotification();
   const navigate = useNavigate();
 
-  const handleSelect = async rol => {
+  const handleSelect = rol => {
     if (!user) return;
-    try {
-      const [nombre, ...apellidos] = user.displayName ? user.displayName.split(' ') : ['', ''];
-      await setDoc(doc(db, 'usuarios', user.uid), {
-        uid: user.uid,
-        email: user.email,
-        nombre,
-        apellido: apellidos.join(' '),
-        rol,
-        createdAt: new Date()
-      });
-      navigate('/home');
-    } catch (err) {
-      console.error(err);
-      show('Error al guardar datos');
-    }
+    navigate(`/google-datos?rol=${rol}`);
   };
 
   return (
