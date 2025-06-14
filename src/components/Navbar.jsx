@@ -16,7 +16,7 @@ import {
   GoogleAuthProvider
 } from 'firebase/auth';
 import { getAuthErrorMessage } from '../utils/authErrorMessages';
-import { doc, getDoc } from 'firebase/firestore';
+import { doc, getDoc, updateDoc, setDoc } from 'firebase/firestore';
 import { useNotification } from '../NotificationContext';
 
 const slideDown = keyframes`
@@ -427,13 +427,16 @@ export default function Navbar() {
     setLoginError('');
     try {
       const { user } = await signInWithPopup(auth, new GoogleAuthProvider());
-      const snap = await getDoc(doc(db, 'usuarios', user.uid));
+      const userRef = doc(db, 'usuarios', user.uid);
+      const snap = await getDoc(userRef);
       if (snap.exists()) {
+        await updateDoc(userRef, { photoURL: user.photoURL });
         const rol = snap.data().rol;
         if (rol === 'admin') navigate('/admin');
         else if (rol === 'profesor') navigate('/profesor');
         else navigate('/alumno');
       } else {
+        await setDoc(userRef, { photoURL: user.photoURL }, { merge: true });
         navigate('/seleccion-rol');
       }
       setLoginOpen(false);

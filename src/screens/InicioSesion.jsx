@@ -14,7 +14,7 @@ import {
   GoogleAuthProvider,
   OAuthProvider
 } from 'firebase/auth';
-import { doc, getDoc } from 'firebase/firestore';
+import { doc, getDoc, updateDoc, setDoc } from 'firebase/firestore';
 import { getAuthErrorMessage } from '../utils/authErrorMessages';
 
 const PageWrapper = styled.div`
@@ -194,10 +194,13 @@ const InicioSesion = () => {
     setLoading(true);
     try {
       const { user } = await signInWithPopup(auth, googleProvider);
-      const snap = await getDoc(doc(db, 'usuarios', user.uid));
+      const userRef = doc(db, 'usuarios', user.uid);
+      const snap = await getDoc(userRef);
       if (snap.exists()) {
+        await updateDoc(userRef, { photoURL: user.photoURL });
         navigate('/home');
       } else {
+        await setDoc(userRef, { photoURL: user.photoURL }, { merge: true });
         navigate('/seleccion-rol');
       }
     } catch (err) {
