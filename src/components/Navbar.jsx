@@ -11,7 +11,9 @@ import { auth, db } from '../firebase/firebaseConfig';
 import {
   onAuthStateChanged,
   signOut,
-  signInWithEmailAndPassword
+  signInWithEmailAndPassword,
+  signInWithPopup,
+  GoogleAuthProvider
 } from 'firebase/auth';
 import { getAuthErrorMessage } from '../utils/authErrorMessages';
 import { doc, getDoc } from 'firebase/firestore';
@@ -224,6 +226,13 @@ const PopupTitle = styled.h4`
   text-align: center;
 `;
 
+const PopupError = styled.p`
+  color: #ff6b6b;
+  font-size: 0.85rem;
+  text-align: center;
+  margin: 0 0 0.75rem;
+`;
+
 const PopupInput = styled.input`
   width: 100%;
   box-sizing: border-box;
@@ -344,6 +353,7 @@ export default function Navbar() {
   const [userData, setUserData] = useState(null);
   const [loginEmail, setLoginEmail] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
+  const [loginError, setLoginError] = useState('');
   const [loginOpen, setLoginOpen] = useState(false);
   const [loggingIn, setLoggingIn] = useState(false);
   const loginRef = useRef(null);
@@ -383,6 +393,7 @@ export default function Navbar() {
   const handleLogin = async () => {
     if (loggingIn) return;
     setLoggingIn(true);
+    setLoginError('');
     try {
       const userCredential = await signInWithEmailAndPassword(auth, loginEmail, loginPassword);
       const u = userCredential.user;
@@ -402,7 +413,34 @@ export default function Navbar() {
       setLoginPassword('');
       setLoginOpen(false);
     } catch (err) {
-      show(getAuthErrorMessage(err.code));
+      const msg = getAuthErrorMessage(err.code);
+      setLoginError(msg);
+      show(msg);
+    } finally {
+      setLoggingIn(false);
+    }
+  };
+
+  const handleGoogleLogin = async () => {
+    if (loggingIn) return;
+    setLoggingIn(true);
+    setLoginError('');
+    try {
+      const { user } = await signInWithPopup(auth, new GoogleAuthProvider());
+      const snap = await getDoc(doc(db, 'usuarios', user.uid));
+      if (snap.exists()) {
+        const rol = snap.data().rol;
+        if (rol === 'admin') navigate('/admin');
+        else if (rol === 'profesor') navigate('/profesor');
+        else navigate('/alumno');
+      } else {
+        navigate('/seleccion-rol');
+      }
+      setLoginOpen(false);
+    } catch (err) {
+      const msg = getAuthErrorMessage(err.code);
+      setLoginError(msg);
+      show(msg);
     } finally {
       setLoggingIn(false);
     }
@@ -455,7 +493,7 @@ export default function Navbar() {
 
               {/* Escritorio: Hola, nombre + popup logout */}
               <AccessWrapper ref={loginRef}>
-                <AccessButton onClick={() => setLoginOpen(o => !o)}>
+                <AccessButton onClick={() => { setLoginError(''); setLoginOpen(o => !o); }}>
                   Hola, {userData?.nombre}
                 </AccessButton>
                 <LoginPopup show={loginOpen}>
@@ -475,11 +513,12 @@ export default function Navbar() {
               <MobileAccessButton to="/inicio">Acceso</MobileAccessButton>
 
               <AccessWrapper ref={loginRef}>
-                <AccessButton onClick={() => setLoginOpen(o => !o)}>
+                <AccessButton onClick={() => { setLoginError(''); setLoginOpen(o => !o); }}>
                   Iniciar sesión
                 </AccessButton>
                 <LoginPopup show={loginOpen}>
                   <PopupTitle>Inicio de sesión</PopupTitle>
+                  {loginError && <PopupError>{loginError}</PopupError>}
                   <PopupInput
                     type="email"
                     placeholder="Correo electrónico"
@@ -499,7 +538,7 @@ export default function Navbar() {
                     ¿No tienes cuenta? <Link to="/alta">Regístrate</Link>
                   </PopupRegister>
                   <PopupDivider>o</PopupDivider>
-                  <SocialButton>
+                  <SocialButton onClick={handleGoogleLogin}>
                     <img src={googleLogo} alt="Google logo" />
                     Continuar con Google
                   </SocialButton>
