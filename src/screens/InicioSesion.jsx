@@ -90,7 +90,10 @@ const ForgotLink = styled.button`
   cursor: pointer;
   font-size: 0.9rem;
   margin-top: 0.5rem;
+  width: 100%;
+  text-align: center;
   text-decoration: underline;
+  display: block;
 `;
 
 const RegisterText = styled.p`
