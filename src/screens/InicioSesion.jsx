@@ -5,6 +5,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import logo from '../assets/logo-fondo.jpg';
 import googleLogo from '../assets/google.png';
 import appleLogo from '../assets/apple.png';
+import PasswordResetModal from '../components/PasswordResetModal';
 
 // Firebase
 import { auth, db } from '../firebase/firebaseConfig';
@@ -80,6 +81,16 @@ const Button = styled.button`
     opacity: 0.6;
     cursor: default;
   }
+`;
+
+const ForgotLink = styled.button`
+  background: none;
+  border: none;
+  color: #1e90ff;
+  cursor: pointer;
+  font-size: 0.9rem;
+  margin-top: 0.5rem;
+  text-decoration: underline;
 `;
 
 const RegisterText = styled.p`
@@ -171,6 +182,7 @@ const InicioSesion = () => {
   const [password, setPassword]   = useState('');
   const [error, setError]         = useState('');
   const [loading, setLoading]     = useState(false);
+  const [resetOpen, setResetOpen] = useState(false);
 
   // Providers
   const googleProvider = new GoogleAuthProvider();
@@ -246,6 +258,9 @@ const InicioSesion = () => {
           <Button type="submit" disabled={loading}>
             {loading ? 'Cargando...' : 'Iniciar sesión'}
           </Button>
+          <ForgotLink type="button" onClick={() => setResetOpen(true)}>
+            ¿Has olvidado la contraseña?
+          </ForgotLink>
         </Form>
 
         <RegisterText>
@@ -271,6 +286,7 @@ const InicioSesion = () => {
           <Link to="/politica-y-privacidad">Política de Privacidad</Link>.
         </InfoText>
       </Card>
+      <PasswordResetModal open={resetOpen} onClose={() => setResetOpen(false)} />
     </PageWrapper>
   );
 };

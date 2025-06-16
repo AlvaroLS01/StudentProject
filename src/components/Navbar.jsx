@@ -5,6 +5,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import logo from '../assets/logonavbar.png';
 import googleLogo from '../assets/google.png';
 import appleLogo from '../assets/apple.png';
+import PasswordResetModal from './PasswordResetModal';
 
 // Firebase
 import { auth, db } from '../firebase/firebaseConfig';
@@ -265,6 +266,16 @@ const PopupButton = styled.button`
   }
 `;
 
+const PopupForgot = styled.button`
+  background: none;
+  border: none;
+  color: #1e90ff;
+  cursor: pointer;
+  font-size: 0.85rem;
+  text-decoration: underline;
+  margin-bottom: 0.75rem;
+`;
+
 const PopupLink = styled(Link)`
   display: block;
   color: #fff;
@@ -356,6 +367,7 @@ export default function Navbar() {
   const [loginError, setLoginError] = useState('');
   const [loginOpen, setLoginOpen] = useState(false);
   const [loggingIn, setLoggingIn] = useState(false);
+  const [resetOpen, setResetOpen] = useState(false);
   const loginRef = useRef(null);
   const navigate = useNavigate();
 
@@ -464,6 +476,7 @@ export default function Navbar() {
       : 'Panel Alumno/a';
 
   return (
+    <>
     <Nav>
       <Container>
         {user ? (
@@ -537,6 +550,9 @@ export default function Navbar() {
                   <PopupButton onClick={handleLogin} disabled={loggingIn}>
                     Iniciar sesión
                   </PopupButton>
+                  <PopupForgot onClick={() => { setLoginOpen(false); setResetOpen(true); }}>
+                    ¿Has olvidado la contraseña?
+                  </PopupForgot>
                   <PopupRegister>
                     ¿No tienes cuenta? <Link to="/alta">Regístrate</Link>
                   </PopupRegister>
@@ -569,5 +585,7 @@ export default function Navbar() {
         </Menu>
       </Container>
     </Nav>
+    <PasswordResetModal open={resetOpen} onClose={() => setResetOpen(false)} />
+    </>
   );
 }
