@@ -271,9 +271,12 @@ const PopupForgot = styled.button`
   border: none;
   color: #1e90ff;
   cursor: pointer;
-  font-size: 0.85rem;
+  font-size: 0.9rem;
   text-decoration: underline;
-  margin-bottom: 0.75rem;
+  margin: 0.5rem 0;
+  width: 100%;
+  text-align: center;
+  display: block;
 `;
 
 const PopupLink = styled(Link)`
