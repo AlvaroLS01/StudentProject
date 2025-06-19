@@ -7,6 +7,7 @@ import {
   query,
   where,
   getDocs,
+  getDoc,
   onSnapshot,
   orderBy,
   addDoc,
@@ -61,6 +62,14 @@ const Item = styled.div`
   &:last-child {
     border-bottom: none;
   }
+`;
+
+const Avatar = styled.img`
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin-right: 1rem;
 `;
 
 const NameLink = styled.span`
@@ -215,7 +224,20 @@ export default function MisProfesores() {
         where('alumnoId', '==', u.uid)
       );
       const snap = await getDocs(q);
-      setUnions(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+      const items = await Promise.all(
+        snap.docs.map(async d => {
+          const data = d.data();
+          let photoURL = '';
+          try {
+            const usnap = await getDoc(doc(db, 'usuarios', data.profesorId));
+            photoURL = usnap.exists() ? usnap.data().photoURL || '' : '';
+          } catch (err) {
+            console.error(err);
+          }
+          return { id: d.id, ...data, profesorPhotoURL: photoURL };
+        })
+      );
+      setUnions(items);
     }
     fetchUnions();
   }, []);
@@ -331,6 +353,9 @@ export default function MisProfesores() {
           ) : (
             unions.map(u => (
               <Item key={u.id} onClick={() => setChatUnionId(u.id)}>
+                {u.profesorPhotoURL && (
+                  <Avatar src={u.profesorPhotoURL} alt="foto" />
+                )}
                 <NameLink
                   onClick={e => {
                     e.stopPropagation();

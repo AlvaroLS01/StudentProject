@@ -64,6 +64,14 @@ const Item = styled.div`
   }
 `;
 
+const Avatar = styled.img`
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin-right: 1rem;
+`;
+
 const NameLink = styled.span`
   color: #2c5282;
   font-weight: 600;
@@ -327,7 +335,20 @@ export default function MisAlumnos() {
         where('profesorId', '==', user.uid)
       );
       const snap = await getDocs(q);
-      setUnions(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+      const items = await Promise.all(
+        snap.docs.map(async d => {
+          const data = d.data();
+          let photoURL = '';
+          try {
+            const usnap = await getDoc(doc(db, 'usuarios', data.alumnoId));
+            photoURL = usnap.exists() ? usnap.data().photoURL || '' : '';
+          } catch (err) {
+            console.error(err);
+          }
+          return { id: d.id, ...data, alumnoPhotoURL: photoURL };
+        })
+      );
+      setUnions(items);
     }
     fetchUnions();
   }, []);
@@ -485,6 +506,9 @@ export default function MisAlumnos() {
           ) : (
             unions.map(u => (
               <Item key={u.id} onClick={() => setChatUnionId(u.id)}>
+                {u.alumnoPhotoURL && (
+                  <Avatar src={u.alumnoPhotoURL} alt="foto" />
+                )}
                 <NameLink
                   onClick={e => {
                     e.stopPropagation();
