@@ -6,7 +6,9 @@ import {
   collection,
   query,
   where,
-  getDocs
+  getDocs,
+  getDoc,
+  doc
 } from 'firebase/firestore';
 
 const fadeIn = keyframes`
@@ -46,6 +48,35 @@ const Field = styled.div`
   & > strong { color: #014f40; }
 `;
 
+const CardHeader = styled.div`
+  display: flex;
+  align-items: center;
+  margin-bottom: 1rem;
+`;
+
+const Avatar = styled.img`
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin-right: 1rem;
+`;
+
+const InfoGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 0.5rem 1rem;
+`;
+
+const Label = styled.span`
+  font-weight: 500;
+  color: #014F40;
+`;
+
+const Value = styled.span`
+  color: #333;
+`;
+
 export default function Clases() {
   const [clases, setClases] = useState([]);
 
@@ -58,6 +89,16 @@ export default function Clases() {
       let all = [];
       for (const docu of snap.docs) {
         const union = docu.data();
+        let profesorFoto = '';
+        let curso = '';
+        try {
+          const profSnap = await getDoc(doc(db, 'usuarios', union.profesorId));
+          if (profSnap.exists()) profesorFoto = profSnap.data().photoURL || '';
+          const classSnap = await getDoc(doc(db, 'clases', union.claseId));
+          if (classSnap.exists()) curso = classSnap.data().curso || '';
+        } catch (err) {
+          console.error(err);
+        }
         const subSnap = await getDocs(
           query(
             collection(db, 'clases_union', docu.id, 'clases_asignadas'),
@@ -65,7 +106,13 @@ export default function Clases() {
           )
         );
         subSnap.docs.forEach(d => {
-          all.push({ id: d.id, profesorNombre: union.profesorNombre, ...d.data() });
+          all.push({
+            id: d.id,
+            profesorNombre: union.profesorNombre,
+            profesorFoto,
+            curso,
+            ...d.data()
+          });
         });
       }
       setClases(all);
@@ -81,11 +128,27 @@ export default function Clases() {
         ) : (
           clases.map(c => (
             <Card key={c.id}>
-              <Field><strong>Asignatura:</strong> {c.asignatura}</Field>
-              <Field><strong>Profesor:</strong> {c.profesorNombre}</Field>
-              <Field><strong>Fecha:</strong> {c.fecha} {c.hora}</Field>
-              <Field><strong>Modalidad:</strong> {c.modalidad}</Field>
-              <Field><strong>Duración:</strong> {c.duracion}h</Field>
+              <CardHeader>
+                {c.profesorFoto && <Avatar src={c.profesorFoto} alt="Profesor" />}
+                <h3 style={{ margin: 0 }}>{c.profesorNombre}</h3>
+              </CardHeader>
+              <InfoGrid>
+                <div>
+                  <Label>Asignatura:</Label> <Value>{c.asignatura}</Value>
+                </div>
+                <div>
+                  <Label>Curso:</Label> <Value>{c.curso || '-'}</Value>
+                </div>
+                <div>
+                  <Label>Fecha:</Label> <Value>{c.fecha} {c.hora}</Value>
+                </div>
+                <div>
+                  <Label>Modalidad:</Label> <Value>{c.modalidad}</Value>
+                </div>
+                <div>
+                  <Label>Duración:</Label> <Value>{c.duracion}h</Value>
+                </div>
+              </InfoGrid>
             </Card>
           ))
         )}
