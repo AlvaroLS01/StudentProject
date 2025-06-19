@@ -7,11 +7,13 @@ import {
   query,
   where,
   getDocs,
+  getDoc,
   updateDoc,
   doc,
   addDoc,
   serverTimestamp
 } from 'firebase/firestore';
+import { sendAssignmentEmails } from '../../../utils/email';
 
 // Animación suave al cargar
 const fadeDown = keyframes`
@@ -170,10 +172,48 @@ function calculateWeeks(startStr, endStr) {
   return Math.round(diffDays / 7);
 }
 
+// ----- Modal de confirmación -----
+const Overlay = styled.div`
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.4);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 100;
+`;
+const Modal = styled.div`
+  background: #fff;
+  border-radius: 8px;
+  padding: 1.5rem;
+  max-width: 320px;
+  text-align: center;
+`;
+const ModalText = styled.p`
+  font-size: 1rem;
+  margin-bottom: 1rem;
+  color: #014F40;
+`;
+const ModalActions = styled.div`
+  display: flex;
+  justify-content: space-around;
+`;
+const ModalButton = styled.button`
+  padding: 0.6rem 1.2rem;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  ${p => p.primary
+    ? `background: #006D5B; color: #fff;`
+    : `background: #f0f0f0; color: #333;`
+  }
+`;
+
 export default function GestionClases() {
   const [clases, setClases] = useState([]);
   const [loading, setLoading] = useState(true);
   const [expandedOfferId, setExpandedOfferId] = useState(null);
+  const [confirmModal, setConfirmModal] = useState(false);
+  const [offerToConfirm, setOfferToConfirm] = useState(null);
+  const [classToConfirm, setClassToConfirm] = useState(null);
 
   useEffect(() => {
     (async () => {
@@ -212,6 +252,31 @@ export default function GestionClases() {
       createdAt: serverTimestamp()
     });
     setClases(cs => cs.filter(c => c.id !== classId));
+  };
+
+  const confirmOffer = async () => {
+    if (!offerToConfirm || !classToConfirm) return;
+    const c = classToConfirm;
+    const o = offerToConfirm;
+    await assignOffer(c.id, o, c.alumnoId, c.alumnoNombre, c.padreNombre, c.hijoId);
+    try {
+      const profSnap = await getDoc(doc(db, 'usuarios', o.profesorId));
+      const alumSnap = await getDoc(doc(db, 'usuarios', c.alumnoId));
+      const teacherEmail = profSnap.exists() ? profSnap.data().email : '';
+      const studentEmail = alumSnap.exists() ? alumSnap.data().email : '';
+      await sendAssignmentEmails({
+        teacherEmail,
+        teacherName: o.profesorNombre,
+        studentEmail,
+        studentName: `${c.alumnoNombre} ${c.alumnoApellidos || ''}`.trim(),
+        schedule: c.schedule || []
+      });
+    } catch (err) {
+      console.error(err);
+    }
+    setConfirmModal(false);
+    setOfferToConfirm(null);
+    setClassToConfirm(null);
   };
 
   if (loading) {
@@ -334,16 +399,11 @@ export default function GestionClases() {
                         <Value>€{o.precio}</Value>
                       </div>
                       <AcceptText
-                        onClick={() =>
-                          assignOffer(
-                            c.id,
-                            o,
-                            c.alumnoId,
-                            c.alumnoNombre,
-                            c.padreNombre,
-                            c.hijoId
-                          )
-                        }
+                        onClick={() => {
+                          setOfferToConfirm(o);
+                          setClassToConfirm(c);
+                          setConfirmModal(true);
+                        }}
                       >
                         Aceptar oferta
                       </AcceptText>
@@ -398,6 +458,19 @@ export default function GestionClases() {
             </Card>
           );
         })}
+        {confirmModal && offerToConfirm && classToConfirm && (
+          <Overlay>
+            <Modal>
+              <ModalText>
+                ¿Aceptar a {offerToConfirm.profesorNombre} para la clase de {classToConfirm.alumnoNombre}?
+              </ModalText>
+              <ModalActions>
+                <ModalButton onClick={() => setConfirmModal(false)}>Cancelar</ModalButton>
+                <ModalButton primary onClick={confirmOffer}>Aceptar</ModalButton>
+              </ModalActions>
+            </Modal>
+          </Overlay>
+        )}
       </Container>
     </Page>
   );
