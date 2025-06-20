@@ -253,7 +253,7 @@ export default function Perfil() {
   const [childCourse, setChildCourse] = useState('');
   const [savingChild, setSavingChild] = useState(false);
 
-  const { setChildList, childList, setSelectedChild } = useChild();
+  const { setChildList, setSelectedChild } = useChild();
 
   const isOwnProfile = auth.currentUser && auth.currentUser.uid === userId;
   const progressInfo = getProgressData(metrics.totalClases);
