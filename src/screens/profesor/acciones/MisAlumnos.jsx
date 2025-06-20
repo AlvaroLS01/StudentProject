@@ -80,6 +80,16 @@ const NameLink = styled.span`
   }
 `;
 
+const NameWrapper = styled.div`
+  display: flex;
+  flex-direction: column;
+`;
+
+const ParentText = styled.small`
+  font-size: 0.8rem;
+  color: #555;
+`;
+
 const AddButton = styled.button`
   background: #006D5B;
   color: #fff;
@@ -507,15 +517,19 @@ export default function MisAlumnos() {
                 {u.alumnoPhotoURL && (
                   <Avatar src={u.alumnoPhotoURL} alt="foto" />
                 )}
-                <NameLink
-                  onClick={e => {
-                    e.stopPropagation();
-                    navigate(`/perfil/${u.alumnoId}`);
-                  }}
-                >
-                  {u.alumnoNombre}
-                  {u.padreNombre ? ` (${u.padreNombre})` : ` ${u.alumnoApellidos || ''}`}
-                </NameLink>
+                <NameWrapper>
+                  <NameLink
+                    onClick={e => {
+                      e.stopPropagation();
+                      navigate(`/perfil/${u.alumnoId}`);
+                    }}
+                  >
+                    {u.alumnoNombre} {u.alumnoApellidos || ''}
+                  </NameLink>
+                  {u.padreNombre && (
+                    <ParentText>Padre: {u.padreNombre}</ParentText>
+                  )}
+                </NameWrapper>
                 <AddButton
                   onClick={e => {
                     e.stopPropagation();
