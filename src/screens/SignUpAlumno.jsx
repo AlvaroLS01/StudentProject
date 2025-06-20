@@ -465,7 +465,7 @@ export default function SignUpAlumno() {
             </DropdownContainer>
           </Field>
           <Field ref={courseRef}>
-            <label>Curso</label>
+            <label>{rolUser === 'padre' ? 'Curso del hijo' : 'Curso'}</label>
             <DropdownContainer>
               <DropdownHeader onClick={() => setCourseOpen(o => !o)}>
                 {curso || 'Selecciona curso'} <Arrow open={courseOpen} />
@@ -521,6 +521,9 @@ export default function SignUpAlumno() {
                   onChange={e=>setFechaNacHijo(e.target.value)}
                 />
               </Field>
+              <p style={{gridColumn: '1 / -1', fontSize:'0.85rem', color:'#555'}}>
+                Podrás añadir más hijos desde la pestaña "Mi cuenta".
+              </p>
             </>
           )}
         </FormGrid>
