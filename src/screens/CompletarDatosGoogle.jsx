@@ -44,9 +44,9 @@ const Field = styled.div`
     color: #014F40;
   }
   input, select {
-    padding: 0.7rem 0.9rem;
+    padding: 0.5rem;
     border: 1px solid #ccc;
-    border-radius: 8px;
+    border-radius: 6px;
     font-size: 1rem;
   }
 `;
