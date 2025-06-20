@@ -35,12 +35,26 @@ const Title = styled.h2`
   text-align: center;
 `;
 
+const FilterContainer = styled.div`
+  text-align: right;
+  margin-bottom: 1rem;
+  select {
+    margin-left: 0.5rem;
+    padding: 0.25rem 0.5rem;
+  }
+`;
+
 const Card = styled.div`
-  background: #fff;
-  border-radius: 8px;
-  padding: 1.25rem 1.5rem;
-  margin-bottom: 1.25rem;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.06);
+  padding: 2rem;
+  margin-bottom: 1.75rem;
+  transition: transform 0.2s, box-shadow 0.2s;
+  &:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.12);
+  }
 `;
 
 const Field = styled.div`
@@ -50,8 +64,21 @@ const Field = styled.div`
 
 const CardHeader = styled.div`
   display: flex;
-  align-items: center;
+  justify-content: space-between;
+  align-items: flex-start;
   margin-bottom: 1rem;
+`;
+
+const HeaderLeft = styled.div`
+  display: flex;
+  align-items: center;
+`;
+
+const TeacherName = styled.span`
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #024837;
+  margin-left: 0.75rem;
 `;
 
 const Avatar = styled.img`
@@ -64,8 +91,9 @@ const Avatar = styled.img`
 
 const InfoGrid = styled.div`
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-  gap: 0.5rem 1rem;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 0.75rem 2rem;
+  margin-bottom: 1rem;
 `;
 
 const Label = styled.span`
@@ -79,6 +107,7 @@ const Value = styled.span`
 
 export default function Clases() {
   const [clases, setClases] = useState([]);
+  const [sortBy, setSortBy] = useState('fecha');
 
   useEffect(() => {
     (async () => {
@@ -119,18 +148,53 @@ export default function Clases() {
     })();
   }, []);
 
+  const sortedClases = React.useMemo(() => {
+    const arr = [...clases];
+    arr.sort((a, b) => {
+      if (sortBy === 'profesor') {
+        return a.profesorNombre.localeCompare(b.profesorNombre);
+      }
+      if (sortBy === 'tipo') {
+        return (a.modalidad || '').localeCompare(b.modalidad || '');
+      }
+      if (sortBy === 'asignatura') {
+        return (a.asignatura || '').localeCompare(b.asignatura || '');
+      }
+      // fecha descendente
+      const da = new Date(`${a.fecha}T${a.hora || '00:00'}`);
+      const db = new Date(`${b.fecha}T${b.hora || '00:00'}`);
+      return db.getTime() - da.getTime();
+    });
+    return arr;
+  }, [clases, sortBy]);
+
   return (
     <Page>
       <Container>
         <Title>Mis clases</Title>
-        {clases.length === 0 ? (
+        <FilterContainer>
+          <label htmlFor="sortAlumno">Ordenar por:</label>
+          <select
+            id="sortAlumno"
+            value={sortBy}
+            onChange={e => setSortBy(e.target.value)}
+          >
+            <option value="fecha">Fecha</option>
+            <option value="profesor">Profesor</option>
+            <option value="tipo">Modalidad</option>
+            <option value="asignatura">Asignatura</option>
+          </select>
+        </FilterContainer>
+        {sortedClases.length === 0 ? (
           <p style={{ textAlign: 'center', color: '#666' }}>No tienes clases asignadas.</p>
         ) : (
-          clases.map(c => (
+          sortedClases.map(c => (
             <Card key={c.id}>
               <CardHeader>
-                {c.profesorFoto && <Avatar src={c.profesorFoto} alt="Profesor" />}
-                <h3 style={{ margin: 0 }}>{c.profesorNombre}</h3>
+                <HeaderLeft>
+                  {c.profesorFoto && <Avatar src={c.profesorFoto} alt="Profesor" />}
+                  <TeacherName>{c.profesorNombre}</TeacherName>
+                </HeaderLeft>
               </CardHeader>
               <InfoGrid>
                 <div>
