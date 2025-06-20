@@ -4,6 +4,7 @@ import styled from 'styled-components';
 import { useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../AuthContext';
 import { useChild } from '../../ChildContext';
+import { useNotification } from '../../NotificationContext';
 
 // importa tus pantallas “incrustadas”
 import NuevaClase    from './acciones/NuevaClase';
@@ -99,6 +100,7 @@ export default function PanelAlumno() {
   const [view, setView] = useState(initialTab);
   const { userData } = useAuth();
   const { childList, selectedChild, setSelectedChild } = useChild();
+  const { show } = useNotification();
 
   // Al cambiar de pestaña, subimos arriba y actualizamos la URL
   useEffect(() => {
@@ -108,13 +110,28 @@ export default function PanelAlumno() {
 
   const renderView = () => {
     switch(view) {
-      case 'nueva-clase':    return <NuevaClase />;
-      case 'clases':         return <Clases />;
-      case 'mis-profesores': return <MisProfesores />;
-      case 'calendario':     return <CalendarioA />;
+      case 'nueva-clase':    return requireChild(<NuevaClase />);
+      case 'clases':         return requireChild(<Clases />);
+      case 'mis-profesores': return requireChild(<MisProfesores />);
+      case 'calendario':     return requireChild(<CalendarioA />);
       case 'mis-hijos':      return <MisHijos />;
       default:               return <NuevaClase />;
     }
+  };
+
+  const requireChild = component => {
+    if (userData?.rol === 'padre' && !selectedChild) {
+      return <p style={{ textAlign: 'center' }}>Selecciona un hijo para continuar</p>;
+    }
+    return component;
+  };
+
+  const handleMenuClick = name => {
+    if (userData?.rol === 'padre' && !selectedChild && name !== 'mis-hijos') {
+      show('Selecciona un hijo primero');
+      return;
+    }
+    setView(name);
   };
 
   return (
@@ -125,7 +142,7 @@ export default function PanelAlumno() {
           <MenuItem>
             <Button
               active={view === 'nueva-clase'}
-              onClick={() => setView('nueva-clase')}
+              onClick={() => handleMenuClick('nueva-clase')}
             >
               Solicitar nuevo profesor
             </Button>
@@ -133,7 +150,7 @@ export default function PanelAlumno() {
           <MenuItem>
             <Button
               active={view === 'clases'}
-              onClick={() => setView('clases')}
+              onClick={() => handleMenuClick('clases')}
             >
               Mis clases particulares
             </Button>
@@ -141,7 +158,7 @@ export default function PanelAlumno() {
           <MenuItem>
             <Button
               active={view === 'mis-profesores'}
-              onClick={() => setView('mis-profesores')}
+              onClick={() => handleMenuClick('mis-profesores')}
             >
               Mis profesores
             </Button>
@@ -149,7 +166,7 @@ export default function PanelAlumno() {
           <MenuItem>
             <Button
               active={view === 'calendario'}
-              onClick={() => setView('calendario')}
+              onClick={() => handleMenuClick('calendario')}
             >
               Calendario
             </Button>
@@ -158,7 +175,7 @@ export default function PanelAlumno() {
             <MenuItem>
               <Button
                 active={view === 'mis-hijos'}
-                onClick={() => setView('mis-hijos')}
+                onClick={() => handleMenuClick('mis-hijos')}
               >
                 Mis hijos
               </Button>
@@ -172,9 +189,10 @@ export default function PanelAlumno() {
               value={selectedChild?.id || ''}
               onChange={e => {
                 const c = childList.find(ch => ch.id === e.target.value);
-                setSelectedChild(c);
+                setSelectedChild(c || null);
               }}
             >
+              <option value="">Selecciona tu hijo</option>
               {childList.map(c => (
                 <option key={c.id} value={c.id}>
                   {c.nombre}
