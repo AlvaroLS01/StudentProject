@@ -79,7 +79,7 @@ const Field = styled.div`
     align-items: center;
   }
   input, textarea, select {
-    padding: 0.6rem 0.8rem;
+    padding: 0.5rem;
     border: 1px solid #ccc;
     border-radius: 6px;
     font-size: 0.95rem;

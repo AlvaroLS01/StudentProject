@@ -41,7 +41,10 @@ const FilterContainer = styled.div`
   margin-bottom: 1rem;
   select {
     margin-left: 0.5rem;
-    padding: 0.25rem 0.5rem;
+    padding: 0.5rem;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    background: #fff;
   }
 `;
 

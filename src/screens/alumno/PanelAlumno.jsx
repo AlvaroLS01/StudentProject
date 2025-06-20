@@ -79,7 +79,7 @@ const ChildSelect = styled.div`
   }
   select {
     width: 100%;
-    padding: 0.4rem 0.5rem;
+    padding: 0.5rem;
     border: 1px solid #ccc;
     border-radius: 6px;
   }
