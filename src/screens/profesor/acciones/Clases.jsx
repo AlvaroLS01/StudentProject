@@ -1,5 +1,5 @@
 // src/screens/profesor/acciones/Clases.jsx
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import styled, { keyframes } from 'styled-components';
 import { auth, db } from '../../../firebase/firebaseConfig';
 import {
@@ -36,17 +36,26 @@ const Title = styled.h2`
   margin-bottom: 1rem;
 `;
 
-const GroupTitle = styled.h3`
-  margin: 1.5rem 0 0.75rem;
-  color: #01675b;
+const FilterContainer = styled.div`
+  text-align: right;
+  margin-bottom: 1rem;
+  select {
+    margin-left: 0.5rem;
+    padding: 0.25rem 0.5rem;
+  }
 `;
 
 const Card = styled.div`
-  background: #fff;
-  border-radius: 8px;
-  padding: 1rem;
-  margin-bottom: 0.75rem;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.06);
+  padding: 2rem;
+  margin-bottom: 1.75rem;
+  transition: transform 0.2s, box-shadow 0.2s;
+  &:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.12);
+  }
 `;
 
 const Field = styled.p`
@@ -54,11 +63,6 @@ const Field = styled.p`
   & > strong { color: #014f40; }
 `;
 
-const GroupHeader = styled.div`
-  display: flex;
-  align-items: center;
-  margin: 1.5rem 0 0.75rem;
-`;
 
 const Avatar = styled.img`
   width: 50px;
@@ -68,10 +72,30 @@ const Avatar = styled.img`
   margin-right: 0.75rem;
 `;
 
+const CardHeader = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1rem;
+`;
+
+const HeaderLeft = styled.div`
+  display: flex;
+  align-items: center;
+`;
+
+const StudentName = styled.span`
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #024837;
+  margin-left: 0.75rem;
+`;
+
 const InfoGrid = styled.div`
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-  gap: 0.5rem 1rem;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 0.75rem 2rem;
+  margin-bottom: 1rem;
 `;
 
 const Label = styled.span`
@@ -152,7 +176,8 @@ const ModalButton = styled.button`
 `;
 
 export default function ClasesProfesor() {
-  const [groups, setGroups] = useState([]);
+  const [clases, setClases] = useState([]);
+  const [sortBy, setSortBy] = useState('fecha');
   const [editing, setEditing] = useState(null);
   const [newDate, setNewDate] = useState('');
   const [newDuration, setNewDuration] = useState('');
@@ -161,7 +186,7 @@ export default function ClasesProfesor() {
     (async () => {
       const q = query(collection(db, 'clases_union'), where('profesorId', '==', auth.currentUser.uid));
       const snap = await getDocs(q);
-      let data = [];
+      const list = [];
       for (const docu of snap.docs) {
         const union = docu.data();
         let alumnoFoto = '';
@@ -185,18 +210,39 @@ export default function ClasesProfesor() {
             where('estado', '==', 'aceptada')
           )
         );
-        const clases = subSnap.docs.map(d => ({ id: d.id, curso, unionId: docu.id, ...d.data() }));
-        if (clases.length) {
-          data.push({
+        subSnap.docs.forEach(d => {
+          list.push({
+            id: d.id,
+            unionId: docu.id,
             alumno: `${union.alumnoNombre} ${alumnoApellido}`.trim(),
             alumnoFoto,
-            clases
+            curso,
+            ...d.data()
           });
-        }
+        });
       }
-      setGroups(data);
+      setClases(list);
     })();
   }, []);
+
+  const sortedClases = React.useMemo(() => {
+    const arr = [...clases];
+    arr.sort((a, b) => {
+      if (sortBy === 'alumno') {
+        return a.alumno.localeCompare(b.alumno);
+      }
+      if (sortBy === 'tipo') {
+        return (a.modalidad || '').localeCompare(b.modalidad || '');
+      }
+      if (sortBy === 'asignatura') {
+        return (a.asignatura || '').localeCompare(b.asignatura || '');
+      }
+      const da = new Date(`${a.fecha}T${a.hora || '00:00'}`);
+      const db = new Date(`${b.fecha}T${b.hora || '00:00'}`);
+      return db.getTime() - da.getTime();
+    });
+    return arr;
+  }, [clases, sortBy]);
 
   const isModificationAllowed = clase => {
     const d = new Date(clase.fecha);
@@ -240,44 +286,55 @@ export default function ClasesProfesor() {
     <Page>
       <Container>
         <Title>Mis clases asignadas</Title>
-        {groups.length === 0 && <p>No tienes clases aceptadas.</p>}
-        {groups.map(g => (
-          <div key={g.alumno}>
-            <GroupHeader>
-              {g.alumnoFoto && <Avatar src={g.alumnoFoto} alt="Alumno" />}
-              <GroupTitle>{g.alumno}</GroupTitle>
-            </GroupHeader>
-            {g.clases.map(c => (
-              <Card key={c.id}>
-                <InfoGrid>
-                  <div>
-                    <Label>Asignatura:</Label> <Value>{c.asignatura}</Value>
-                  </div>
-                  <div>
-                    <Label>Curso:</Label> <Value>{c.curso || '-'}</Value>
-                  </div>
-                  <div>
-                    <Label>Fecha:</Label> <Value>{c.fecha} {c.hora}</Value>
-                  </div>
-                  <div>
-                    <Label>Modalidad:</Label> <Value>{c.modalidad}</Value>
-                  </div>
-                  <div>
-                    <Label>Duración:</Label> <Value>{c.duracion}h</Value>
-                  </div>
-                  <div>
-                    <Label>Ganancia:</Label> <Value>€{(c.precioTotalProfesor || 0).toFixed(2)}</Value>
-                  </div>
-                </InfoGrid>
-                <ModifyButton
-                  disabled={!isModificationAllowed(c)}
-                  onClick={() => openEdit(c)}
-                >
-                  {isModificationAllowed(c) ? 'Modificar clase' : 'Modificación no disponible'}
-                </ModifyButton>
-              </Card>
-            ))}
-          </div>
+        <FilterContainer>
+          <label htmlFor="sortProfesor">Ordenar por:</label>
+          <select
+            id="sortProfesor"
+            value={sortBy}
+            onChange={e => setSortBy(e.target.value)}
+          >
+            <option value="fecha">Fecha</option>
+            <option value="alumno">Alumno</option>
+            <option value="tipo">Modalidad</option>
+            <option value="asignatura">Asignatura</option>
+          </select>
+        </FilterContainer>
+        {sortedClases.length === 0 && <p>No tienes clases aceptadas.</p>}
+        {sortedClases.map(c => (
+          <Card key={c.id}>
+            <CardHeader>
+              <HeaderLeft>
+                {c.alumnoFoto && <Avatar src={c.alumnoFoto} alt="Alumno" />}
+                <StudentName>{c.alumno}</StudentName>
+              </HeaderLeft>
+            </CardHeader>
+            <InfoGrid>
+              <div>
+                <Label>Asignatura:</Label> <Value>{c.asignatura}</Value>
+              </div>
+              <div>
+                <Label>Curso:</Label> <Value>{c.curso || '-'}</Value>
+              </div>
+              <div>
+                <Label>Fecha:</Label> <Value>{c.fecha} {c.hora}</Value>
+              </div>
+              <div>
+                <Label>Modalidad:</Label> <Value>{c.modalidad}</Value>
+              </div>
+              <div>
+                <Label>Duración:</Label> <Value>{c.duracion}h</Value>
+              </div>
+              <div>
+                <Label>Ganancia:</Label> <Value>€{(c.precioTotalProfesor || 0).toFixed(2)}</Value>
+              </div>
+            </InfoGrid>
+            <ModifyButton
+              disabled={!isModificationAllowed(c)}
+              onClick={() => openEdit(c)}
+            >
+              {isModificationAllowed(c) ? 'Modificar clase' : 'Modificación no disponible'}
+            </ModifyButton>
+          </Card>
         ))}
       </Container>
 
