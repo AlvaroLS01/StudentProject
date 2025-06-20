@@ -13,10 +13,10 @@ export const ChildProvider = ({ children }) => {
       const hijos = userData.hijos || [];
       setChildList(hijos);
       setSelectedChild(prev => {
-        if (prev && hijos.includes(prev)) {
+        if (prev && hijos.some(h => h.id === prev.id)) {
           return prev;
         }
-        return hijos[0] || null;
+        return null;
       });
     } else {
       setChildList([]);

@@ -25,6 +25,7 @@ import {
   Legend,
   ResponsiveContainer,
 } from 'recharts';
+import { useChild } from '../../ChildContext';
 
 // Animación de fade-in
 const fadeIn = keyframes`
@@ -82,6 +83,35 @@ const CardLabel = styled.div`
 const CardValue = styled.div`
   font-size: 1.75rem;
   color: #006D5B;
+`;
+
+const ChildList = styled.ul`
+  list-style: none;
+  padding: 0;
+`;
+
+const ChildItem = styled.li`
+  display: flex;
+  align-items: center;
+  background: #f7faf9;
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  margin-bottom: 0.75rem;
+`;
+
+const ChildImg = styled.img`
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin-right: 1rem;
+`;
+
+const AddChildForm = styled.div`
+  margin-top: 1rem;
+  background: #f7faf9;
+  padding: 1rem;
+  border-radius: 8px;
 `;
 
 const ProfileHeader = styled.div`
@@ -198,6 +228,13 @@ export default function Perfil() {
     mediaHoras: 0,
   });
   const [chartData, setChartData] = useState([]); // datos para gráficas mensuales
+  const [showAddChild, setShowAddChild] = useState(false);
+  const [childName, setChildName] = useState('');
+  const [childDate, setChildDate] = useState('');
+  const [childFile, setChildFile] = useState(null);
+  const [savingChild, setSavingChild] = useState(false);
+
+  const { setChildList, childList, setSelectedChild } = useChild();
 
   const isOwnProfile = auth.currentUser && auth.currentUser.uid === userId;
   const progressInfo = getProgressData(metrics.totalClases);
@@ -220,6 +257,30 @@ export default function Perfil() {
     const url = await getDownloadURL(storageRef);
     await updateDoc(doc(db, 'usuarios', userId), { photoURL: url });
     setProfile(p => ({ ...p, photoURL: url }));
+  };
+
+  const addChild = async () => {
+    if (!childName || !childDate || savingChild || !isOwnProfile) return;
+    setSavingChild(true);
+    let photoURL = '';
+    if (childFile) {
+      const r = ref(storage, `hijos/${userId}/${Date.now()}`);
+      await uploadBytes(r, childFile);
+      photoURL = await getDownloadURL(r);
+    }
+    const nuevo = { id: Date.now().toString(), nombre: childName, fechaNacimiento: childDate, photoURL };
+    const nuevos = [...(profile.hijos || []), nuevo];
+    await updateDoc(doc(db, 'usuarios', userId), { hijos: nuevos });
+    setProfile(p => ({ ...p, hijos: nuevos }));
+    if (auth.currentUser && auth.currentUser.uid === userId) {
+      setChildList(nuevos);
+      setSelectedChild(nuevo);
+    }
+    setChildName('');
+    setChildDate('');
+    setChildFile(null);
+    setShowAddChild(false);
+    setSavingChild(false);
   };
 
   // 1) Cargar datos de perfil y determinar rol/uniones
@@ -524,6 +585,49 @@ export default function Perfil() {
             </ResponsiveContainer>
           </ChartContainer>
         </Section>
+
+        {profile.rol === 'padre' && (
+          <Section>
+            <h2 style={{ textAlign: 'center', color: '#024837' }}>Hijos</h2>
+            {(profile.hijos || []).length === 0 ? (
+              <p style={{ textAlign: 'center', color: '#666' }}>Aún no hay hijos registrados.</p>
+            ) : (
+              <ChildList>
+                {profile.hijos.map(h => (
+                  <ChildItem key={h.id}>
+                    {h.photoURL && <ChildImg src={h.photoURL} alt="foto" />}
+                    <div>
+                      <div>{h.nombre}</div>
+                      <div style={{ fontSize: '0.8rem', color: '#555' }}>{h.fechaNacimiento}</div>
+                    </div>
+                  </ChildItem>
+                ))}
+              </ChildList>
+            )}
+
+            {isOwnProfile && (
+              <>
+                {!showAddChild && (
+                  <EditButton onClick={() => setShowAddChild(true)}>Añadir hijo</EditButton>
+                )}
+                {showAddChild && (
+                  <AddChildForm>
+                    <div>
+                      <input type="text" placeholder="Nombre" value={childName} onChange={e => setChildName(e.target.value)} />
+                    </div>
+                    <div>
+                      <input type="date" value={childDate} onChange={e => setChildDate(e.target.value)} />
+                    </div>
+                    <div>
+                      <input type="file" onChange={e => setChildFile(e.target.files[0])} />
+                    </div>
+                    <EditButton onClick={addChild} disabled={savingChild}>Guardar</EditButton>
+                  </AddChildForm>
+                )}
+              </>
+            )}
+          </Section>
+        )}
       </Container>
     </Page>
   );
