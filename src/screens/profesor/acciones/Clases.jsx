@@ -8,7 +8,10 @@ import {
   where,
   getDocs,
   getDoc,
-  doc
+  doc,
+  updateDoc,
+  addDoc,
+  serverTimestamp
 } from 'firebase/firestore';
 
 const fadeIn = keyframes`
@@ -80,8 +83,79 @@ const Value = styled.span`
   color: #333;
 `;
 
+const ModifyButton = styled.button`
+  margin-top: 0.75rem;
+  background: #006d5b;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 0.3rem 0.6rem;
+  font-size: 0.85rem;
+  cursor: pointer;
+  &:hover:not(:disabled) {
+    background: #005047;
+  }
+  &:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+  }
+`;
+
+const Overlay = styled.div`
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+`;
+
+const EditModal = styled.div`
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 2rem;
+  max-width: 440px;
+  width: 90%;
+  box-shadow: 0 16px 48px rgba(0,0,0,0.15);
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+`;
+
+const LabelInput = styled.label`
+  font-weight: 500;
+  color: #014f40;
+`;
+
+const Input = styled.input`
+  padding: 0.5rem;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+`;
+
+const ModalActions = styled.div`
+  display: flex;
+  justify-content: space-around;
+`;
+
+const ModalButton = styled.button`
+  padding: 0.6rem 1.2rem;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  ${p =>
+    p.primary
+      ? `background: #006d5b; color: #fff;`
+      : `background: #f0f0f0; color: #333;`}
+`;
+
 export default function ClasesProfesor() {
   const [groups, setGroups] = useState([]);
+  const [editing, setEditing] = useState(null);
+  const [newDate, setNewDate] = useState('');
+  const [newDuration, setNewDuration] = useState('');
 
   useEffect(() => {
     (async () => {
@@ -111,7 +185,7 @@ export default function ClasesProfesor() {
             where('estado', '==', 'aceptada')
           )
         );
-        const clases = subSnap.docs.map(d => ({ id: d.id, curso, ...d.data() }));
+        const clases = subSnap.docs.map(d => ({ id: d.id, curso, unionId: docu.id, ...d.data() }));
         if (clases.length) {
           data.push({
             alumno: `${union.alumnoNombre} ${alumnoApellido}`.trim(),
@@ -123,6 +197,44 @@ export default function ClasesProfesor() {
       setGroups(data);
     })();
   }, []);
+
+  const isModificationAllowed = clase => {
+    const d = new Date(clase.fecha);
+    const sunday = new Date(d);
+    const offset = (7 - sunday.getDay()) % 7;
+    sunday.setDate(d.getDate() + offset);
+    sunday.setHours(16, 0, 0, 0);
+    return Date.now() < sunday.getTime();
+  };
+
+  const openEdit = clase => {
+    setEditing(clase);
+    setNewDate(clase.fecha);
+    setNewDuration(String(clase.duracion));
+  };
+
+  const submitEdit = async () => {
+    if (!editing) return;
+    const docRef = doc(db, 'clases_union', editing.unionId, 'clases_asignadas', editing.id);
+    const d = new Date(editing.fecha);
+    const sunday = new Date(d);
+    const offset = (7 - sunday.getDay()) % 7;
+    sunday.setDate(d.getDate() + offset);
+    sunday.setHours(16, 0, 0, 0);
+    await updateDoc(docRef, {
+      fecha: newDate,
+      duracion: parseFloat(newDuration),
+      modificacionPendiente: true,
+      modificacionExpira: sunday.toISOString(),
+      modificacionCreada: serverTimestamp()
+    });
+    await addDoc(collection(db, 'clases_union', editing.unionId, 'chats'), {
+      senderId: auth.currentUser.uid,
+      text: `El profesor propone modificar la clase a ${newDate} (${newDuration}h)`,
+      createdAt: serverTimestamp()
+    });
+    setEditing(null);
+  };
 
   return (
     <Page>
@@ -157,11 +269,32 @@ export default function ClasesProfesor() {
                     <Label>Ganancia:</Label> <Value>€{(c.precioTotalProfesor || 0).toFixed(2)}</Value>
                   </div>
                 </InfoGrid>
+                <ModifyButton
+                  disabled={!isModificationAllowed(c)}
+                  onClick={() => openEdit(c)}
+                >
+                  {isModificationAllowed(c) ? 'Modificar clase' : 'Modificación no disponible'}
+                </ModifyButton>
               </Card>
             ))}
           </div>
         ))}
       </Container>
+
+      {editing && (
+        <Overlay onClick={() => setEditing(null)}>
+          <EditModal onClick={e => e.stopPropagation()}>
+            <LabelInput>Fecha nueva:</LabelInput>
+            <Input type="date" value={newDate} onChange={e => setNewDate(e.target.value)} />
+            <LabelInput>Duración (horas):</LabelInput>
+            <Input type="number" min="0.5" step="0.5" value={newDuration} onChange={e => setNewDuration(e.target.value)} />
+            <ModalActions>
+              <ModalButton onClick={() => setEditing(null)}>Cancelar</ModalButton>
+              <ModalButton primary onClick={submitEdit}>Confirmar</ModalButton>
+            </ModalActions>
+          </EditModal>
+        </Overlay>
+      )}
     </Page>
   );
 }
