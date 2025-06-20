@@ -551,7 +551,7 @@ export default function MisAlumnos() {
                         <div>
                           {item.estado === 'aceptada'
                             ? 'Clase confirmada'
-                            : 'He propuesto una clase'}
+                            : `He añadido una clase de ${item.duracion} horas, ¿es correcto?`}
                         </div>
                         <div>
                           <strong>{item.asignatura}</strong> para el{' '}
