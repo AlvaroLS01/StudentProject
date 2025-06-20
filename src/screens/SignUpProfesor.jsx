@@ -3,6 +3,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import styled, { keyframes } from 'styled-components';
 import { useNavigate } from 'react-router-dom';
 import { useNotification } from "../NotificationContext";
+import { isValidEmail } from '../utils/validateEmail';
 
 // Firebase (inicializado en firebaseConfig.js)
 import { auth, db } from '../firebase/firebaseConfig';
@@ -70,6 +71,12 @@ const Subtitle = styled.p`
   color: #014F40;
   margin-bottom: 1.8rem;
   font-style: italic;
+`;
+
+const ErrorText = styled.p`
+  color: #ff6b6b;
+  font-size: 0.9rem;
+  margin: 0.25rem 0 0.5rem;
 `;
 
 // Grid para campos
@@ -216,6 +223,7 @@ const ModalButton = styled.button`
 
 export default function SignUpProfesor() {
   const [email, setEmail]             = useState('');
+  const [emailError, setEmailError]   = useState('');
   const [password, setPassword]       = useState('');
   const [confirmPassword, setConfirm] = useState('');
   const [nombre, setNombre]           = useState('');
@@ -259,6 +267,10 @@ export default function SignUpProfesor() {
       show('Completa todos los campos');
       return;
     }
+    if (!isValidEmail(email)) {
+      setEmailError('Correo electrónico no válido.');
+      return;
+    }
     if (password !== confirmPassword) {
       return show('Las contraseñas no coinciden');
     }
@@ -294,13 +306,17 @@ export default function SignUpProfesor() {
         <FormGrid>
           <Field>
             <label>E-mail</label>
-            <input
-              type="email"
-              value={email}
-              onChange={e => setEmail(e.target.value)}
-              placeholder="tucorreo@ejemplo.com"
-            />
-          </Field>
+          <input
+            type="email"
+            value={email}
+            onChange={e => {
+              setEmail(e.target.value);
+              setEmailError('');
+            }}
+            placeholder="tucorreo@ejemplo.com"
+          />
+          {emailError && <ErrorText>{emailError}</ErrorText>}
+        </Field>
           <Field>
             <label>Teléfono</label>
             <input

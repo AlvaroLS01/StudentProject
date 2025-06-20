@@ -17,6 +17,7 @@ import {
 } from 'firebase/auth';
 import { doc, getDoc, updateDoc, setDoc } from 'firebase/firestore';
 import { getAuthErrorMessage } from '../utils/authErrorMessages';
+import { isValidEmail } from '../utils/validateEmail';
 
 const PageWrapper = styled.div`
   min-height: 100vh;
@@ -195,6 +196,11 @@ const InicioSesion = () => {
     e.preventDefault();
     setError('');
     setLoading(true);
+    if (!isValidEmail(email)) {
+      setError('Correo electrónico no válido.');
+      setLoading(false);
+      return;
+    }
     try {
       await signInWithEmailAndPassword(auth, email, password);
       navigate('/home');
@@ -248,7 +254,10 @@ const InicioSesion = () => {
             type="email"
             placeholder="Correo electrónico"
             value={email}
-            onChange={e => setEmail(e.target.value)}
+            onChange={e => {
+              setEmail(e.target.value);
+              setError('');
+            }}
             required
           />
           <Input
