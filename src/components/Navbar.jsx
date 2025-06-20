@@ -19,6 +19,7 @@ import {
 import { getAuthErrorMessage } from '../utils/authErrorMessages';
 import { doc, getDoc, updateDoc, setDoc } from 'firebase/firestore';
 import { useNotification } from '../NotificationContext';
+import { isValidEmail } from '../utils/validateEmail';
 
 const slideDown = keyframes`
   from { opacity: 0; transform: translateY(-10px); }
@@ -406,6 +407,11 @@ export default function Navbar() {
     if (loggingIn) return;
     setLoggingIn(true);
     setLoginError('');
+    if (!isValidEmail(loginEmail)) {
+      setLoginError('Correo electrónico no válido.');
+      setLoggingIn(false);
+      return;
+    }
     try {
       const userCredential = await signInWithEmailAndPassword(auth, loginEmail, loginPassword);
       const u = userCredential.user;
@@ -539,7 +545,10 @@ export default function Navbar() {
                     type="email"
                     placeholder="Correo electrónico"
                     value={loginEmail}
-                    onChange={e => setLoginEmail(e.target.value)}
+                    onChange={e => {
+                      setLoginEmail(e.target.value);
+                      setLoginError('');
+                    }}
                   />
                   <PopupInput
                     type="password"

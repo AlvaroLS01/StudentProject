@@ -3,6 +3,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import styled, { keyframes } from 'styled-components';
 import { useNavigate } from 'react-router-dom';
 import { useNotification } from "../NotificationContext";
+import { isValidEmail } from '../utils/validateEmail';
 
 // Firebase (inicializado en firebaseConfig.js)
 import { auth, db } from '../firebase/firebaseConfig';
@@ -67,6 +68,12 @@ const Subtitle = styled.p`
   color: #014F40;
   margin-bottom: 1.5rem;
   font-style: italic;
+`;
+
+const ErrorText = styled.p`
+  color: #ff6b6b;
+  font-size: 0.9rem;
+  margin: 0.25rem 0 0.5rem;
 `;
 
 // Grid/Formato
@@ -257,6 +264,7 @@ const cursosGrouped = [
 
 export default function SignUpAlumno() {
   const [email, setEmail]           = useState('');
+  const [emailError, setEmailError] = useState('');
   const [password, setPassword]     = useState('');
   const [confirmPwd, setConfirmPwd] = useState('');
   const [nombre, setNombre]         = useState('');
@@ -313,6 +321,10 @@ export default function SignUpAlumno() {
       !curso
     ) {
       show('Completa todos los campos');
+      return;
+    }
+    if (!isValidEmail(email)) {
+      setEmailError('Correo electrónico no válido.');
       return;
     }
     if (password !== confirmPwd)
@@ -377,13 +389,17 @@ export default function SignUpAlumno() {
         <FormGrid>
           <Field>
             <label>E-mail</label>
-            <input
-              type="email"
-              value={email}
-              onChange={e => setEmail(e.target.value)}
-              placeholder="tucorreo@ejemplo.com"
-            />
-          </Field>
+          <input
+            type="email"
+            value={email}
+            onChange={e => {
+              setEmail(e.target.value);
+              setEmailError('');
+            }}
+            placeholder="tucorreo@ejemplo.com"
+          />
+          {emailError && <ErrorText>{emailError}</ErrorText>}
+        </Field>
           <Field>
             <label>Contraseña</label>
             <input
