@@ -225,16 +225,17 @@ const InputDate = styled.input`
   border-radius: 6px;
 `;
 
-const InputTime = styled.input`
+const InputNumber = styled.input`
   padding: 0.5rem;
   border: 1px solid #ccc;
   border-radius: 6px;
 `;
 
-const InputNumber = styled.input`
+const Select = styled.select`
   padding: 0.5rem;
   border: 1px solid #ccc;
   border-radius: 6px;
+  background: #fff;
 `;
 
 
@@ -306,7 +307,6 @@ export default function MisAlumnos() {
   const { show } = useNotification();
   const [selectedUnion, setSelectedUnion] = useState(null);
   const [fechaClase, setFechaClase] = useState('');
-  const [hora, setHora] = useState('');
   const [duracion, setDuracion] = useState('');
   const [asignMateria, setAsignMateria] = useState('');
   const [modalidad, setModalidad] = useState('online');
@@ -413,7 +413,6 @@ export default function MisAlumnos() {
     setSelectedUnion(union);
     setOpenProposalModal(true);
     setFechaClase('');
-    setHora('');
     setDuracion('');
     setAsignMateria('');
     setModalidad('online');
@@ -421,7 +420,7 @@ export default function MisAlumnos() {
 
   // 6. Envía la propuesta de clase
   const submitProposal = async () => {
-    if (!fechaClase || !hora || !duracion || !asignMateria) {
+    if (!fechaClase || !duracion || !asignMateria) {
       show('Rellena todos los campos de la propuesta de clase');
       return;
     }
@@ -439,7 +438,6 @@ export default function MisAlumnos() {
         profesorId: auth.currentUser.uid,
         alumnoId: selectedUnion.alumnoId,
         fecha: fechaClase,
-        hora,
         duracion: durNum,
         asignatura: asignMateria,
         modalidad,
@@ -552,12 +550,12 @@ export default function MisAlumnos() {
                       <Bubble mine={mine}>
                         <div>
                           {item.estado === 'aceptada'
-                            ? 'Se ha introducido una hora'
-                            : 'He propuesto una hora'}
+                            ? 'Clase confirmada'
+                            : 'He propuesto una clase'}
                         </div>
                         <div>
                           <strong>{item.asignatura}</strong> para el{' '}
-                          <strong>{item.fecha}</strong> {item.hora} ({item.duracion}h)
+                          <strong>{item.fecha}</strong> ({item.duracion}h)
                         </div>
                         {item.estado === 'pendiente' && (
                           <CancelButton onClick={() => cancelProposal(item)}>
@@ -619,12 +617,6 @@ export default function MisAlumnos() {
                 value={fechaClase}
                 onChange={e => setFechaClase(e.target.value)}
               />
-              <Label>Hora:</Label>
-              <InputTime
-                type="time"
-                value={hora}
-                onChange={e => setHora(e.target.value)}
-              />
               <Label>Duración (horas):</Label>
               <InputNumber
                 type="number"
@@ -634,18 +626,18 @@ export default function MisAlumnos() {
                 onChange={e => setDuracion(e.target.value)}
               />
               <Label>Modalidad:</Label>
-              <select value={modalidad} onChange={e => setModalidad(e.target.value)}>
+              <Select value={modalidad} onChange={e => setModalidad(e.target.value)}>
                 <option value="online">Online</option>
                 <option value="presencial">Presencial</option>
-              </select>
+              </Select>
 
               <Label>Asignatura:</Label>
-              <select value={asignMateria} onChange={e => setAsignMateria(e.target.value)}>
+              <Select value={asignMateria} onChange={e => setAsignMateria(e.target.value)}>
                 <option value="" disabled>Selecciona asignatura</option>
                 {asignaturasList.map((a,i) => (
                   <option key={i} value={a}>{a}</option>
                 ))}
-              </select>
+              </Select>
             </Form>
             <ModalActions>
               <ModalButton onClick={() => setOpenProposalModal(false)}>
