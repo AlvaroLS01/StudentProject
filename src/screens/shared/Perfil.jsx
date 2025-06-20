@@ -212,6 +212,25 @@ const ChartContainer = styled.div`
   height: 300px;
 `;
 
+const cursosGrouped = [
+  {
+    group: 'Primaria',
+    options: [
+      '1º Primaria',
+      '2º Primaria',
+      '3º Primaria',
+      '4º Primaria',
+      '5º Primaria',
+      '6º Primaria',
+    ],
+  },
+  { group: 'ESO', options: ['1º ESO', '2º ESO', '3º ESO', '4º ESO'] },
+  {
+    group: 'Bachillerato',
+    options: ['1º Bachillerato', '2º Bachillerato'],
+  },
+];
+
 export default function Perfil() {
   const { userId } = useParams();
   const [profile, setProfile] = useState(null);
@@ -231,7 +250,7 @@ export default function Perfil() {
   const [showAddChild, setShowAddChild] = useState(false);
   const [childName, setChildName] = useState('');
   const [childDate, setChildDate] = useState('');
-  const [childFile, setChildFile] = useState(null);
+  const [childCourse, setChildCourse] = useState('');
   const [savingChild, setSavingChild] = useState(false);
 
   const { setChildList, childList, setSelectedChild } = useChild();
@@ -260,15 +279,16 @@ export default function Perfil() {
   };
 
   const addChild = async () => {
-    if (!childName || !childDate || savingChild || !isOwnProfile) return;
+    if (!childName || !childDate || !childCourse || savingChild || !isOwnProfile) return;
     setSavingChild(true);
-    let photoURL = '';
-    if (childFile) {
-      const r = ref(storage, `hijos/${userId}/${Date.now()}`);
-      await uploadBytes(r, childFile);
-      photoURL = await getDownloadURL(r);
-    }
-    const nuevo = { id: Date.now().toString(), nombre: childName, fechaNacimiento: childDate, photoURL };
+    const photoURL = profile.photoURL || '';
+    const nuevo = {
+      id: Date.now().toString(),
+      nombre: childName,
+      fechaNacimiento: childDate,
+      curso: childCourse,
+      photoURL,
+    };
     const nuevos = [...(profile.hijos || []), nuevo];
     await updateDoc(doc(db, 'usuarios', userId), { hijos: nuevos });
     setProfile(p => ({ ...p, hijos: nuevos }));
@@ -278,7 +298,7 @@ export default function Perfil() {
     }
     setChildName('');
     setChildDate('');
-    setChildFile(null);
+    setChildCourse('');
     setShowAddChild(false);
     setSavingChild(false);
   };
@@ -508,6 +528,58 @@ export default function Perfil() {
           </div>
         </ProfileHeader>
 
+        {profile.rol === 'padre' && (
+          <Section>
+            <h2 style={{ textAlign: 'center', color: '#024837' }}>Hijos</h2>
+            {(profile.hijos || []).length === 0 ? (
+              <p style={{ textAlign: 'center', color: '#666' }}>Aún no hay hijos registrados.</p>
+            ) : (
+              <ChildList>
+                {profile.hijos.map(h => (
+                  <ChildItem key={h.id}>
+                    {h.photoURL && <ChildImg src={h.photoURL} alt="foto" />}
+                    <div>
+                      <div>{h.nombre}</div>
+                      <div style={{ fontSize: '0.8rem', color: '#555' }}>{h.fechaNacimiento}</div>
+                    </div>
+                  </ChildItem>
+                ))}
+              </ChildList>
+            )}
+
+            {isOwnProfile && (
+              <>
+                {!showAddChild && (
+                  <EditButton onClick={() => setShowAddChild(true)}>Añadir hijo</EditButton>
+                )}
+                {showAddChild && (
+                  <AddChildForm>
+                    <div>
+                      <input type="text" placeholder="Nombre" value={childName} onChange={e => setChildName(e.target.value)} />
+                    </div>
+                    <div>
+                      <input type="date" value={childDate} onChange={e => setChildDate(e.target.value)} />
+                    </div>
+                    <div>
+                      <select value={childCourse} onChange={e => setChildCourse(e.target.value)}>
+                        <option value="">Selecciona curso</option>
+                        {cursosGrouped.map(({ group, options }) => (
+                          <optgroup key={group} label={group}>
+                            {options.map((c) => (
+                              <option key={c} value={c}>{c}</option>
+                            ))}
+                          </optgroup>
+                        ))}
+                      </select>
+                    </div>
+                    <EditButton onClick={addChild} disabled={savingChild}>Guardar</EditButton>
+                  </AddChildForm>
+                )}
+              </>
+            )}
+          </Section>
+        )}
+
         <ProgressWrapper>
           <ProgressLabel>
             Nivel {progressInfo.level} - {levelName}
@@ -586,48 +658,6 @@ export default function Perfil() {
           </ChartContainer>
         </Section>
 
-        {profile.rol === 'padre' && (
-          <Section>
-            <h2 style={{ textAlign: 'center', color: '#024837' }}>Hijos</h2>
-            {(profile.hijos || []).length === 0 ? (
-              <p style={{ textAlign: 'center', color: '#666' }}>Aún no hay hijos registrados.</p>
-            ) : (
-              <ChildList>
-                {profile.hijos.map(h => (
-                  <ChildItem key={h.id}>
-                    {h.photoURL && <ChildImg src={h.photoURL} alt="foto" />}
-                    <div>
-                      <div>{h.nombre}</div>
-                      <div style={{ fontSize: '0.8rem', color: '#555' }}>{h.fechaNacimiento}</div>
-                    </div>
-                  </ChildItem>
-                ))}
-              </ChildList>
-            )}
-
-            {isOwnProfile && (
-              <>
-                {!showAddChild && (
-                  <EditButton onClick={() => setShowAddChild(true)}>Añadir hijo</EditButton>
-                )}
-                {showAddChild && (
-                  <AddChildForm>
-                    <div>
-                      <input type="text" placeholder="Nombre" value={childName} onChange={e => setChildName(e.target.value)} />
-                    </div>
-                    <div>
-                      <input type="date" value={childDate} onChange={e => setChildDate(e.target.value)} />
-                    </div>
-                    <div>
-                      <input type="file" onChange={e => setChildFile(e.target.files[0])} />
-                    </div>
-                    <EditButton onClick={addChild} disabled={savingChild}>Guardar</EditButton>
-                  </AddChildForm>
-                )}
-              </>
-            )}
-          </Section>
-        )}
       </Container>
     </Page>
   );
