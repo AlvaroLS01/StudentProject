@@ -57,10 +57,6 @@ const Card = styled.div`
   }
 `;
 
-const Field = styled.div`
-  margin-bottom: 0.25rem;
-  & > strong { color: #014f40; }
-`;
 
 const CardHeader = styled.div`
   display: flex;

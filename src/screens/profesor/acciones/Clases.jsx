@@ -58,10 +58,6 @@ const Card = styled.div`
   }
 `;
 
-const Field = styled.p`
-  margin: 0.4rem 0;
-  & > strong { color: #014f40; }
-`;
 
 
 const Avatar = styled.img`
@@ -181,6 +177,7 @@ export default function ClasesProfesor() {
   const [editing, setEditing] = useState(null);
   const [newDate, setNewDate] = useState('');
   const [newDuration, setNewDuration] = useState('');
+  const [confirmEdit, setConfirmEdit] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -225,7 +222,7 @@ export default function ClasesProfesor() {
     })();
   }, []);
 
-  const sortedClases = React.useMemo(() => {
+  const sortedClases = useMemo(() => {
     const arr = [...clases];
     arr.sort((a, b) => {
       if (sortBy === 'alumno') {
@@ -250,7 +247,7 @@ export default function ClasesProfesor() {
     const offset = (7 - sunday.getDay()) % 7;
     sunday.setDate(d.getDate() + offset);
     sunday.setHours(16, 0, 0, 0);
-    return Date.now() < sunday.getTime();
+    return !clase.modificacionPendiente && Date.now() < sunday.getTime();
   };
 
   const openEdit = clase => {
@@ -276,7 +273,7 @@ export default function ClasesProfesor() {
     });
     await addDoc(collection(db, 'clases_union', editing.unionId, 'chats'), {
       senderId: auth.currentUser.uid,
-      text: `El profesor propone modificar la clase a ${newDate} (${newDuration}h)`,
+      text: `He modificado la clase del día ${editing.fecha} de duración ${editing.duracion}h a ${newDate} con duración ${newDuration}h`,
       createdAt: serverTimestamp()
     });
     setEditing(null);
@@ -347,7 +344,37 @@ export default function ClasesProfesor() {
             <Input type="number" min="0.5" step="0.5" value={newDuration} onChange={e => setNewDuration(e.target.value)} />
             <ModalActions>
               <ModalButton onClick={() => setEditing(null)}>Cancelar</ModalButton>
-              <ModalButton primary onClick={submitEdit}>Confirmar</ModalButton>
+              <ModalButton
+                primary
+                onClick={() => {
+                  setEditing(null);
+                  setConfirmEdit(true);
+                }}
+              >
+                Confirmar
+              </ModalButton>
+            </ModalActions>
+          </EditModal>
+        </Overlay>
+      )}
+
+      {confirmEdit && (
+        <Overlay onClick={() => setConfirmEdit(false)}>
+          <EditModal onClick={e => e.stopPropagation()}>
+            <p style={{ textAlign: 'center' }}>
+              Solo se puede modificar una sola vez. ¿Confirmar cambio?
+            </p>
+            <ModalActions>
+              <ModalButton onClick={() => setConfirmEdit(false)}>Cancelar</ModalButton>
+              <ModalButton
+                primary
+                onClick={() => {
+                  submitEdit();
+                  setConfirmEdit(false);
+                }}
+              >
+                Confirmar
+              </ModalButton>
             </ModalActions>
           </EditModal>
         </Overlay>
