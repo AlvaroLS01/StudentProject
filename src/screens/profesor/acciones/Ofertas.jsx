@@ -410,6 +410,7 @@ export default function Ofertas() {
   const [expandedId, setExpandedId] = useState(null);
   const [selected, setSelected] = useState(null);
   const [selectedSlots, setSelectedSlots] = useState(new Set());
+  const [selectedSubjects, setSelectedSubjects] = useState([]);
   const [confirmModal, setConfirmModal] = useState(false);
   const [infoModal, setInfoModal] = useState(false);
 
@@ -509,6 +510,12 @@ export default function Ofertas() {
     });
   };
 
+  const toggleSubject = sub => {
+    setSelectedSubjects(prev =>
+      prev.includes(sub) ? prev.filter(s => s !== sub) : [...prev, sub]
+    );
+  };
+
   // Validación antes de abrir modal de confirmación
   const validateBeforeSubmit = clase => {
     if (expandedId !== clase.id) {
@@ -528,6 +535,7 @@ export default function Ofertas() {
   const handleSendOffer = clase => {
     if (!validateBeforeSubmit(clase)) return;
     setSelected(clase);
+    setSelectedSubjects(clase.asignaturas || (clase.asignatura ? [clase.asignatura] : []));
     setConfirmModal(true);
   };
 
@@ -535,6 +543,10 @@ export default function Ofertas() {
   const confirmRequest = async () => {
     const clase = selected;
     const prof = auth.currentUser;
+    if (selectedSubjects.length === 0) {
+      setErrorNotification('Selecciona al menos una asignatura.');
+      return;
+    }
     const snap = await getDoc(doc(db, 'usuarios', prof.uid));
     const profName = snap.exists()
       ? `${snap.data().nombre} ${snap.data().apellidos || ''}`.trim()
@@ -550,6 +562,7 @@ export default function Ofertas() {
       estado: 'oferta',
       createdAt: serverTimestamp(),
       schedule: Array.from(selectedSlots),
+      asignaturas: selectedSubjects,
       fechaInicio: clase.fechaInicio,
       fechaFin: clase.fechaFin,
       horasSemana: clase.horasSemana,
@@ -559,6 +572,7 @@ export default function Ofertas() {
     setConfirmModal(false);
     setSelected(null);
     setSelectedSlots(new Set());
+    setSelectedSubjects([]);
 
     // Mostrar información de proceso de selección en un modal
     setInfoModal(true);
@@ -569,8 +583,9 @@ export default function Ofertas() {
     const duration = calculateWeeks(clase.fechaInicio, clase.fechaFin);
     const durTxt = `${duration} ${duration === 1 ? 'semana' : 'semanas'}`;
     const firstName = clase.alumnoNombre?.split(' ')[0] || '';
+    const asignText = selectedSubjects.join(', ');
     const mensaje =
-      `Se ha enviado tu oferta para la clase de ${clase.asignatura}.\n` +
+      `Se ha enviado tu oferta para la clase de ${asignText}.\n` +
       `Alumno: ${firstName}\n` +
       `Fecha inicio aprox.: ${inicioTxt}\n` +
       `Fecha fin aprox.: ${finTxt}\n` +
@@ -603,7 +618,9 @@ export default function Ofertas() {
     if (!c.alumnoNombre || c.alumnoNombre.trim() === '') {
       return false;
     }
-    const matchAsign = filterAsignatura ? c.asignatura === filterAsignatura : true;
+    const matchAsign = filterAsignatura
+      ? (c.asignaturas ? c.asignaturas.includes(filterAsignatura) : c.asignatura === filterAsignatura)
+      : true;
     const matchModalidad = filterModalidad ? c.modalidad === filterModalidad : true;
     const matchTipo = filterTipoClase ? c.tipoClase === filterTipoClase : true;
     const matchCurso = filterCurso ? c.curso === filterCurso : true;
@@ -773,7 +790,7 @@ export default function Ofertas() {
                     {c.alumnoNombre?.split(' ')[0]}
                   </StudentName>
                   <HeaderBadges>
-                    <Badge variant="asignatura">{c.asignatura}</Badge>
+                    <Badge variant="asignatura">{c.asignaturas ? c.asignaturas.join(', ') : c.asignatura}</Badge>
                     <Badge variant="curso">{c.curso}</Badge>
                   </HeaderBadges>
                 </HeaderLeft>
@@ -875,8 +892,18 @@ export default function Ofertas() {
             <Modal>
               <ModalText>
                 Vas a enviar oferta de <strong>€{selected.precioProfesores}/h</strong><br/>
-                al alumno <strong>{selected.alumnoNombre}</strong> para{' '}
-                <strong>{selected.asignatura}</strong>.<br/><br/>
+                al alumno <strong>{selected.alumnoNombre}</strong>.<br/>
+                <strong>Selecciona asignaturas:</strong><br/>
+                {(selected.asignaturas || [selected.asignatura]).map((s,i) => (
+                  <label key={i} style={{ display:'block' }}>
+                    <input
+                      type="checkbox"
+                      checked={selectedSubjects.includes(s)}
+                      onChange={() => toggleSubject(s)}
+                    />{' '} {s}
+                  </label>
+                ))}
+                <br/>
                 <strong>Fecha inicio:</strong>{' '}
                 {selected.fechaInicio ? formatSpanishDate(new Date(selected.fechaInicio)) : '—'}<br/>
                 <strong>Fecha fin:</strong>{' '}
