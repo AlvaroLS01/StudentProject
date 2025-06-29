@@ -306,7 +306,18 @@ export default function MisProfesores() {
       confirmadaEn: serverTimestamp(),
       pendienteAdmin: true
     });
-    // NOTA: no agregamos mensaje extra al chat; el propio bubble desaparecerá
+    // Mensaje persistente en el chat indicando la clase añadida
+    const union = unions.find(u => u.id === chatUnionId);
+    if (union) {
+      await addDoc(
+        collection(db, 'clases_union', chatUnionId, 'chats'),
+        {
+          senderId: union.profesorId,
+          text: `He añadido una clase, ${proposal.fecha}`,
+          createdAt: serverTimestamp()
+        }
+      );
+    }
   };
 
   // 6. Rechaza una propuesta de clase
