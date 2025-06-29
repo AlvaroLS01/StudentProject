@@ -85,10 +85,6 @@ const NameWrapper = styled.div`
   flex-direction: column;
 `;
 
-const ParentText = styled.small`
-  font-size: 0.8rem;
-  color: #555;
-`;
 
 const AddButton = styled.button`
   background: #006D5B;
@@ -524,11 +520,9 @@ export default function MisAlumnos() {
                       navigate(`/perfil/${u.alumnoId}`);
                     }}
                   >
-                    {u.alumnoNombre} {u.alumnoApellidos || ''}
+                    {u.alumnoNombre} {u.alumnoApellidos?.split(' ')[0] || ''}
+                    {u.padreNombre ? ` (${u.padreNombre})` : ''}
                   </NameLink>
-                  {u.padreNombre && (
-                    <ParentText>Padre: {u.padreNombre}</ParentText>
-                  )}
                 </NameWrapper>
                 <AddButton
                   onClick={e => {
@@ -622,7 +616,8 @@ export default function MisAlumnos() {
           <ProposalModal onClick={e => e.stopPropagation()}>
             <ProposalHeader>
               Proponer nueva clase a {selectedUnion.alumnoNombre}{' '}
-              {selectedUnion.alumnoApellidos}
+              {selectedUnion.alumnoApellidos?.split(' ')[0]}
+              {selectedUnion.padreNombre ? ` (${selectedUnion.padreNombre})` : ''}
             </ProposalHeader>
             <Form>
               <Label>Fecha de clase:</Label>
