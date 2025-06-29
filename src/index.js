@@ -4,6 +4,7 @@ import ReactDOM from 'react-dom/client';
 import './index.css';
 import App from './App';
 import { NotificationProvider } from './NotificationContext';
+import { NotificationsProvider } from './NotificationsStore';
 import { AuthProvider } from './AuthContext';
 import { ChildProvider } from './ChildContext';
 import reportWebVitals from './reportWebVitals';
@@ -17,9 +18,11 @@ root.render(
       <GlobalStyle />
       <AuthProvider>
         <ChildProvider>
-          <NotificationProvider>
-            <App />
-          </NotificationProvider>
+          <NotificationsProvider>
+            <NotificationProvider>
+              <App />
+            </NotificationProvider>
+          </NotificationsProvider>
         </ChildProvider>
       </AuthProvider>
     </ThemeProvider>

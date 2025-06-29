@@ -287,6 +287,15 @@ export default function MisProfesores() {
         createdAt: serverTimestamp()
       }
     );
+    const union = unions.find(u => u.id === chatUnionId);
+    if (union) {
+      await addDoc(collection(db, 'notificaciones'), {
+        userId: union.profesorId,
+        text: input.trim(),
+        read: false,
+        createdAt: serverTimestamp()
+      });
+    }
     setInput('');
   };
 

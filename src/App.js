@@ -31,6 +31,7 @@ import MisProfesores   from './screens/alumno/acciones/MisProfesores';
 import MisAlumnos      from './screens/profesor/acciones/MisAlumnos';
 import Perfil          from './screens/shared/Perfil';
 import LoadingScreen   from './components/LoadingScreen';
+import NotificationBell from './components/NotificationBell';
 import SeleccionRol    from './screens/SeleccionRol';
 import CompletarDatosGoogle from './screens/CompletarDatosGoogle';
 
@@ -47,6 +48,7 @@ const Main = styled.main`
 const Layout = () => (
   <>
     <Navbar />
+    <NotificationBell />
     <Main><Outlet/></Main>
     <Footer />
   </>
