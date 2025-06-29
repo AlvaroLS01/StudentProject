@@ -315,7 +315,7 @@ const daysOfWeek = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sába
 const hours = Array.from({ length: 14 }, (_, i) => 8 + i);
 
 export default function NuevaClase() {
-  const [asignatura, setAsignatura]       = useState('');
+  const [asignaturas, setAsignaturas]     = useState([]);
   const [curso, setCurso]                 = useState('');
   const [tipoClase, setTipoClase]         = useState('individual');
   const [modalidad, setModalidad]         = useState('online');
@@ -448,7 +448,7 @@ export default function NuevaClase() {
   // Validar y abrir modal
   const handleSubmit = () => {
     if (
-      !asignatura ||
+      asignaturas.length === 0 ||
       !curso ||
       !ciudad ||
       !startDate ||
@@ -465,7 +465,7 @@ export default function NuevaClase() {
 
   // Restablecer todos los campos del formulario
   const resetForm = () => {
-    setAsignatura('');
+    setAsignaturas([]);
     setCurso('');
     setTipoClase('individual');
     setModalidad('online');
@@ -492,7 +492,8 @@ export default function NuevaClase() {
         alumnoApellidos,
         hijoId: userData?.rol === 'padre' ? selectedChild?.id : null,
         padreNombre: userData?.rol === 'padre' ? userData.nombre : null,
-        asignatura,
+        asignatura: asignaturas[0] || '',
+        asignaturas,
         curso,
         tipoClase,
         modalidad,
@@ -529,19 +530,25 @@ export default function NuevaClase() {
         <FormGrid>
           {/* Asignatura */}
           <Field ref={asignRef}>
-            <label>Asignatura *</label>
+            <label>Asignaturas *</label>
             <DropdownContainer>
               <DropdownHeader onClick={() => setOpenAsign(o => !o)}>
-                {asignatura || 'Selecciona asignatura'} <ArrowSpan>{openAsign ? '▲' : '▼'}</ArrowSpan>
+                {asignaturas.length > 0 ? `${asignaturas.length} seleccionadas` : 'Selecciona asignaturas'} <ArrowSpan>{openAsign ? '▲' : '▼'}</ArrowSpan>
               </DropdownHeader>
               {openAsign && (
                 <DropdownList>
                   {asignaturasList.map((a,i) => (
-                    <DropdownItem
-                      key={i}
-                      onClick={() => { setAsignatura(a); setOpenAsign(false); }}
-                    >
-                      {a}
+                    <DropdownItem key={i} onClick={e => e.stopPropagation()}>
+                      <label>
+                        <input
+                          type="checkbox"
+                          checked={asignaturas.includes(a)}
+                          onChange={() => {
+                            setAsignaturas(prev => prev.includes(a) ? prev.filter(x => x !== a) : [...prev, a]);
+                          }}
+                        />{' '}
+                        {a}
+                      </label>
                     </DropdownItem>
                   ))}
                 </DropdownList>

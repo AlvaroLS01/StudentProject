@@ -309,8 +309,8 @@ export default function GestionClases() {
                   <Value>{c.alumnoNombre} {c.alumnoApellidos}</Value>
                 </div>
                 <div>
-                  <Label>Asignatura:</Label>{' '}
-                  <Value>{c.asignatura}</Value>
+                  <Label>Asignaturas solicitadas:</Label>{' '}
+                  <Value>{(c.asignaturas || [c.asignatura]).join(', ')}</Value>
                 </div>
                 <div>
                   <Label>Curso:</Label>{' '}
@@ -395,6 +395,8 @@ export default function GestionClases() {
                       <div>
                         <Label>Oferta profesor:</Label>{' '}
                         <Value>{o.profesorNombre}</Value><br />
+                        <Label>Asignaturas:</Label>{' '}
+                        <Value>{(o.asignaturas || []).join(', ')}</Value><br />
                         <Label>Precio:</Label>{' '}
                         <Value>€{o.precio}</Value>
                       </div>
