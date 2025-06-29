@@ -328,8 +328,8 @@ export default function GestionClases() {
                   </NameLink>
                 </div>
                 <div>
-                  <Label>Asignatura:</Label>{' '}
-                  <Value>{c.asignatura}</Value>
+                  <Label>Asignaturas:</Label>{' '}
+                  <Value>{c.asignaturas ? c.asignaturas.join(', ') : c.asignatura}</Value>
                 </div>
                 <div>
                   <Label>Curso:</Label>{' '}
@@ -440,6 +440,9 @@ export default function GestionClases() {
                         <br />
                         <Label>Precio:</Label>{' '}
                         <Value>€{o.precio}</Value>
+                        <br />
+                        <Label>Asignaturas prof.:</Label>{' '}
+                        <Value>{o.asignaturas ? o.asignaturas.join(', ') : (c.asignaturas ? c.asignaturas.join(', ') : c.asignatura)}</Value>
                       </div>
                       <AcceptText
                         onClick={() => {
