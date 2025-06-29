@@ -2,6 +2,7 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import styled, { keyframes } from 'styled-components';
 import { auth, db } from '../../../firebase/firebaseConfig';
+import { useNotification } from '../../../NotificationContext';
 import {
   collection,
   query,
@@ -181,6 +182,7 @@ export default function ClasesProfesor() {
   const [newDate, setNewDate] = useState('');
   const [newDuration, setNewDuration] = useState('');
   const [confirmEdit, setConfirmEdit] = useState(false);
+  const { show } = useNotification();
 
   useEffect(() => {
     (async () => {
@@ -214,6 +216,7 @@ export default function ClasesProfesor() {
           list.push({
             id: d.id,
             unionId: docu.id,
+            alumnoId: union.alumnoId,
             alumno: `${union.alumnoNombre} ${alumnoApellido}`.trim(),
             alumnoFoto,
             curso,
@@ -279,6 +282,13 @@ export default function ClasesProfesor() {
       text: `He modificado la clase del día ${editing.fecha} de duración ${editing.duracion}h a ${newDate} con duración ${newDuration}h`,
       createdAt: serverTimestamp()
     });
+    await addDoc(collection(db, 'notificaciones'), {
+      userId: editing.alumnoId,
+      text: `Se modificó la clase del ${editing.fecha}`,
+      read: false,
+      createdAt: serverTimestamp()
+    });
+    show('Propuesta de modificación enviada');
     setEditing(null);
   };
 
