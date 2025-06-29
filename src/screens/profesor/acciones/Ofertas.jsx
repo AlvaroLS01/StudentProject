@@ -568,9 +568,10 @@ export default function Ofertas() {
     const finTxt = clase.fechaFin ? formatSpanishDate(new Date(clase.fechaFin)) : '—';
     const duration = calculateWeeks(clase.fechaInicio, clase.fechaFin);
     const durTxt = `${duration} ${duration === 1 ? 'semana' : 'semanas'}`;
-    const mensaje = 
+    const firstName = clase.alumnoNombre?.split(' ')[0] || '';
+    const mensaje =
       `Se ha enviado tu oferta para la clase de ${clase.asignatura}.\n` +
-      `Alumno: ${clase.alumnoNombre} ${clase.alumnoApellidos}\n` +
+      `Alumno: ${firstName}\n` +
       `Fecha inicio aprox.: ${inicioTxt}\n` +
       `Fecha fin aprox.: ${finTxt}\n` +
       `Duración aprox.: ${durTxt}\n` +
@@ -769,8 +770,7 @@ export default function Ofertas() {
               <CardHeader>
                 <HeaderLeft>
                   <StudentName>
-                    {c.alumnoNombre}
-                    {c.padreNombre ? ` (${c.padreNombre})` : ` ${c.alumnoApellidos || ''}`}
+                    {c.alumnoNombre?.split(' ')[0]}
                   </StudentName>
                   <HeaderBadges>
                     <Badge variant="asignatura">{c.asignatura}</Badge>
