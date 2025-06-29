@@ -411,6 +411,15 @@ export default function MisAlumnos() {
         createdAt: serverTimestamp()
       }
     );
+    const union = unions.find(u => u.id === chatUnionId);
+    if (union) {
+      await addDoc(collection(db, 'notificaciones'), {
+        userId: union.alumnoId,
+        text: input.trim(),
+        read: false,
+        createdAt: serverTimestamp()
+      });
+    }
     setInput('');
   };
 
