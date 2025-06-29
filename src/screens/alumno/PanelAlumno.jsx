@@ -1,7 +1,8 @@
 // src/screens/alumno/PanelAlumno.jsx
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useNavigate } from 'react-router-dom';
+import { auth } from '../../firebase/firebaseConfig';
 import { useAuth } from '../../AuthContext';
 import { useChild } from '../../ChildContext';
 import { useNotification } from '../../NotificationContext';
@@ -94,6 +95,15 @@ const Content = styled.div`
   margin: 0 auto;       /* centra dentro del espacio disponible */
 `;
 
+const CenterMessage = styled.div`
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  min-height: 60vh;
+  color: #034640;
+`;
+
 export default function PanelAlumno() {
   const [searchParams, setSearchParams] = useSearchParams();
   const initialTab = searchParams.get('tab') || 'nueva-clase';
@@ -101,6 +111,7 @@ export default function PanelAlumno() {
   const { userData } = useAuth();
   const { childList, selectedChild, setSelectedChild } = useChild();
   const { show } = useNotification();
+  const navigate = useNavigate();
 
   // Al cambiar de pestaña, subimos arriba y actualizamos la URL
   useEffect(() => {
@@ -121,7 +132,11 @@ export default function PanelAlumno() {
 
   const requireChild = component => {
     if (userData?.rol === 'padre' && !selectedChild) {
-      return <p style={{ textAlign: 'center' }}>Selecciona un hijo para continuar</p>;
+      return (
+        <CenterMessage>
+          Selecciona un hijo para continuar
+        </CenterMessage>
+      );
     }
     return component;
   };
@@ -182,13 +197,18 @@ export default function PanelAlumno() {
             </MenuItem>
           )}
         </Menu>
-        {userData?.rol === 'padre' && childList.length > 0 && (
+        {userData?.rol === 'padre' && (
           <ChildSelect>
             <label>Selecciona hijo</label>
             <select
               value={selectedChild?.id || ''}
               onChange={e => {
-                const c = childList.find(ch => ch.id === e.target.value);
+                const val = e.target.value;
+                if (val === 'add_child') {
+                  navigate(`/perfil/${auth.currentUser.uid}?addChild=1`);
+                  return;
+                }
+                const c = childList.find(ch => ch.id === val);
                 setSelectedChild(c || null);
               }}
             >
@@ -198,6 +218,7 @@ export default function PanelAlumno() {
                   {c.nombre}
                 </option>
               ))}
+              <option value="add_child">Añadir hijo</option>
             </select>
           </ChildSelect>
         )}
