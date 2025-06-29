@@ -1,5 +1,6 @@
 // src/screens/admin/acciones/GestionClases.jsx
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import styled, { keyframes } from 'styled-components';
 import { db } from '../../../firebase/firebaseConfig';
 import {
@@ -119,6 +120,15 @@ const ShowScheduleText = styled.span`
   }
 `;
 
+const NameLink = styled.span`
+  color: #2c5282;
+  font-weight: 600;
+  cursor: pointer;
+  &:hover {
+    text-decoration: underline;
+  }
+`;
+
 // Para mostrar la tabla de disponibilidad
 const ScheduleContainer = styled.div`
   margin-top: 1rem;
@@ -211,9 +221,11 @@ export default function GestionClases() {
   const [clases, setClases] = useState([]);
   const [loading, setLoading] = useState(true);
   const [expandedOfferId, setExpandedOfferId] = useState(null);
+  const [expandedClassId, setExpandedClassId] = useState(null);
   const [confirmModal, setConfirmModal] = useState(false);
   const [offerToConfirm, setOfferToConfirm] = useState(null);
   const [classToConfirm, setClassToConfirm] = useState(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     (async () => {
@@ -306,7 +318,14 @@ export default function GestionClases() {
               <InfoGrid>
                 <div>
                   <Label>Alumno:</Label>{' '}
-                  <Value>{c.alumnoNombre} {c.alumnoApellidos}</Value>
+                  <NameLink
+                    onClick={e => {
+                      e.stopPropagation();
+                      navigate(`/perfil/${c.alumnoId}`);
+                    }}
+                  >
+                    {c.alumnoNombre} {c.alumnoApellidos}
+                  </NameLink>
                 </div>
                 <div>
                   <Label>Asignatura:</Label>{' '}
@@ -359,31 +378,47 @@ export default function GestionClases() {
               {/* Disponibilidad del alumno */}
               {c.schedule && c.schedule.length > 0 && (
                 <>
-                  <SectionTitle>Disponibilidad del alumno:</SectionTitle>
-                  <ScheduleContainer>
-                    <ScheduleGrid>
-                      <HeaderCell>Hora</HeaderCell>
-                      {daysOfWeek.map(d => (
-                        <HeaderCell key={d}>{d}</HeaderCell>
-                      ))}
-                      {hours.map(h => (
-                        <React.Fragment key={h}>
-                          <HourLabel>{`${h}.00–${h + 1}.00`}</HourLabel>
-                          {daysOfWeek.map(d => {
-                            const key = `${d}-${h}`;
-                            const studentHas = c.schedule.includes(key);
-                            return (
-                              <SlotCell
-                                key={key}
-                                student={studentHas ? 1 : 0}
-                                prof={0}
-                              />
-                            );
-                          })}
-                        </React.Fragment>
-                      ))}
-                    </ScheduleGrid>
-                  </ScheduleContainer>
+                  <ShowScheduleText
+                    onClick={() =>
+                      setExpandedClassId(
+                        expandedClassId === c.id ? null : c.id
+                      )
+                    }
+                  >
+                    {expandedClassId === c.id
+                      ? 'Ocultar horario'
+                      : 'Mostrar horario'}
+                  </ShowScheduleText>
+
+                  {expandedClassId === c.id && (
+                    <>
+                      <SectionTitle>Disponibilidad del alumno:</SectionTitle>
+                      <ScheduleContainer>
+                        <ScheduleGrid>
+                          <HeaderCell>Hora</HeaderCell>
+                          {daysOfWeek.map(d => (
+                            <HeaderCell key={d}>{d}</HeaderCell>
+                          ))}
+                          {hours.map(h => (
+                            <React.Fragment key={h}>
+                              <HourLabel>{`${h}.00–${h + 1}.00`}</HourLabel>
+                              {daysOfWeek.map(d => {
+                                const key = `${d}-${h}`;
+                                const studentHas = c.schedule.includes(key);
+                                return (
+                                  <SlotCell
+                                    key={key}
+                                    student={studentHas ? 1 : 0}
+                                    prof={0}
+                                  />
+                                );
+                              })}
+                            </React.Fragment>
+                          ))}
+                        </ScheduleGrid>
+                      </ScheduleContainer>
+                    </>
+                  )}
                 </>
               )}
 
@@ -394,7 +429,15 @@ export default function GestionClases() {
                     <OfferHeader>
                       <div>
                         <Label>Oferta profesor:</Label>{' '}
-                        <Value>{o.profesorNombre}</Value><br />
+                        <NameLink
+                          onClick={e => {
+                            e.stopPropagation();
+                            navigate(`/perfil/${o.profesorId}`);
+                          }}
+                        >
+                          {o.profesorNombre}
+                        </NameLink>
+                        <br />
                         <Label>Precio:</Label>{' '}
                         <Value>€{o.precio}</Value>
                       </div>
