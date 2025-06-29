@@ -1,7 +1,7 @@
 // src/screens/shared/Perfil.jsx
 import { useState, useEffect } from 'react';
 import styled, { keyframes } from 'styled-components';
-import { useParams } from 'react-router-dom';
+import { useParams, useSearchParams } from 'react-router-dom';
 import { auth, db, storage } from '../../firebase/firebaseConfig';
 import {
   collection,
@@ -233,6 +233,7 @@ const cursosGrouped = [
 
 export default function Perfil() {
   const { userId } = useParams();
+  const [searchParams] = useSearchParams();
   const [profile, setProfile] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({ telefono: '', ciudad: '' });
@@ -254,6 +255,12 @@ export default function Perfil() {
   const [savingChild, setSavingChild] = useState(false);
 
   const { setChildList, setSelectedChild } = useChild();
+
+  useEffect(() => {
+    if (searchParams.get('addChild') === '1') {
+      setShowAddChild(true);
+    }
+  }, [searchParams]);
 
   const isOwnProfile = auth.currentUser && auth.currentUser.uid === userId;
   const progressInfo = getProgressData(metrics.totalClases);
