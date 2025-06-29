@@ -418,7 +418,8 @@ export default function MisAlumnos() {
   const openProposal = union => {
     setSelectedUnion(union);
     setOpenProposalModal(true);
-    setFechaClase('');
+    const today = new Date().toISOString().slice(0, 10);
+    setFechaClase(today);
     setDuracion('');
     setAsignMateria('');
     setModalidad('online');
