@@ -10,6 +10,7 @@
 const {setGlobalOptions} = require("firebase-functions");
 const functions = require("firebase-functions");
 const admin = require("firebase-admin");
+const cors = require("cors")({origin: true});
 admin.initializeApp();
 const db = admin.firestore();
 
@@ -134,63 +135,69 @@ exports.onTeacherAssigned = functions.firestore
       }
     });
 
-exports.sendCustomPasswordResetEmail = functions.https.onCall(async (data) => {
-  const email = (data.email || "").trim();
-  if (!email) {
-    throw new functions.https.HttpsError(
-        "invalid-argument",
-        "Email requerido",
-    );
-  }
-
-  try {
-    const userSnap = await db
-        .collection("usuarios")
-        .where("email", "==", email)
-        .limit(1)
-        .get();
-
-    if (userSnap.empty) {
-      throw new functions.https.HttpsError(
-          "not-found",
-          "El correo no está registrado",
-      );
+exports.sendCustomPasswordResetEmail = functions.https.onRequest((req, res) => {
+  cors(req, res, async () => {
+    if (req.method === "OPTIONS") {
+      res.set("Access-Control-Allow-Origin", "*");
+      res.set("Access-Control-Allow-Methods", "POST");
+      res.set("Access-Control-Allow-Headers", "Content-Type");
+      res.status(204).send("");
+      return;
     }
 
-    const userData = userSnap.docs[0].data();
-    const nombre = (
-      `${userData.nombre || ""} ${userData.apellidos || ""}`
-    ).trim();
-
-    const link = await admin.auth().generatePasswordResetLink(email, {
-      url: "https://studentproject-4c33d.web.app/inicio",
-    });
-
-    const html =
-        `<p>Hola, ${nombre || "usuario"}.</p>` +
-        `<p>Parece que has olvidado la contraseña.</p>` +
-        `<p>Pulsa el siguiente botón para restablecerla:</p>` +
-        `<p><a href="${link}" style="background:#ccf3e5;color:#004640;` +
-        `padding:10px 20px;border-radius:4px;text-decoration:none;">` +
-        `Restablecer contraseña</a></p>`;
-
-    await db.collection("mail").add({
-      to: [email],
-      message: {
-        subject: "Restablecer contraseña",
-        html: html,
-      },
-    });
-
-    return {success: true};
-  } catch (err) {
-    functions.logger.error("Error al enviar correo de restablecimiento", err);
-    if (err instanceof functions.https.HttpsError) {
-      throw err;
+    if (req.method !== "POST") {
+      res.status(405).send("Method Not Allowed");
+      return;
     }
-    throw new functions.https.HttpsError(
-        "internal",
-        "No se pudo procesar la solicitud",
-    );
-  }
+
+    const email = (req.body.email || "").trim();
+    if (!email) {
+      res.status(400).json({error: "Email requerido"});
+      return;
+    }
+
+    try {
+      const userSnap = await db
+          .collection("usuarios")
+          .where("email", "==", email)
+          .limit(1)
+          .get();
+
+      if (userSnap.empty) {
+        res.status(404).json({error: "El correo no está registrado"});
+        return;
+      }
+
+      const userData = userSnap.docs[0].data();
+      const nombre = (
+        `${userData.nombre || ""} ${userData.apellidos || ""}`
+      ).trim();
+
+      const link = await admin.auth().generatePasswordResetLink(email, {
+        url: "https://studentproject-4c33d.web.app/inicio",
+      });
+
+      const html =
+          `<p>Hola, ${nombre || "usuario"}.</p>` +
+          `<p>Parece que has olvidado la contraseña.</p>` +
+          `<p>Pulsa el siguiente botón para restablecerla:</p>` +
+          `<p><a href="${link}" style="background:#ccf3e5;color:#004640;` +
+          `padding:10px 20px;border-radius:4px;text-decoration:none;">` +
+          `Restablecer contraseña</a></p>`;
+
+      await db.collection("mail").add({
+        to: [email],
+        message: {
+          subject: "Restablecer contraseña",
+          html: html,
+        },
+      });
+
+      res.set("Access-Control-Allow-Origin", "*");
+      res.json({success: true});
+    } catch (err) {
+      functions.logger.error("Error al enviar correo de restablecimiento", err);
+      res.status(500).json({error: "No se pudo procesar la solicitud"});
+    }
+  });
 });
