@@ -237,7 +237,13 @@ export default function Perfil() {
   const [searchParams] = useSearchParams();
   const [profile, setProfile] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
-  const [formData, setFormData] = useState({ telefono: '', ciudad: '' });
+  const [formData, setFormData] = useState({
+    ciudad: '',
+    studies: '',
+    studyTime: '',
+    careerFinished: false,
+    job: '',
+  });
   const [role, setRole] = useState(null); // 'alumno' o 'profesor'
   const [unions, setUnions] = useState([]); // todas las uniones del usuario
   const [acceptedClasses, setAcceptedClasses] = useState([]); // solo las clases aceptadas
@@ -269,10 +275,20 @@ export default function Perfil() {
 
   const handleSave = async () => {
     await updateDoc(doc(db, 'usuarios', userId), {
-      telefono: formData.telefono,
       ciudad: formData.ciudad,
+      studies: formData.studies,
+      studyTime: formData.studyTime,
+      careerFinished: formData.careerFinished,
+      job: formData.job,
     });
-    setProfile(p => ({ ...p, telefono: formData.telefono, ciudad: formData.ciudad }));
+    setProfile(p => ({
+      ...p,
+      ciudad: formData.ciudad,
+      studies: formData.studies,
+      studyTime: formData.studyTime,
+      careerFinished: formData.careerFinished,
+      job: formData.job,
+    }));
     setIsEditing(false);
   };
 
@@ -320,7 +336,13 @@ export default function Perfil() {
       if (userSnap.exists()) {
         const data = userSnap.data();
         setProfile(data);
-        setFormData({ telefono: data.telefono || '', ciudad: data.ciudad || '' });
+        setFormData({
+          ciudad: data.ciudad || '',
+          studies: data.studies || '',
+          studyTime: data.studyTime || '',
+          careerFinished: data.careerFinished || false,
+          job: data.job || '',
+        });
         setRole(data.rol || null);
       }
 
@@ -504,25 +526,60 @@ export default function Perfil() {
             {isEditing ? (
               <>
                 <InlineInput
-                  value={formData.telefono}
-                  onChange={e =>
-                    setFormData({ ...formData, telefono: e.target.value })
-                  }
-                  placeholder="Teléfono"
-                />
-                <InlineInput
                   value={formData.ciudad}
                   onChange={e =>
                     setFormData({ ...formData, ciudad: e.target.value })
                   }
                   placeholder="Ciudad"
                 />
+                {role === 'profesor' && (
+                  <>
+                    <InlineInput
+                      value={formData.studies}
+                      onChange={e =>
+                        setFormData({ ...formData, studies: e.target.value })
+                      }
+                      placeholder="Estudios"
+                    />
+                    <InlineInput
+                      value={formData.studyTime}
+                      onChange={e =>
+                        setFormData({ ...formData, studyTime: e.target.value })
+                      }
+                      placeholder="Tiempo estudiando"
+                    />
+                    <label style={{ display: 'block', marginTop: '0.5rem' }}>
+                      <input
+                        type="checkbox"
+                        checked={formData.careerFinished}
+                        onChange={e =>
+                          setFormData({ ...formData, careerFinished: e.target.checked })
+                        }
+                      />{' '}Carrera finalizada
+                    </label>
+                    <InlineInput
+                      value={formData.job}
+                      onChange={e =>
+                        setFormData({ ...formData, job: e.target.value })
+                      }
+                      placeholder="Trabajo"
+                    />
+                  </>
+                )}
                 <EditButton onClick={handleSave}>Guardar</EditButton>
               </>
             ) : (
               <>
                 <p>Teléfono: {profile.telefono || '-'}</p>
                 <p>Ciudad: {profile.ciudad || '-'}</p>
+                {role === 'profesor' && (
+                  <>
+                    <p>Estudios: {profile.studies || '-'}</p>
+                    <p>Tiempo estudiando: {profile.studyTime || '-'}</p>
+                    <p>Carrera finalizada: {profile.careerFinished ? 'Sí' : 'No'}</p>
+                    <p>Trabajo: {profile.job || '-'}</p>
+                  </>
+                )}
                 {isOwnProfile && (
                   <EditButton onClick={() => setIsEditing(true)}>
                     Editar datos

@@ -2,6 +2,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import styled, { keyframes } from 'styled-components';
 import { auth, db } from '../../../firebase/firebaseConfig';
+import { useAuth } from '../../../AuthContext';
+import CompleteTeacherProfileModal from '../../../components/CompleteTeacherProfileModal';
 import {
   collection,
   query,
@@ -404,6 +406,8 @@ const SlotCell = styled.div`
 
 export default function Ofertas() {
   // Datos de perfil y clases
+  const { userData } = useAuth();
+  const [showProfileModal, setShowProfileModal] = useState(false);
   const [profesorCompleto, setProfesorCompleto] = useState('');
   const [clases, setClases] = useState([]);
   // Estados para expandir desglose de horario y selección de franjas
@@ -518,6 +522,17 @@ export default function Ofertas() {
 
   // Validación antes de abrir modal de confirmación
   const validateBeforeSubmit = clase => {
+    const profileComplete =
+      userData &&
+      userData.docNumber &&
+      userData.docType &&
+      userData.studies &&
+      userData.studyTime &&
+      userData.job && userData.job !== '';
+    if (!profileComplete) {
+      setShowProfileModal(true);
+      return false;
+    }
     if (expandedId !== clase.id) {
       setErrorNotification('Primero muestra el horario y selecciona franjas.');
       return false;
@@ -943,6 +958,11 @@ export default function Ofertas() {
           </Overlay>
         )}
       </Container>
+      <CompleteTeacherProfileModal
+        open={showProfileModal}
+        onClose={() => setShowProfileModal(false)}
+        userData={userData}
+      />
     </Page>
   );
 }
