@@ -8,8 +8,10 @@
  */
 
 const {setGlobalOptions} = require("firebase-functions");
-const {onRequest} = require("firebase-functions/https");
-const logger = require("firebase-functions/logger");
+const functions = require("firebase-functions");
+const admin = require("firebase-admin");
+admin.initializeApp();
+const db = admin.firestore();
 
 // For cost control, you can set the maximum number of containers that can be
 // running at the same time. This helps mitigate the impact of unexpected
@@ -21,7 +23,7 @@ const logger = require("firebase-functions/logger");
 // functions should each use functions.runWith({ maxInstances: 10 }) instead.
 // In the v1 API, each function can only serve one request per container, so
 // this will be the maximum concurrent request count.
-setGlobalOptions({ maxInstances: 10 });
+setGlobalOptions({maxInstances: 10});
 
 // Create and deploy your first functions
 // https://firebase.google.com/docs/functions/get-started
@@ -30,3 +32,104 @@ setGlobalOptions({ maxInstances: 10 });
 //   logger.info("Hello logs!", {structuredData: true});
 //   response.send("Hello from Firebase!");
 // });
+
+exports.onTeacherAssigned = functions.firestore
+    .document("clases/{classId}")
+    .onUpdate(async (change, context) => {
+      const before = change.before.data();
+      const after = change.after.data();
+      const classId = context.params.classId;
+
+      const beforeTeacher = before.profesorSeleccionado;
+      const afterTeacher = after.profesorSeleccionado;
+      if (!afterTeacher || beforeTeacher === afterTeacher) {
+        return null;
+      }
+
+      try {
+        const unionSnap = await db
+            .collection("clases_union")
+            .where("claseId", "==", classId)
+            .limit(1)
+            .get();
+        if (unionSnap.empty) {
+          functions.logger.warn(
+              "No se encontró la unión para la clase",
+              classId,
+          );
+          return null;
+        }
+
+        const union = unionSnap.docs[0].data();
+        const teacherId = union.profesorId;
+        const studentId = union.alumnoId;
+
+        const [teacherSnap, studentSnap] = await Promise.all([
+          db.collection("usuarios").doc(teacherId).get(),
+          db.collection("usuarios").doc(studentId).get(),
+        ]);
+
+        const teacherEmail = teacherSnap.exists ?
+        teacherSnap.data().email :
+        null;
+        const teacherName = union.profesorNombre ||
+          (teacherSnap.exists ?
+            `${teacherSnap.data().nombre} ${
+              teacherSnap.data().apellidos || ""
+            }`.trim() :
+            "");
+
+        const studentEmail = studentSnap.exists ?
+        studentSnap.data().email :
+        null;
+        const studentName = union.padreNombre || union.alumnoNombre ||
+          (studentSnap.exists ?
+            `${studentSnap.data().nombre} ${
+              studentSnap.data().apellidos || ""
+            }`.trim() :
+            "");
+
+        const asignatura =
+          after.asignatura || (after.asignaturas || []).join(", ");
+        const fecha = after.fechaInicio || "";
+
+        const studentMessage = {
+          to: [studentEmail],
+          message: {
+            subject: "Profesor asignado",
+            html:
+              `<p>Hola, ${studentName}.</p>` +
+              `<p>Para la oferta de clase que solicitaste, ` +
+              `se ha elegido al profesor ${teacherName}.</p>` +
+              `<p>Asignatura: ${asignatura}</p>` +
+              (fecha ? `<p>Fecha de inicio: ${fecha}</p>` : "") +
+              "<p>Puede ver la información en la pestaña \"Mis " +
+              "Profesores\".</p>",
+          },
+        };
+
+        const teacherMessage = {
+          to: [teacherEmail],
+          message: {
+            subject: "Nueva clase asignada",
+            html:
+              `<p>Hola, ${teacherName}.</p>` +
+              `<p>Has sido seleccionado como el mejor candidato ` +
+              `para la clase solicitada por ${studentName}.</p>` +
+              `<p>Asignatura: ${asignatura}</p>` +
+              (fecha ? `<p>Fecha de inicio: ${fecha}</p>` : "") +
+              "<p>Puede consultar la información en su pestaña de \"Mis " +
+              "Alumnos\".</p>",
+          },
+        };
+
+        await Promise.all([
+          db.collection("mail").add(studentMessage),
+          db.collection("mail").add(teacherMessage),
+        ]);
+        return null;
+      } catch (error) {
+        functions.logger.error("Error al enviar correos", error);
+        return null;
+      }
+    });
