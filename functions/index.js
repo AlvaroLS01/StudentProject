@@ -15,7 +15,8 @@ admin.initializeApp();
 const db = admin.firestore();
 
 // Si quieres controlar concurrencia en v1, por función:
-// exports.sendCustomPasswordResetEmail = functions.runWith({ maxInstances: 10 }).https.onRequest(...);
+// exports.sendCustomPasswordResetEmail =
+//   functions.runWith({maxInstances: 10}).https.onRequest(...);
 
 exports.onTeacherAssigned = functions.firestore
     .document("clases/{classId}")
@@ -37,7 +38,10 @@ exports.onTeacherAssigned = functions.firestore
             .limit(1)
             .get();
         if (unionSnap.empty) {
-          functions.logger.warn("No se encontró la unión para la clase", classId);
+          functions.logger.warn(
+              "No se encontró la unión para la clase",
+              classId,
+          );
           return null;
         }
 
@@ -50,20 +54,27 @@ exports.onTeacherAssigned = functions.firestore
           db.collection("usuarios").doc(studentId).get(),
         ]);
 
-        const teacherEmail = teacherSnap.exists ? teacherSnap.data().email : null;
+        const teacherEmail = teacherSnap.exists ?
+          teacherSnap.data().email :
+          null;
         const teacherName = union.profesorNombre ||
-        (teacherSnap.exists ?
-          `${teacherSnap.data().nombre} ${teacherSnap.data().apellidos || ""}`.trim() :
-          "");
+          (teacherSnap.exists ?
+            `${teacherSnap.data().nombre} ${
+              teacherSnap.data().apellidos || ""}`.trim() :
+            "");
 
-        const studentEmail = studentSnap.exists ? studentSnap.data().email : null;
+        const studentEmail = studentSnap.exists ?
+          studentSnap.data().email :
+          null;
         const studentName = union.padreNombre ||
-        union.alumnoNombre ||
-        (studentSnap.exists ?
-          `${studentSnap.data().nombre} ${studentSnap.data().apellidos || ""}`.trim() :
-          "");
+          union.alumnoNombre ||
+          (studentSnap.exists ?
+            `${studentSnap.data().nombre} ${
+              studentSnap.data().apellidos || ""}`.trim() :
+            "");
 
-        const asignatura = after.asignatura || (after.asignaturas || []).join(", ");
+        const asignatura = after.asignatura ||
+          (after.asignaturas || []).join(", ");
         const fecha = after.fechaInicio || "";
 
         const studentMessage = {
@@ -72,7 +83,8 @@ exports.onTeacherAssigned = functions.firestore
             subject: "Profesor asignado",
             html:
             `<p>Hola, ${studentName}.</p>` +
-            `<p>Para la oferta de clase que solicitaste, se ha elegido al profesor ${teacherName}.</p>` +
+            `<p>Para la oferta de clase que solicitaste, se ha elegido al `+
+            `profesor ${teacherName}.</p>` +
             `<p>Asignatura: ${asignatura}</p>` +
             (fecha ? `<p>Fecha de inicio: ${fecha}</p>` : "") +
             `<p>Puede ver la información en la pestaña "Mis Profesores".</p>`,
@@ -85,10 +97,12 @@ exports.onTeacherAssigned = functions.firestore
             subject: "Nueva clase asignada",
             html:
             `<p>Hola, ${teacherName}.</p>` +
-            `<p>Has sido seleccionado como el mejor candidato para la clase solicitada por ${studentName}.</p>` +
+            `<p>Has sido seleccionado como el mejor candidato para la clase `+
+            `solicitada por ${studentName}.</p>` +
             `<p>Asignatura: ${asignatura}</p>` +
             (fecha ? `<p>Fecha de inicio: ${fecha}</p>` : "") +
-            `<p>Puede consultar la información en su pestaña de "Mis Alumnos".</p>`,
+            `<p>Puede consultar la información en su pestaña de "Mis `+
+            `Alumnos".</p>`,
           },
         };
 
@@ -138,7 +152,8 @@ exports.sendCustomPasswordResetEmail = functions.https.onRequest((req, res) => {
       }
 
       const userData = userSnap.docs[0].data();
-      const nombre = `${userData.nombre || ""} ${userData.apellidos || ""}`.trim();
+      const nombre = `${userData.nombre || ""} ${
+        userData.apellidos || ""}`.trim();
 
       const link = await admin.auth().generatePasswordResetLink(email, {
         url: "https://studentproject-4c33d.web.app/inicio",
