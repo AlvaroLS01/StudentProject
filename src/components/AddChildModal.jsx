@@ -87,7 +87,7 @@ export default function AddChildModal({ open, onClose }) {
     };
     const nuevos = [...childList, nuevo];
     await updateDoc(doc(db, 'usuarios', auth.currentUser.uid), { hijos: nuevos });
-    setChildList(nuevos);
+    setChildList(nuevos.filter(c => !c.disabled));
     setSelectedChild(nuevo);
     setName('');
     setDate('');

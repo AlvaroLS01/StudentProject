@@ -323,7 +323,7 @@ export default function Perfil() {
     await updateDoc(doc(db, 'usuarios', userId), { hijos: nuevos });
     setProfile(p => ({ ...p, hijos: nuevos }));
     if (auth.currentUser && auth.currentUser.uid === userId) {
-      setChildList(nuevos);
+      setChildList(nuevos.filter(c => !c.disabled));
       setSelectedChild(nuevo);
     }
     setChildName('');

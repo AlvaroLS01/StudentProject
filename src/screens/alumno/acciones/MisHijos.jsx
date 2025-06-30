@@ -60,12 +60,51 @@ const Form = styled.div`
   border-radius: 8px;
 `;
 
+const Overlay = styled.div`
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.4);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 100;
+`;
+
+const Modal = styled.div`
+  background: #fff;
+  border-radius: 8px;
+  padding: 1.5rem;
+  max-width: 320px;
+  text-align: center;
+`;
+
+const ModalText = styled.p`
+  font-size: 1rem;
+  margin-bottom: 1rem;
+  color: #014F40;
+`;
+
+const ModalActions = styled.div`
+  display: flex;
+  justify-content: space-around;
+`;
+
+const ModalButton = styled.button`
+  padding: 0.6rem 1.2rem;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  ${p =>
+    p.primary
+      ? `background: #006D5B; color: #fff;`
+      : `background: #f0f0f0; color: #333;`}
+`;
+
 export default function MisHijos() {
   const { childList, setChildList, setSelectedChild } = useChild();
   const { userData } = useAuth();
   const [nombre, setNombre] = useState('');
   const [fecha, setFecha] = useState('');
   const [saving, setSaving] = useState(false);
+  const [childToDelete, setChildToDelete] = useState(null);
 
   const addChild = async () => {
     if (!nombre || !fecha || saving) return;
@@ -78,18 +117,21 @@ export default function MisHijos() {
     };
     const nuevos = [...childList, nuevo];
     await updateDoc(doc(db, 'usuarios', auth.currentUser.uid), { hijos: nuevos });
-    setChildList(nuevos);
+    setChildList(nuevos.filter(c => !c.disabled));
     setSelectedChild(nuevo);
     setNombre('');
     setFecha('');
     setSaving(false);
   };
 
-  const removeChild = async id => {
-    const nuevos = childList.filter(c => c.id !== id);
+  const removeChild = async child => {
+    const nuevos = childList.map(c =>
+      c.id === child.id ? { ...c, disabled: true } : c
+    );
     await updateDoc(doc(db, 'usuarios', auth.currentUser.uid), { hijos: nuevos });
-    setChildList(nuevos);
-    setSelectedChild(nuevos[0] || null);
+    const activos = nuevos.filter(c => !c.disabled);
+    setChildList(activos);
+    setSelectedChild(activos[0] || null);
   };
 
   return (
@@ -106,7 +148,7 @@ export default function MisHijos() {
                   <div style={{ fontSize: '0.8rem', color: '#555' }}>{c.fechaNacimiento}</div>
                 </div>
               </div>
-              <DangerButton onClick={() => removeChild(c.id)}>Eliminar</DangerButton>
+              <DangerButton onClick={() => setChildToDelete(c)}>Eliminar</DangerButton>
             </Item>
           ))}
         </List>
@@ -131,6 +173,21 @@ export default function MisHijos() {
           <PrimaryButton onClick={addChild} disabled={saving}>Guardar</PrimaryButton>
         </Form>
       </Container>
+      {childToDelete && (
+        <Overlay onClick={() => setChildToDelete(null)}>
+          <Modal onClick={e => e.stopPropagation()}>
+            <ModalText>
+              Se eliminará la relación con profesores y clases de {childToDelete.nombre}. ¿Deseas continuar?
+            </ModalText>
+            <ModalActions>
+              <ModalButton onClick={() => setChildToDelete(null)}>Cancelar</ModalButton>
+              <ModalButton primary onClick={() => { removeChild(childToDelete); }}>
+                Aceptar
+              </ModalButton>
+            </ModalActions>
+          </Modal>
+        </Overlay>
+      )}
     </Page>
   );
 }
