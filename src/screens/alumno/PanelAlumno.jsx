@@ -1,11 +1,12 @@
 // src/screens/alumno/PanelAlumno.jsx
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
-import { useSearchParams, useNavigate } from 'react-router-dom';
-import { auth } from '../../firebase/firebaseConfig';
+import { useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../AuthContext';
 import { useChild } from '../../ChildContext';
 import { useNotification } from '../../NotificationContext';
+import ChildSelectorBubble from '../../components/ChildSelectorBubble';
+import AddChildModal from '../../components/AddChildModal';
 
 // importa tus pantallas “incrustadas”
 import NuevaClase    from './acciones/NuevaClase';
@@ -70,22 +71,6 @@ const Button = styled.button`
   }
 `;
 
-const ChildSelect = styled.div`
-  margin-top: auto;
-  padding-top: 1rem;
-  label {
-    display: block;
-    margin-bottom: 0.25rem;
-    color: #034640;
-    font-weight: 600;
-  }
-  select {
-    width: 100%;
-    padding: 0.5rem;
-    border: 1px solid #ccc;
-    border-radius: 6px;
-  }
-`;
 
 const Content = styled.div`
   flex: 1;
@@ -109,9 +94,9 @@ export default function PanelAlumno() {
   const initialTab = searchParams.get('tab') || 'nueva-clase';
   const [view, setView] = useState(initialTab);
   const { userData } = useAuth();
-  const { childList, selectedChild, setSelectedChild } = useChild();
+  const { selectedChild } = useChild();
   const { show } = useNotification();
-  const navigate = useNavigate();
+  const [showAddChild, setShowAddChild] = useState(false);
 
   // Al cambiar de pestaña, subimos arriba y actualizamos la URL
   useEffect(() => {
@@ -150,6 +135,7 @@ export default function PanelAlumno() {
   };
 
   return (
+    <>
     <Container>
       <Sidebar>
         <Logo>Alumno</Logo>
@@ -197,36 +183,18 @@ export default function PanelAlumno() {
             </MenuItem>
           )}
         </Menu>
-        {userData?.rol === 'padre' && (
-          <ChildSelect>
-            <label>Selecciona hijo</label>
-            <select
-              value={selectedChild?.id || ''}
-              onChange={e => {
-                const val = e.target.value;
-                if (val === 'add_child') {
-                  navigate(`/perfil/${auth.currentUser.uid}?addChild=1`);
-                  return;
-                }
-                const c = childList.find(ch => ch.id === val);
-                setSelectedChild(c || null);
-              }}
-            >
-              <option value="">Selecciona tu hijo</option>
-              {childList.map(c => (
-                <option key={c.id} value={c.id}>
-                  {c.nombre}
-                </option>
-              ))}
-              <option value="add_child">Añadir hijo</option>
-            </select>
-          </ChildSelect>
-        )}
       </Sidebar>
 
       <Content>
         {renderView()}
       </Content>
     </Container>
+    {userData?.rol === 'padre' && (
+      <>
+        <ChildSelectorBubble onAddChild={() => setShowAddChild(true)} />
+        <AddChildModal open={showAddChild} onClose={() => setShowAddChild(false)} />
+      </>
+    )}
+    </>
   );
 }
