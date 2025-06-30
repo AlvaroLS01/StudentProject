@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
+import { TextInput, SelectInput, PrimaryButton } from './FormElements';
 import { auth, db } from '../firebase/firebaseConfig';
 import { doc, updateDoc } from 'firebase/firestore';
 import { useChild } from '../ChildContext';
@@ -43,33 +44,6 @@ const Title = styled.h2`
   color: #014F40;
 `;
 
-const Input = styled.input`
-  width: 100%;
-  padding: 0.5rem 0.75rem;
-  margin-bottom: 0.75rem;
-  border: 1px solid #ccc;
-  border-radius: 6px;
-`;
-
-const Select = styled.select`
-  width: 100%;
-  padding: 0.5rem 0.75rem;
-  margin-bottom: 0.75rem;
-  border: 1px solid #ccc;
-  border-radius: 6px;
-`;
-
-const Button = styled.button`
-  width: 100%;
-  background: #ccf3e5;
-  color: #034640;
-  padding: 0.75rem 1rem;
-  border: none;
-  border-radius: 6px;
-  font-weight: 700;
-  cursor: pointer;
-  opacity: ${p => (p.disabled ? 0.6 : 1)};
-`;
 
 const cursosGrouped = [
   {
@@ -129,18 +103,18 @@ export default function AddChildModal({ open, onClose }) {
       <Modal onClick={e => e.stopPropagation()}>
         <CloseButton onClick={onClose}>✕</CloseButton>
         <Title>Añadir hijo</Title>
-        <Input
+        <TextInput
           type="text"
           placeholder="Nombre"
           value={name}
           onChange={e => setName(e.target.value)}
         />
-        <Input
+        <TextInput
           type="date"
           value={date}
           onChange={e => setDate(e.target.value)}
         />
-        <Select value={course} onChange={e => setCourse(e.target.value)}>
+        <SelectInput value={course} onChange={e => setCourse(e.target.value)}>
           <option value="">Selecciona curso</option>
           {cursosGrouped.map(({ group, options }) => (
             <optgroup key={group} label={group}>
@@ -149,10 +123,10 @@ export default function AddChildModal({ open, onClose }) {
               ))}
             </optgroup>
           ))}
-        </Select>
-        <Button onClick={addChild} disabled={saving}>
+        </SelectInput>
+        <PrimaryButton onClick={addChild} disabled={saving}>
           {saving ? 'Guardando...' : 'Guardar'}
-        </Button>
+        </PrimaryButton>
       </Modal>
     </Overlay>
   );

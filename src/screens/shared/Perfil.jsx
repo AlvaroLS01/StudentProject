@@ -26,6 +26,7 @@ import {
   ResponsiveContainer,
 } from 'recharts';
 import { useChild } from '../../ChildContext';
+import { TextInput, SelectInput, PrimaryButton } from '../../components/FormElements';
 
 // Animación de fade-in
 const fadeIn = keyframes`
@@ -173,7 +174,7 @@ const EditButton = styled.button`
   }
 `;
 
-const TextInput = styled.input`
+const InlineInput = styled.input`
   display: block;
   width: 100%;
   padding: 0.4rem 0.5rem;
@@ -502,14 +503,14 @@ export default function Perfil() {
             <p>{profile.email}</p>
             {isEditing ? (
               <>
-                <TextInput
+                <InlineInput
                   value={formData.telefono}
                   onChange={e =>
                     setFormData({ ...formData, telefono: e.target.value })
                   }
                   placeholder="Teléfono"
                 />
-                <TextInput
+                <InlineInput
                   value={formData.ciudad}
                   onChange={e =>
                     setFormData({ ...formData, ciudad: e.target.value })
@@ -559,13 +560,13 @@ export default function Perfil() {
                 {showAddChild && (
                   <AddChildForm>
                     <div>
-                      <input type="text" placeholder="Nombre" value={childName} onChange={e => setChildName(e.target.value)} />
+                      <TextInput type="text" placeholder="Nombre" value={childName} onChange={e => setChildName(e.target.value)} />
                     </div>
                     <div>
-                      <input type="date" value={childDate} onChange={e => setChildDate(e.target.value)} />
+                      <TextInput type="date" value={childDate} onChange={e => setChildDate(e.target.value)} />
                     </div>
                     <div>
-                      <select value={childCourse} onChange={e => setChildCourse(e.target.value)}>
+                      <SelectInput value={childCourse} onChange={e => setChildCourse(e.target.value)}>
                         <option value="">Selecciona curso</option>
                         {cursosGrouped.map(({ group, options }) => (
                           <optgroup key={group} label={group}>
@@ -574,9 +575,9 @@ export default function Perfil() {
                             ))}
                           </optgroup>
                         ))}
-                      </select>
+                      </SelectInput>
                     </div>
-                    <EditButton onClick={addChild} disabled={savingChild}>Guardar</EditButton>
+                    <PrimaryButton onClick={addChild} disabled={savingChild}>Guardar</PrimaryButton>
                   </AddChildForm>
                 )}
               </>
