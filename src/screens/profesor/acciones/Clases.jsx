@@ -1,6 +1,7 @@
 // src/screens/profesor/acciones/Clases.jsx
 import React, { useEffect, useState, useMemo } from 'react';
 import styled, { keyframes } from 'styled-components';
+import LoadingScreen from '../../../components/LoadingScreen';
 import Card from '../../../components/CommonCard';
 import { auth, db } from '../../../firebase/firebaseConfig';
 import { useNotification } from '../../../NotificationContext';
@@ -171,10 +172,12 @@ export default function ClasesProfesor() {
   const [newDate, setNewDate] = useState('');
   const [newDuration, setNewDuration] = useState('');
   const [confirmEdit, setConfirmEdit] = useState(false);
+  const [loading, setLoading] = useState(true);
   const { show } = useNotification();
 
   useEffect(() => {
     (async () => {
+      setLoading(true);
       const q = query(collection(db, 'clases_union'), where('profesorId', '==', auth.currentUser.uid));
       const snap = await getDocs(q);
       const list = [];
@@ -214,6 +217,7 @@ export default function ClasesProfesor() {
         });
       }
       setClases(list);
+      setLoading(false);
     })();
   }, []);
 
@@ -280,6 +284,10 @@ export default function ClasesProfesor() {
     show('Propuesta de modificación enviada');
     setEditing(null);
   };
+
+  if (loading) {
+    return <LoadingScreen fullscreen />;
+  }
 
   return (
     <Page>

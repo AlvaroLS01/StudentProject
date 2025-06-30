@@ -1,6 +1,7 @@
 // src/screens/profesor/acciones/MisProfesores.jsx
 import React, { useState, useEffect, useRef } from 'react';
 import styled, { keyframes } from 'styled-components';
+import LoadingScreen from '../../../components/LoadingScreen';
 import { auth, db } from '../../../firebase/firebaseConfig';
 import { useNotification } from '../../../NotificationContext';
 import {
@@ -202,6 +203,7 @@ export default function MisProfesores() {
   const [proposals, setProposals] = useState([]);
   const [modifications, setModifications] = useState([]);
   const [input, setInput] = useState('');
+  const [loading, setLoading] = useState(true);
   const scrollRef = useRef();
   const navigate = useNavigate();
   const { show } = useNotification();
@@ -220,8 +222,9 @@ export default function MisProfesores() {
   // 1. Carga las uniones (clase-alumno-profesor) donde el usuario es alumno
   useEffect(() => {
     async function fetchUnions() {
+      setLoading(true);
       const u = auth.currentUser;
-      if (!u) return;
+      if (!u) { setLoading(false); return; }
       const q = query(
         collection(db, 'clases_union'),
         where('alumnoId', '==', u.uid)
@@ -241,6 +244,7 @@ export default function MisProfesores() {
         })
       );
       setUnions(items);
+      setLoading(false);
     }
     fetchUnions();
   }, []);
@@ -406,6 +410,10 @@ export default function MisProfesores() {
     });
     return combined;
   }, [messages, proposals, modifications]);
+
+  if (loading) {
+    return <LoadingScreen fullscreen />;
+  }
 
   return (
     <Page>
