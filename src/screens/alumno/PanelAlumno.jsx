@@ -1,5 +1,5 @@
 // src/screens/alumno/PanelAlumno.jsx
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import styled from 'styled-components';
 import { useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../AuthContext';
@@ -97,6 +97,21 @@ export default function PanelAlumno() {
   const { selectedChild } = useChild();
   const { show } = useNotification();
   const [showAddChild, setShowAddChild] = useState(false);
+  const firstRender = useRef(true);
+
+  useEffect(() => {
+    if (firstRender.current) {
+      firstRender.current = false;
+      return;
+    }
+    if (userData?.rol === 'padre') {
+      if (selectedChild) {
+        show(`Ahora estás usando a ${selectedChild.nombre}`);
+      } else {
+        show('No hay hijo seleccionado');
+      }
+    }
+  }, [selectedChild, userData, show]);
 
   // Al cambiar de pestaña, subimos arriba y actualizamos la URL
   useEffect(() => {
