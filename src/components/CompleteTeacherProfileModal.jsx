@@ -3,6 +3,7 @@ import styled from 'styled-components';
 import { TextInput, SelectInput, PrimaryButton } from './FormElements';
 import { auth, db } from '../firebase/firebaseConfig';
 import { doc, updateDoc } from 'firebase/firestore';
+import { useAuth } from '../AuthContext';
 
 const Overlay = styled.div`
   position: fixed;
@@ -47,6 +48,7 @@ const Field = styled.div`
 `;
 
 export default function CompleteTeacherProfileModal({ open, onClose, userData }) {
+  const { refreshUserData } = useAuth();
   const [docType, setDocType] = useState(userData?.docType || '');
   const [docNumber, setDocNumber] = useState(userData?.docNumber || '');
   const [studies, setStudies] = useState(userData?.studies || '');
@@ -79,6 +81,7 @@ export default function CompleteTeacherProfileModal({ open, onClose, userData })
       status,
       iban,
     });
+    await refreshUserData();
     setSaving(false);
     onClose();
   };
