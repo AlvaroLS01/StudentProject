@@ -220,13 +220,54 @@ export default function GestionClases() {
     (async () => {
       const q = query(collection(db, 'clases'), where('estado', '==', 'pendiente'));
       const snap = await getDocs(q);
-      const data = await Promise.all(snap.docs.map(async d => {
-        const c = { id: d.id, ...d.data() };
-        const offsSnap = await getDocs(collection(db, 'clases', d.id, 'ofertas'));
-        c.ofertas = offsSnap.docs.map(o => ({ id: o.id, ...o.data() }));
-        return c;
-      }));
-      setClases(data.filter(c => c.ofertas.length > 0));
+      const teacherCache = {};
+      const data = await Promise.all(
+        snap.docs.map(async (d) => {
+          const c = { id: d.id, ...d.data() };
+          const offsSnap = await getDocs(collection(db, 'clases', d.id, 'ofertas'));
+          c.ofertas = await Promise.all(
+            offsSnap.docs.map(async (o) => {
+              const offer = { id: o.id, ...o.data() };
+              const tId = offer.profesorId;
+              if (!teacherCache[tId]) {
+                try {
+                  const tSnap = await getDoc(doc(db, 'usuarios', tId));
+                  let studies = '';
+                  let job = '';
+                  let studyTime = '';
+                  if (tSnap.exists()) {
+                    const d = tSnap.data();
+                    studies = d.studies || '';
+                    job = d.job || '';
+                    studyTime = d.studyTime || '';
+                  }
+                  const unionsSnap = await getDocs(
+                    query(collection(db, 'clases_union'), where('profesorId', '==', tId))
+                  );
+                  let classesCount = 0;
+                  for (const u of unionsSnap.docs) {
+                    const clSnap = await getDocs(
+                      query(
+                        collection(db, 'clases_union', u.id, 'clases_asignadas'),
+                        where('estado', '==', 'aceptada')
+                      )
+                    );
+                    classesCount += clSnap.size;
+                  }
+                  teacherCache[tId] = { studies, job, studyTime, classesCount };
+                } catch (err) {
+                  console.error(err);
+                  teacherCache[tId] = { studies: '', job: '', studyTime: '', classesCount: 0 };
+                }
+              }
+              offer.teacherInfo = teacherCache[tId];
+              return offer;
+            })
+          );
+          return c;
+        })
+      );
+      setClases(data.filter((c) => c.ofertas.length > 0));
       setLoading(false);
     })();
   }, []);
@@ -432,6 +473,22 @@ export default function GestionClases() {
                         <br />
                         <Label>Asignaturas prof.:</Label>{' '}
                         <Value>{o.asignaturas ? o.asignaturas.join(', ') : (c.asignaturas ? c.asignaturas.join(', ') : c.asignatura)}</Value>
+                        {o.teacherInfo && (
+                          <>
+                            <br />
+                            <Label>Estudios:</Label>{' '}
+                            <Value>{o.teacherInfo.studies || '-'}</Value>
+                            <br />
+                            <Label>Trabajo:</Label>{' '}
+                            <Value>{o.teacherInfo.job || '-'}</Value>
+                            <br />
+                            <Label>Tiempo estudiando:</Label>{' '}
+                            <Value>{o.teacherInfo.studyTime || '-'}</Value>
+                            <br />
+                            <Label>Clases impartidas:</Label>{' '}
+                            <Value>{o.teacherInfo.classesCount}</Value>
+                          </>
+                        )}
                       </div>
                       <AcceptText
                         onClick={() => {
