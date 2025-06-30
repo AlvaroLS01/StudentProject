@@ -1,0 +1,57 @@
+import styled from 'styled-components';
+
+export const TextInput = styled.input`
+  width: 100%;
+  padding: 0.6rem 0.8rem;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 1rem;
+  &:focus {
+    outline: none;
+    border-color: ${({ theme }) => theme.colors.primary};
+    box-shadow: 0 0 0 3px rgba(3, 70, 64, 0.2);
+  }
+`;
+
+export const SelectInput = styled.select`
+  width: 100%;
+  padding: 0.6rem 0.8rem;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 1rem;
+  &:focus {
+    outline: none;
+    border-color: ${({ theme }) => theme.colors.primary};
+    box-shadow: 0 0 0 3px rgba(3, 70, 64, 0.2);
+  }
+`;
+
+export const PrimaryButton = styled.button`
+  background: ${({ theme }) => theme.colors.secondary};
+  color: ${({ theme }) => theme.colors.primary};
+  padding: 0.75rem 1rem;
+  border: none;
+  border-radius: 6px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.2s ease;
+  opacity: ${p => (p.disabled ? 0.6 : 1)};
+  pointer-events: ${p => (p.disabled ? 'none' : 'auto')};
+  &:hover {
+    background: ${({ theme }) => theme.colors.accent};
+    transform: translateY(-2px);
+  }
+`;
+
+export const DangerButton = styled.button`
+  background: #e53e3e;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  padding: 0.4rem 0.75rem;
+  cursor: pointer;
+  transition: background 0.2s ease;
+  &:hover {
+    background: #c53030;
+  }
+`;

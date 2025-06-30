@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import styled, { keyframes } from 'styled-components';
 import { useChild } from '../ChildContext';
+import { SelectInput } from './FormElements';
 
 const flash = keyframes`
   0% { transform: scale(1); background: #fff; }
@@ -30,12 +31,6 @@ const Label = styled.label`
   font-weight: 600;
 `;
 
-const Select = styled.select`
-  width: 180px;
-  padding: 0.5rem;
-  border: 1px solid #ccc;
-  border-radius: 6px;
-`;
 
 export default function ChildSelectorBubble({ onAddChild }) {
   const { childList, selectedChild, setSelectedChild } = useChild();
@@ -62,13 +57,13 @@ export default function ChildSelectorBubble({ onAddChild }) {
   return (
     <Bubble className={flashAnim ? 'flash' : ''}>
       <Label>Selecciona hijo</Label>
-      <Select value={selectedChild?.id || ''} onChange={handleChange}>
+      <SelectInput value={selectedChild?.id || ''} onChange={handleChange} style={{ width: 180 }}>
         <option value="">Selecciona tu hijo</option>
         {childList.map(c => (
           <option key={c.id} value={c.id}>{c.nombre}</option>
         ))}
         <option value="add_child">Añadir hijo</option>
-      </Select>
+      </SelectInput>
     </Bubble>
   );
 }

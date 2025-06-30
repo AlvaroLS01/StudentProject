@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import styled, { keyframes } from 'styled-components';
+import { TextInput, PrimaryButton, DangerButton } from '../../../components/FormElements';
 import { auth, db } from '../../../firebase/firebaseConfig';
 import { doc, updateDoc } from 'firebase/firestore';
 import { useChild } from '../../../ChildContext';
@@ -105,7 +106,7 @@ export default function MisHijos() {
                   <div style={{ fontSize: '0.8rem', color: '#555' }}>{c.fechaNacimiento}</div>
                 </div>
               </div>
-              <button onClick={() => removeChild(c.id)}>Eliminar</button>
+              <DangerButton onClick={() => removeChild(c.id)}>Eliminar</DangerButton>
             </Item>
           ))}
         </List>
@@ -113,7 +114,7 @@ export default function MisHijos() {
         <Form>
           <h3>Añadir nuevo hijo</h3>
           <div>
-            <input
+            <TextInput
               type="text"
               placeholder="Nombre"
               value={nombre}
@@ -121,13 +122,13 @@ export default function MisHijos() {
             />
           </div>
           <div>
-            <input
+            <TextInput
               type="date"
               value={fecha}
               onChange={e => setFecha(e.target.value)}
             />
           </div>
-          <button onClick={addChild} disabled={saving}>Guardar</button>
+          <PrimaryButton onClick={addChild} disabled={saving}>Guardar</PrimaryButton>
         </Form>
       </Container>
     </Page>

@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import styled, { keyframes } from 'styled-components';
+import { PrimaryButton, DangerButton, TextInput } from '../../../components/FormElements';
 import { db } from '../../../firebase/firebaseConfig';
 import { collection, getDocs, addDoc, deleteDoc, doc } from 'firebase/firestore';
 
@@ -25,14 +26,9 @@ const Form = styled.div`
   flex-direction:column;
   gap:0.5rem;
   margin-bottom:1rem;
-  input,textarea{padding:0.5rem;border:1px solid #ccc;border-radius:4px;}
-  button{align-self:flex-start;background:#034640;color:#fff;border:none;border-radius:4px;padding:0.5rem 1rem;cursor:pointer;}
 `;
 const Item = styled.div`
   display:flex;justify-content:space-between;align-items:center;padding:0.5rem;border-bottom:1px solid #e2e8f0;
-`;
-const DelBtn = styled.button`
-  background:#e53e3e;color:#fff;border:none;border-radius:4px;padding:0.25rem 0.5rem;cursor:pointer;
 `;
 
 export default function Facturacion(){
@@ -63,14 +59,14 @@ export default function Facturacion(){
       <Container>
         <Title>Días de facturación</Title>
         <Form>
-          <input type="date" value={fecha} onChange={e=>setFecha(e.target.value)} />
-          <textarea value={mensaje} onChange={e=>setMensaje(e.target.value)} placeholder="Mensaje" />
-          <button type="button" onClick={addItem}>Añadir</button>
+          <TextInput type="date" value={fecha} onChange={e=>setFecha(e.target.value)} />
+          <TextInput as="textarea" value={mensaje} onChange={e=>setMensaje(e.target.value)} placeholder="Mensaje" />
+          <PrimaryButton type="button" onClick={addItem}>Añadir</PrimaryButton>
         </Form>
         {items.map(i=>(
           <Item key={i.id}>
             <span>{i.fecha} - {i.mensaje}</span>
-            <DelBtn onClick={()=>removeItem(i.id)}>Eliminar</DelBtn>
+            <DangerButton onClick={()=>removeItem(i.id)}>Eliminar</DangerButton>
           </Item>
         ))}
       </Container>
