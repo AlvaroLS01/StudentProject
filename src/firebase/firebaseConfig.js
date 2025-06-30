@@ -6,6 +6,7 @@ import { getAnalytics }    from 'firebase/analytics';
 import { getAuth }         from 'firebase/auth';
 import { getFirestore }    from 'firebase/firestore';
 import { getStorage }      from 'firebase/storage';
+import { getFunctions }    from 'firebase/functions';
 
 // 2) Tu configuración de Firebase (la misma que ya tenías)
 const firebaseConfig = {
@@ -26,6 +27,7 @@ const analytics = getAnalytics(app);
 export const auth      = getAuth(app);
 export const db        = getFirestore(app);
 export const storage   = getStorage(app);
+export const functions = getFunctions(app);
 
 // 5) Opcionalmente exporta analytics si lo necesitas en alguna parte
 export { analytics };

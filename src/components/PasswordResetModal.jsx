@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
-import { sendPasswordResetEmail } from 'firebase/auth';
-import { auth } from '../firebase/firebaseConfig';
-import { getAuthErrorMessage } from '../utils/authErrorMessages';
+import { httpsCallable } from 'firebase/functions';
+import { functions } from '../firebase/firebaseConfig';
 import logo from '../assets/logonavbar.png';
 
 const Overlay = styled.div`
@@ -95,11 +94,12 @@ export default function PasswordResetModal({ open, onClose }) {
     setSuccess('');
     setSending(true);
     try {
-      await sendPasswordResetEmail(auth, email, { url: window.location.origin + '/inicio' });
+      const sendReset = httpsCallable(functions, 'sendCustomPasswordResetEmail');
+      await sendReset({ email });
       setSuccess('Hemos enviado un correo para restablecer tu contraseña.');
       setEmail('');
     } catch (err) {
-      setError(getAuthErrorMessage(err.code));
+      setError(err?.message || 'Se produjo un error. Inténtalo de nuevo.');
     } finally {
       setSending(false);
     }
