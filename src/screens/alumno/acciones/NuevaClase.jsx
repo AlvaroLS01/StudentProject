@@ -348,7 +348,7 @@ export default function NuevaClase() {
   const navigate = useNavigate();
   const { show } = useNotification();
 
-  // Datos de usuario
+  // Datos de usuario/hijo para autocompletar el formulario
   useEffect(() => {
     (async () => {
       const u = auth.currentUser;
@@ -359,10 +359,13 @@ export default function NuevaClase() {
         if (d.rol === 'padre' && selectedChild) {
           setAlumnoNombre(selectedChild.nombre);
           setAlumnoApellidos('');
+          setCurso(selectedChild.curso || '');
         } else {
           setAlumnoNombre(d.nombre);
           setAlumnoApellidos(d.apellidos || d.apellido || '');
+          setCurso(d.curso || '');
         }
+        if (d.ciudad) setCiudad(d.ciudad);
       }
     })();
   }, [selectedChild]);
@@ -524,7 +527,10 @@ export default function NuevaClase() {
   return (
     <Page>
       <Card>
-        <Title>Solicitar nueva clase</Title>
+        <Title>
+          Solicitar nueva clase
+          {userData?.rol === 'padre' && alumnoNombre && ` para ${alumnoNombre}`}
+        </Title>
         <Subtitle>Encuentra al profesor ideal para ti</Subtitle>
 
         <FormGrid>
