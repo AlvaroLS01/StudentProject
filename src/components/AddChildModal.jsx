@@ -3,6 +3,7 @@ import styled from 'styled-components';
 import { auth, db } from '../firebase/firebaseConfig';
 import { doc, updateDoc } from 'firebase/firestore';
 import { useChild } from '../ChildContext';
+import { useAuth } from '../AuthContext';
 
 const Overlay = styled.div`
   position: fixed;
@@ -94,6 +95,7 @@ const cursosGrouped = [
 
 export default function AddChildModal({ open, onClose }) {
   const { childList, setChildList, setSelectedChild } = useChild();
+  const { userData } = useAuth();
   const [name, setName] = useState('');
   const [date, setDate] = useState('');
   const [course, setCourse] = useState('');
@@ -107,7 +109,7 @@ export default function AddChildModal({ open, onClose }) {
       nombre: name,
       fechaNacimiento: date,
       curso: course,
-      photoURL: ''
+      photoURL: userData?.photoURL || auth.currentUser.photoURL || ''
     };
     const nuevos = [...childList, nuevo];
     await updateDoc(doc(db, 'usuarios', auth.currentUser.uid), { hijos: nuevos });

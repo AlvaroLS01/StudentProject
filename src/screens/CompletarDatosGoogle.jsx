@@ -140,7 +140,12 @@ export default function CompletarDatosGoogle() {
         if (rol === 'alumno') {
           data.fechaNacimiento = fechaNac;
         } else {
-          data.hijos = [{ id: Date.now().toString(), nombre: nombreHijo, fechaNacimiento: fechaNacHijo }];
+          data.hijos = [{
+            id: Date.now().toString(),
+            nombre: nombreHijo,
+            fechaNacimiento: fechaNacHijo,
+            photoURL: user.photoURL || ''
+          }];
         }
       }
       await setDoc(doc(db, 'usuarios', user.uid), data);
