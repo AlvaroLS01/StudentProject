@@ -10,7 +10,7 @@ export const ChildProvider = ({ children }) => {
 
   useEffect(() => {
     if (userData?.rol === 'padre') {
-      const hijos = userData.hijos || [];
+      const hijos = (userData.hijos || []).filter(h => !h.disabled);
       setChildList(hijos);
       setSelectedChild(prev => {
         if (prev && hijos.some(h => h.id === prev.id)) {
