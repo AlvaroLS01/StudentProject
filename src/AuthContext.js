@@ -10,17 +10,21 @@ export const AuthProvider = ({ children }) => {
   const [userData, setUserData] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  const fetchUserData = async uid => {
+    try {
+      const snap = await getDoc(doc(db, 'usuarios', uid));
+      setUserData(snap.exists() ? snap.data() : null);
+    } catch (err) {
+      console.error(err);
+      setUserData(null);
+    }
+  };
+
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async u => {
       setUser(u);
       if (u) {
-        try {
-          const snap = await getDoc(doc(db, 'usuarios', u.uid));
-          setUserData(snap.exists() ? snap.data() : null);
-        } catch (err) {
-          console.error(err);
-          setUserData(null);
-        }
+        await fetchUserData(u.uid);
       } else {
         setUserData(null);
       }
@@ -30,7 +34,7 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, userData, loading }}>
+    <AuthContext.Provider value={{ user, userData, loading, refreshUserData: () => user && fetchUserData(user.uid) }}>
       {children}
     </AuthContext.Provider>
   );
