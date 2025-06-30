@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { TextInput, SelectInput, PrimaryButton } from './FormElements';
 import { auth, db } from '../firebase/firebaseConfig';
@@ -53,21 +53,31 @@ export default function CompleteTeacherProfileModal({ open, onClose, userData })
   const [studyTime, setStudyTime] = useState(userData?.studyTime || '');
   const [finished, setFinished] = useState(userData?.careerFinished || false);
   const [job, setJob] = useState(userData?.job || '');
+  const [status, setStatus] = useState(userData?.status || '');
+  const [iban, setIban] = useState(userData?.iban || '');
   const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    if (status === 'trabaja') {
+      setStudyTime('Finalizado en tiempo');
+    }
+  }, [status]);
 
   if (!open) return null;
 
   const save = async () => {
-    if (!docType || !docNumber || !studies) return;
+    if (!docType || !docNumber || !studies || !status || !iban) return;
     if (saving) return;
     setSaving(true);
     await updateDoc(doc(db, 'usuarios', auth.currentUser.uid), {
       docType,
       docNumber,
       studies,
-      studyTime,
+      studyTime: status === 'trabaja' ? 'Finalizado en tiempo' : studyTime,
       careerFinished: finished,
       job,
+      status,
+      iban,
     });
     setSaving(false);
     onClose();
@@ -102,21 +112,45 @@ export default function CompleteTeacherProfileModal({ open, onClose, userData })
           />
         </Field>
         <Field>
-          <label>¿Qué estudias?</label>
-          <TextInput
-            type="text"
-            value={studies}
-            onChange={e => setStudies(e.target.value)}
-          />
+          <label>¿Estudias o trabajas?</label>
+          <SelectInput value={status} onChange={e => setStatus(e.target.value)}>
+            <option value="">Selecciona</option>
+            <option value="estudia">Estudio</option>
+            <option value="trabaja">Trabajo</option>
+          </SelectInput>
         </Field>
-        <Field>
-          <label>Tiempo cursando / finalizado</label>
-          <TextInput
-            type="text"
-            value={studyTime}
-            onChange={e => setStudyTime(e.target.value)}
-          />
-        </Field>
+        {status === 'trabaja' && (
+          <>
+            <Field>
+              <label>¿Qué has estudiado?</label>
+              <TextInput
+                type="text"
+                value={studies}
+                onChange={e => setStudies(e.target.value)}
+              />
+            </Field>
+          </>
+        )}
+        {status === 'estudia' && (
+          <>
+            <Field>
+              <label>¿Qué estudias?</label>
+              <TextInput
+                type="text"
+                value={studies}
+                onChange={e => setStudies(e.target.value)}
+              />
+            </Field>
+            <Field>
+              <label>¿En qué año estás?</label>
+              <TextInput
+                type="text"
+                value={studyTime}
+                onChange={e => setStudyTime(e.target.value)}
+              />
+            </Field>
+          </>
+        )}
         <Field>
           <label>
             <input
@@ -126,12 +160,22 @@ export default function CompleteTeacherProfileModal({ open, onClose, userData })
             />{' '}Carrera finalizada
           </label>
         </Field>
+        {status === 'trabaja' && (
+          <Field>
+            <label>¿En qué trabajas?</label>
+            <TextInput
+              type="text"
+              value={job}
+              onChange={e => setJob(e.target.value)}
+            />
+          </Field>
+        )}
         <Field>
-          <label>¿En qué trabajas?</label>
+          <label>IBAN o número de cuenta</label>
           <TextInput
             type="text"
-            value={job}
-            onChange={e => setJob(e.target.value)}
+            value={iban}
+            onChange={e => setIban(e.target.value)}
           />
         </Field>
         <PrimaryButton onClick={save} disabled={saving}>

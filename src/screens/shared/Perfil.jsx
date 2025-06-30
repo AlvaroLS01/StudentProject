@@ -243,6 +243,8 @@ export default function Perfil() {
     studyTime: '',
     careerFinished: false,
     job: '',
+    status: '',
+    iban: '',
   });
   const [role, setRole] = useState(null); // 'alumno' o 'profesor'
   const [unions, setUnions] = useState([]); // todas las uniones del usuario
@@ -277,17 +279,21 @@ export default function Perfil() {
     await updateDoc(doc(db, 'usuarios', userId), {
       ciudad: formData.ciudad,
       studies: formData.studies,
-      studyTime: formData.studyTime,
+      studyTime: formData.status === 'trabaja' ? 'Finalizado en tiempo' : formData.studyTime,
       careerFinished: formData.careerFinished,
       job: formData.job,
+      status: formData.status,
+      iban: formData.iban,
     });
     setProfile(p => ({
       ...p,
       ciudad: formData.ciudad,
       studies: formData.studies,
-      studyTime: formData.studyTime,
+      studyTime: formData.status === 'trabaja' ? 'Finalizado en tiempo' : formData.studyTime,
       careerFinished: formData.careerFinished,
       job: formData.job,
+      status: formData.status,
+      iban: formData.iban,
     }));
     setIsEditing(false);
   };
@@ -342,6 +348,8 @@ export default function Perfil() {
           studyTime: data.studyTime || '',
           careerFinished: data.careerFinished || false,
           job: data.job || '',
+          status: data.status || '',
+          iban: data.iban || '',
         });
         setRole(data.rol || null);
       }
@@ -534,6 +542,16 @@ export default function Perfil() {
                 />
                 {role === 'profesor' && (
                   <>
+                    <SelectInput
+                      value={formData.status}
+                      onChange={e =>
+                        setFormData({ ...formData, status: e.target.value })
+                      }
+                    >
+                      <option value="">Estudias o trabajas</option>
+                      <option value="estudia">Estudio</option>
+                      <option value="trabaja">Trabajo</option>
+                    </SelectInput>
                     <InlineInput
                       value={formData.studies}
                       onChange={e =>
@@ -564,6 +582,13 @@ export default function Perfil() {
                       }
                       placeholder="Trabajo"
                     />
+                    <InlineInput
+                      value={formData.iban}
+                      onChange={e =>
+                        setFormData({ ...formData, iban: e.target.value })
+                      }
+                      placeholder="IBAN o cuenta"
+                    />
                   </>
                 )}
                 <EditButton onClick={handleSave}>Guardar</EditButton>
@@ -578,6 +603,8 @@ export default function Perfil() {
                     <p>Tiempo estudiando: {profile.studyTime || '-'}</p>
                     <p>Carrera finalizada: {profile.careerFinished ? 'Sí' : 'No'}</p>
                     <p>Trabajo: {profile.job || '-'}</p>
+                    <p>Situación: {profile.status || '-'}</p>
+                    <p>IBAN: {profile.iban || '-'}</p>
                   </>
                 )}
                 {isOwnProfile && (

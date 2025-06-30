@@ -235,11 +235,15 @@ export default function GestionClases() {
                   let studies = '';
                   let job = '';
                   let studyTime = '';
+                  let status = '';
+                  let iban = '';
                   if (tSnap.exists()) {
                     const d = tSnap.data();
                     studies = d.studies || '';
                     job = d.job || '';
                     studyTime = d.studyTime || '';
+                    status = d.status || '';
+                    iban = d.iban || '';
                   }
                   const unionsSnap = await getDocs(
                     query(collection(db, 'clases_union'), where('profesorId', '==', tId))
@@ -254,10 +258,10 @@ export default function GestionClases() {
                     );
                     classesCount += clSnap.size;
                   }
-                  teacherCache[tId] = { studies, job, studyTime, classesCount };
+                  teacherCache[tId] = { studies, job, studyTime, status, iban, classesCount };
                 } catch (err) {
                   console.error(err);
-                  teacherCache[tId] = { studies: '', job: '', studyTime: '', classesCount: 0 };
+                  teacherCache[tId] = { studies: '', job: '', studyTime: '', status: '', iban: '', classesCount: 0 };
                 }
               }
               offer.teacherInfo = teacherCache[tId];
@@ -484,6 +488,12 @@ export default function GestionClases() {
                             <br />
                             <Label>Tiempo estudiando:</Label>{' '}
                             <Value>{o.teacherInfo.studyTime || '-'}</Value>
+                            <br />
+                            <Label>Situación:</Label>{' '}
+                            <Value>{o.teacherInfo.status || '-'}</Value>
+                            <br />
+                            <Label>IBAN:</Label>{' '}
+                            <Value>{o.teacherInfo.iban || '-'}</Value>
                             <br />
                             <Label>Clases impartidas:</Label>{' '}
                             <Value>{o.teacherInfo.classesCount}</Value>
