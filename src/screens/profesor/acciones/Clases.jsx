@@ -1,6 +1,7 @@
 // src/screens/profesor/acciones/Clases.jsx
 import React, { useEffect, useState, useMemo } from 'react';
 import styled, { keyframes } from 'styled-components';
+import Card from '../../../components/CommonCard';
 import { auth, db } from '../../../firebase/firebaseConfig';
 import { useNotification } from '../../../NotificationContext';
 import {
@@ -49,18 +50,6 @@ const FilterContainer = styled.div`
   }
 `;
 
-const Card = styled.div`
-  background: #ffffff;
-  border-radius: 12px;
-  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.06);
-  padding: 2rem;
-  margin-bottom: 1.75rem;
-  transition: transform 0.2s, box-shadow 0.2s;
-  &:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.12);
-  }
-`;
 
 
 
