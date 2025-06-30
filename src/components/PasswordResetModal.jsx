@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
-import { httpsCallable } from 'firebase/functions';
-import { functions } from '../firebase/firebaseConfig';
+
 import logo from '../assets/logonavbar.png';
 
 const Overlay = styled.div`
@@ -94,8 +93,18 @@ export default function PasswordResetModal({ open, onClose }) {
     setSuccess('');
     setSending(true);
     try {
-      const sendReset = httpsCallable(functions, 'sendCustomPasswordResetEmail');
-      await sendReset({ email });
+      const response = await fetch(
+        'https://us-central1-studentproject-4c33d.cloudfunctions.net/sendCustomPasswordResetEmail',
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email }),
+        }
+      );
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        throw new Error(data.error || 'Se produjo un error. Inténtalo de nuevo.');
+      }
       setSuccess('Hemos enviado un correo para restablecer tu contraseña.');
       setEmail('');
     } catch (err) {
