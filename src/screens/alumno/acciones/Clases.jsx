@@ -1,6 +1,7 @@
 // src/screens/alumno/acciones/Clases.jsx
 import React, { useEffect, useState } from 'react';
 import styled, { keyframes } from 'styled-components';
+import LoadingScreen from '../../../components/LoadingScreen';
 import Card from '../../../components/CommonCard';
 import { auth, db } from '../../../firebase/firebaseConfig';
 import {
@@ -96,11 +97,13 @@ const Value = styled.span`
 export default function Clases() {
   const [clases, setClases] = useState([]);
   const [sortBy, setSortBy] = useState('fecha');
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     (async () => {
+      setLoading(true);
       const u = auth.currentUser;
-      if (!u) return;
+      if (!u) { setLoading(false); return; }
       const q = query(collection(db, 'clases_union'), where('alumnoId', '==', u.uid));
       const snap = await getDocs(q);
       let all = [];
@@ -133,6 +136,7 @@ export default function Clases() {
         });
       }
       setClases(all);
+      setLoading(false);
     })();
   }, []);
 
@@ -155,6 +159,10 @@ export default function Clases() {
     });
     return arr;
   }, [clases, sortBy]);
+
+  if (loading) {
+    return <LoadingScreen fullscreen />;
+  }
 
   return (
     <Page>
