@@ -133,3 +133,64 @@ exports.onTeacherAssigned = functions.firestore
         return null;
       }
     });
+
+exports.sendCustomPasswordResetEmail = functions.https.onCall(async (data) => {
+  const email = (data.email || "").trim();
+  if (!email) {
+    throw new functions.https.HttpsError(
+        "invalid-argument",
+        "Email requerido",
+    );
+  }
+
+  try {
+    const userSnap = await db
+        .collection("usuarios")
+        .where("email", "==", email)
+        .limit(1)
+        .get();
+
+    if (userSnap.empty) {
+      throw new functions.https.HttpsError(
+          "not-found",
+          "El correo no está registrado",
+      );
+    }
+
+    const userData = userSnap.docs[0].data();
+    const nombre = (
+      `${userData.nombre || ""} ${userData.apellidos || ""}`
+    ).trim();
+
+    const link = await admin.auth().generatePasswordResetLink(email, {
+      url: "https://studentproject-4c33d.web.app/inicio",
+    });
+
+    const html =
+        `<p>Hola, ${nombre || "usuario"}.</p>` +
+        `<p>Parece que has olvidado la contraseña.</p>` +
+        `<p>Pulsa el siguiente botón para restablecerla:</p>` +
+        `<p><a href="${link}" style="background:#ccf3e5;color:#004640;` +
+        `padding:10px 20px;border-radius:4px;text-decoration:none;">` +
+        `Restablecer contraseña</a></p>`;
+
+    await db.collection("mail").add({
+      to: [email],
+      message: {
+        subject: "Restablecer contraseña",
+        html: html,
+      },
+    });
+
+    return {success: true};
+  } catch (err) {
+    functions.logger.error("Error al enviar correo de restablecimiento", err);
+    if (err instanceof functions.https.HttpsError) {
+      throw err;
+    }
+    throw new functions.https.HttpsError(
+        "internal",
+        "No se pudo procesar la solicitud",
+    );
+  }
+});
