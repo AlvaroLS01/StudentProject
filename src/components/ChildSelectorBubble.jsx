@@ -1,6 +1,7 @@
 import React from 'react';
 import styled from 'styled-components';
 import { useChild } from '../ChildContext';
+import { useNotification } from '../NotificationContext';
 
 const Bubble = styled.div`
   position: fixed;
@@ -29,6 +30,7 @@ const Select = styled.select`
 
 export default function ChildSelectorBubble({ onAddChild }) {
   const { childList, selectedChild, setSelectedChild } = useChild();
+  const { show } = useNotification();
 
   const handleChange = e => {
     const val = e.target.value;
@@ -38,6 +40,8 @@ export default function ChildSelectorBubble({ onAddChild }) {
     }
     const c = childList.find(ch => ch.id === val);
     setSelectedChild(c || null);
+    if (c) show(`Ahora estás usando a ${c.nombre}`);
+    else show('No hay hijo seleccionado');
   };
 
   return (

@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import styled, { keyframes } from 'styled-components';
-import { auth, db, storage } from '../../../firebase/firebaseConfig';
+import { auth, db } from '../../../firebase/firebaseConfig';
 import { doc, updateDoc } from 'firebase/firestore';
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { useChild } from '../../../ChildContext';
+import { useAuth } from '../../../AuthContext';
 
 const fadeIn = keyframes`
   from { opacity: 0; transform: translateY(-10px); }
@@ -61,25 +61,19 @@ const Form = styled.div`
 
 export default function MisHijos() {
   const { childList, setChildList, setSelectedChild } = useChild();
+  const { userData } = useAuth();
   const [nombre, setNombre] = useState('');
   const [fecha, setFecha] = useState('');
-  const [file, setFile] = useState(null);
   const [saving, setSaving] = useState(false);
 
   const addChild = async () => {
     if (!nombre || !fecha || saving) return;
     setSaving(true);
-    let photoURL = '';
-    if (file) {
-      const r = ref(storage, `hijos/${auth.currentUser.uid}/${Date.now()}`);
-      await uploadBytes(r, file);
-      photoURL = await getDownloadURL(r);
-    }
     const nuevo = {
       id: Date.now().toString(),
       nombre,
       fechaNacimiento: fecha,
-      photoURL,
+      photoURL: userData?.photoURL || auth.currentUser.photoURL || ''
     };
     const nuevos = [...childList, nuevo];
     await updateDoc(doc(db, 'usuarios', auth.currentUser.uid), { hijos: nuevos });
@@ -87,7 +81,6 @@ export default function MisHijos() {
     setSelectedChild(nuevo);
     setNombre('');
     setFecha('');
-    setFile(null);
     setSaving(false);
   };
 
@@ -106,7 +99,7 @@ export default function MisHijos() {
           {childList.map(c => (
             <Item key={c.id}>
               <div style={{ display: 'flex', alignItems: 'center' }}>
-                {c.photoURL && <Img src={c.photoURL} alt="foto" />}
+                {userData?.photoURL && <Img src={userData.photoURL} alt="foto" />}
                 <div>
                   <div>{c.nombre}</div>
                   <div style={{ fontSize: '0.8rem', color: '#555' }}>{c.fechaNacimiento}</div>
@@ -133,9 +126,6 @@ export default function MisHijos() {
               value={fecha}
               onChange={e => setFecha(e.target.value)}
             />
-          </div>
-          <div>
-            <input type="file" onChange={e => setFile(e.target.files[0])} />
           </div>
           <button onClick={addChild} disabled={saving}>Guardar</button>
         </Form>

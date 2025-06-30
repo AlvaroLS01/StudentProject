@@ -544,7 +544,7 @@ export default function Perfil() {
               <ChildList>
                 {profile.hijos.map(h => (
                   <ChildItem key={h.id}>
-                    {h.photoURL && <ChildImg src={h.photoURL} alt="foto" />}
+                    {profile.photoURL && <ChildImg src={profile.photoURL} alt="foto" />}
                     <div>
                       <div>{h.nombre}</div>
                       <div style={{ fontSize: '0.8rem', color: '#555' }}>{h.fechaNacimiento}</div>

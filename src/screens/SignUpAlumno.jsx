@@ -356,6 +356,7 @@ export default function SignUpAlumno() {
             id: Date.now().toString(),
             nombre: nombreHijo,
             fechaNacimiento: fechaNacHijo,
+            photoURL: user.photoURL || ''
           },
         ];
       }
