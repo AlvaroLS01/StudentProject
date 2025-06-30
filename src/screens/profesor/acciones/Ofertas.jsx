@@ -397,7 +397,7 @@ const SlotCell = styled.div`
   height: 24px;
   cursor: ${p => p.available ? 'pointer' : 'not-allowed'};
   background: ${p => {
-    if (!p.available) return '#f0f0f0';
+    if (!p.available) return '#e0e0e0';
     if (p.selected) return '#024837';
     return '#ffffff';
   }};
@@ -414,7 +414,7 @@ export default function Ofertas() {
   const [expandedId, setExpandedId] = useState(null);
   const [selected, setSelected] = useState(null);
   const [selectedSlots, setSelectedSlots] = useState(new Set());
-  const [selectedSubjects, setSelectedSubjects] = useState([]);
+  const [subjectChoices, setSubjectChoices] = useState({});
   const [confirmModal, setConfirmModal] = useState(false);
   const [infoModal, setInfoModal] = useState(false);
 
@@ -514,10 +514,8 @@ export default function Ofertas() {
     });
   };
 
-  const toggleSubject = sub => {
-    setSelectedSubjects(prev =>
-      prev.includes(sub) ? prev.filter(s => s !== sub) : [...prev, sub]
-    );
+  const setSubjectChoice = (sub, can) => {
+    setSubjectChoices(prev => ({ ...prev, [sub]: can }));
   };
 
   // Validación antes de abrir modal de confirmación
@@ -553,7 +551,12 @@ export default function Ofertas() {
   const handleSendOffer = clase => {
     if (!validateBeforeSubmit(clase)) return;
     setSelected(clase);
-    setSelectedSubjects(clase.asignaturas || (clase.asignatura ? [clase.asignatura] : []));
+    const subs = clase.asignaturas || (clase.asignatura ? [clase.asignatura] : []);
+    const choices = {};
+    subs.forEach(s => {
+      choices[s] = null;
+    });
+    setSubjectChoices(choices);
     setConfirmModal(true);
   };
 
@@ -561,7 +564,15 @@ export default function Ofertas() {
   const confirmRequest = async () => {
     const clase = selected;
     const prof = auth.currentUser;
-    if (selectedSubjects.length === 0) {
+    const undecided = Object.values(subjectChoices).some(v => v === null);
+    const selectedSubs = Object.entries(subjectChoices)
+      .filter(([,v]) => v === true)
+      .map(([s]) => s);
+    if (undecided) {
+      setErrorNotification('Indica si puedes o no en todas las asignaturas.');
+      return;
+    }
+    if (selectedSubs.length === 0) {
       setErrorNotification('Selecciona al menos una asignatura.');
       return;
     }
@@ -580,7 +591,7 @@ export default function Ofertas() {
       estado: 'oferta',
       createdAt: serverTimestamp(),
       schedule: Array.from(selectedSlots),
-      asignaturas: selectedSubjects,
+      asignaturas: selectedSubs,
       fechaInicio: clase.fechaInicio,
       fechaFin: clase.fechaFin,
       horasSemana: clase.horasSemana,
@@ -590,7 +601,7 @@ export default function Ofertas() {
     setConfirmModal(false);
     setSelected(null);
     setSelectedSlots(new Set());
-    setSelectedSubjects([]);
+    setSubjectChoices({});
 
     // Mostrar información de proceso de selección en un modal
     setInfoModal(true);
@@ -601,7 +612,7 @@ export default function Ofertas() {
     const duration = calculateWeeks(clase.fechaInicio, clase.fechaFin);
     const durTxt = `${duration} ${duration === 1 ? 'semana' : 'semanas'}`;
     const firstName = clase.alumnoNombre?.split(' ')[0] || '';
-    const asignText = selectedSubjects.join(', ');
+    const asignText = selectedSubs.join(', ');
     const mensaje =
       `Se ha enviado tu oferta para la clase de ${asignText}.\n` +
       `Alumno: ${firstName}\n` +
@@ -911,15 +922,27 @@ export default function Ofertas() {
               <ModalText>
                 Vas a enviar oferta de <strong>€{selected.precioProfesores}/h</strong><br/>
                 al alumno <strong>{selected.alumnoNombre}</strong>.<br/>
-                <strong>Selecciona asignaturas:</strong><br/>
+                <strong>Indica si puedes impartir cada asignatura:</strong><br/>
                 {(selected.asignaturas || [selected.asignatura]).map((s,i) => (
-                  <label key={i} style={{ display:'block' }}>
-                    <input
-                      type="checkbox"
-                      checked={selectedSubjects.includes(s)}
-                      onChange={() => toggleSubject(s)}
-                    />{' '} {s}
-                  </label>
+                  <div key={i} style={{ marginBottom: '0.25rem' }}>
+                    <strong>{s}</strong>{' '}
+                    <label style={{ marginLeft: '0.5rem' }}>
+                      <input
+                        type="radio"
+                        name={`sub-${i}`}
+                        checked={subjectChoices[s] === true}
+                        onChange={() => setSubjectChoice(s, true)}
+                      />{' '}Sí
+                    </label>{' '}
+                    <label style={{ marginLeft: '0.5rem' }}>
+                      <input
+                        type="radio"
+                        name={`sub-${i}`}
+                        checked={subjectChoices[s] === false}
+                        onChange={() => setSubjectChoice(s, false)}
+                      />{' '}No
+                    </label>
+                  </div>
                 ))}
                 <br/>
                 <strong>Fecha inicio:</strong>{' '}
