@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styled, { keyframes } from 'styled-components';
+import Card from '../../../components/CommonCard';
 import { db } from '../../../firebase/firebaseConfig';
 import {
   collection,
@@ -41,18 +42,6 @@ const Title = styled.h1`
   font-size: 2.5rem;
 `;
 
-const Card = styled.div`
-  background: #fff;
-  border-radius: 10px;
-  padding: 2rem;
-  margin-bottom: 2rem;
-  box-shadow: 0 6px 20px rgba(0,0,0,0.08);
-  transition: transform 0.2s, box-shadow 0.2s;
-  &:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 10px 28px rgba(0,0,0,0.12);
-  }
-`;
 
 const InfoGrid = styled.div`
   display: grid;
