@@ -499,9 +499,6 @@ export default function Perfil() {
             )}
           </PhotoWrapper>
           <div>
-            <h2>
-              {profile.nombre} {profile.apellido}
-            </h2>
             <p>{profile.email}</p>
             {isEditing ? (
               <>
