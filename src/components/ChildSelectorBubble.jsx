@@ -1,6 +1,12 @@
-import React from 'react';
-import styled from 'styled-components';
+import React, { useEffect, useState } from 'react';
+import styled, { keyframes } from 'styled-components';
 import { useChild } from '../ChildContext';
+
+const flash = keyframes`
+  0% { transform: scale(1); background: #fff; }
+  50% { transform: scale(1.05); background: #ccf3e5; }
+  100% { transform: scale(1); background: #fff; }
+`;
 
 const Bubble = styled.div`
   position: fixed;
@@ -11,6 +17,10 @@ const Bubble = styled.div`
   border-radius: 12px;
   box-shadow: 0 4px 8px rgba(0,0,0,0.15);
   z-index: 1100;
+
+  &.flash {
+    animation: ${flash} 0.6s ease-out;
+  }
 `;
 
 const Label = styled.label`
@@ -29,6 +39,15 @@ const Select = styled.select`
 
 export default function ChildSelectorBubble({ onAddChild }) {
   const { childList, selectedChild, setSelectedChild } = useChild();
+  const [flashAnim, setFlashAnim] = useState(false);
+
+  useEffect(() => {
+    if (selectedChild) {
+      setFlashAnim(true);
+      const t = setTimeout(() => setFlashAnim(false), 600);
+      return () => clearTimeout(t);
+    }
+  }, [selectedChild]);
 
   const handleChange = e => {
     const val = e.target.value;
@@ -41,7 +60,7 @@ export default function ChildSelectorBubble({ onAddChild }) {
   };
 
   return (
-    <Bubble>
+    <Bubble className={flashAnim ? 'flash' : ''}>
       <Label>Selecciona hijo</Label>
       <Select value={selectedChild?.id || ''} onChange={handleChange}>
         <option value="">Selecciona tu hijo</option>
