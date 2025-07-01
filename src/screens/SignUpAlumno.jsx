@@ -320,7 +320,7 @@ export default function SignUpAlumno() {
       !ciudad ||
       !curso
     ) {
-      show('Completa todos los campos');
+      show('Completa todos los campos', 'error');
       return;
     }
     if (!isValidEmail(email)) {
@@ -328,11 +328,11 @@ export default function SignUpAlumno() {
       return;
     }
     if (password !== confirmPwd)
-      return show('Las contraseñas no coinciden');
+      return show('Las contraseñas no coinciden', 'error');
     if (rolUser === 'alumno' && !fechaNac)
-      return show('Añade tu fecha de nacimiento');
+      return show('Añade tu fecha de nacimiento', 'error');
     if (rolUser === 'padre' && (!nombreHijo || !fechaNacHijo))
-      return show('Completa datos del hijo');
+      return show('Completa datos del hijo', 'error');
 
     setSubmitting(true);
     try {
@@ -361,11 +361,11 @@ export default function SignUpAlumno() {
         ];
       }
       await setDoc(doc(db, 'usuarios', user.uid), data);
-      show('Alumno registrado con éxito');
+      show('Alumno registrado con éxito', 'success');
       navigate('/');
     } catch (err) {
       console.error(err);
-      show('Error: ' + err.message);
+      show('Error: ' + err.message, 'error');
     } finally {
       setSubmitting(false);
     }

@@ -388,7 +388,7 @@ export default function MisProfesores() {
         createdAt: serverTimestamp()
       });
     }
-    show('Modificación aceptada');
+    show('Modificación aceptada', 'success');
   };
 
   // Construcción de “feed”: combinamos mensajes y propuestas en un solo arreglo, ordenado por createdAt

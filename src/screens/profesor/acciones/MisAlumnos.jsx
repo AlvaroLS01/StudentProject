@@ -437,7 +437,7 @@ export default function MisAlumnos() {
   // 6. Envía la propuesta de clase
   const submitProposal = async () => {
     if (!fechaClase || !duracion || !asignMateria) {
-      show('Rellena todos los campos de la propuesta de clase');
+      show('Rellena todos los campos de la propuesta de clase', 'error');
       return;
     }
     const durNum = parseFloat(duracion);
@@ -467,7 +467,7 @@ export default function MisAlumnos() {
       }
     );
     setOpenProposalModal(false);
-    show('Propuesta de clase enviada al alumno');
+    show('Propuesta de clase enviada al alumno', 'success');
     // NOTA: **No** agregamos un mensaje separado en “chats”;
     // la burbuja desaparecerá de “proposals” cuando el alumno responda.
   };

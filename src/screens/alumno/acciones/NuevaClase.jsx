@@ -460,7 +460,7 @@ export default function NuevaClase() {
       parseInt(horasSemana, 10) < 1 ||
       selectedSlots.size === 0
     ) {
-      show('Completa todos los campos obligatorios antes de continuar');
+      show('Completa todos los campos obligatorios antes de continuar', 'error');
       return;
     }
     setConfirmModal(true);
@@ -512,13 +512,13 @@ export default function NuevaClase() {
         estado: 'pendiente',
         createdAt: serverTimestamp()
       });
-      show('Clase solicitada con éxito');
+      show('Clase solicitada con éxito', 'success');
       resetForm();
       setConfirmModal(false);
       navigate('/alumno?tab=clases&view=solicitudes');
     } catch (err) {
       console.error(err);
-      show('Error: ' + err.message);
+      show('Error: ' + err.message, 'error');
     } finally {
       setSubmitting(false);
     }

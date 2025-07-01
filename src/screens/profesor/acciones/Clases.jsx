@@ -281,7 +281,7 @@ export default function ClasesProfesor() {
       read: false,
       createdAt: serverTimestamp()
     });
-    show('Propuesta de modificación enviada');
+    show('Propuesta de modificación enviada', 'success');
     setEditing(null);
   };
 

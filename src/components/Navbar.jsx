@@ -433,7 +433,7 @@ export default function Navbar() {
     } catch (err) {
       const msg = getAuthErrorMessage(err.code);
       setLoginError(msg);
-      show(msg);
+      show(msg, 'error');
     } finally {
       setLoggingIn(false);
     }
@@ -461,7 +461,7 @@ export default function Navbar() {
     } catch (err) {
       const msg = getAuthErrorMessage(err.code);
       setLoginError(msg);
-      show(msg);
+      show(msg, 'error');
     } finally {
       setLoggingIn(false);
     }

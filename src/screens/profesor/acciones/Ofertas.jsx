@@ -1,6 +1,7 @@
 // src/screens/alumno/acciones/Ofertas.jsx
 import React, { useState, useEffect, useRef } from 'react';
 import styled, { keyframes } from 'styled-components';
+import { useNotification } from '../../../NotificationContext';
 import { auth, db } from '../../../firebase/firebaseConfig';
 import { useAuth } from '../../../AuthContext';
 import CompleteTeacherProfileModal from '../../../components/CompleteTeacherProfileModal';
@@ -106,27 +107,7 @@ const Subtitle = styled.p`
   margin-bottom: 2rem;
 `;
 
-// Notificación de éxito
-const SuccessNotification = styled.div`
-  background: #dff0d8;
-  color: #3c763d;
-  border: 1px solid #d6e9c6;
-  border-radius: 6px;
-  padding: 1rem;
-  margin-bottom: 1.5rem;
-  font-size: 1rem;
-`;
 
-// Notificación de error
-const ErrorNotification = styled.div`
-  background: #f2dede;
-  color: #a94442;
-  border: 1px solid #ebccd1;
-  border-radius: 6px;
-  padding: 1rem;
-  margin-bottom: 1.5rem;
-  font-size: 1rem;
-`;
 
 // Card para filtros alineados en fila
 const FilterCard = styled.div`
@@ -418,9 +399,7 @@ export default function Ofertas() {
   const [confirmModal, setConfirmModal] = useState(false);
   const [infoModal, setInfoModal] = useState(false);
 
-  // Notificaciones
-  const [successNotification, setSuccessNotification] = useState('');
-  const [errorNotification, setErrorNotification] = useState('');
+  const { show } = useNotification();
 
   // Estados para filtros
   const [asignaturasList, setAsignaturasList] = useState([]);
@@ -535,15 +514,15 @@ export default function Ofertas() {
       return false;
     }
     if (expandedId !== clase.id) {
-      setErrorNotification('Primero muestra el horario y selecciona franjas.');
+      show('Primero muestra el horario y selecciona franjas.', 'error');
       return false;
     }
     if (selectedSlots.size === 0) {
-      setErrorNotification('Debes seleccionar al menos una franja para enviar la oferta.');
+      show('Debes seleccionar al menos una franja para enviar la oferta.', 'error');
       return false;
     }
     // Si llegó aquí, validar ok
-    setErrorNotification('');
+    // sin errores
     return true;
   };
 
@@ -569,11 +548,11 @@ export default function Ofertas() {
       .filter(([,v]) => v === true)
       .map(([s]) => s);
     if (undecided) {
-      setErrorNotification('Indica si puedes o no en todas las asignaturas.');
+      show('Indica si puedes o no en todas las asignaturas.', 'error');
       return;
     }
     if (selectedSubs.length === 0) {
-      setErrorNotification('Selecciona al menos una asignatura.');
+      show('Selecciona al menos una asignatura.', 'error');
       return;
     }
     const snap = await getDoc(doc(db, 'usuarios', prof.uid));
@@ -620,8 +599,7 @@ export default function Ofertas() {
       `Fecha fin aprox.: ${finTxt}\n` +
       `Duración aprox.: ${durTxt}\n` +
       `Franjas seleccionadas: ${franjas}`;
-    setSuccessNotification(mensaje);
-    setErrorNotification('');
+    show(mensaje, 'success');
   };
 
   // Renderiza resumen de horario en texto, ordenando días de la semana
@@ -659,18 +637,6 @@ export default function Ofertas() {
   return (
     <Page>
       <Container>
-        {successNotification && (
-          <SuccessNotification>
-            {successNotification.split('\n').map((line, i) => (
-              <div key={i}>{line}</div>
-            ))}
-          </SuccessNotification>
-        )}
-        {errorNotification && (
-          <ErrorNotification>
-            {errorNotification}
-          </ErrorNotification>
-        )}
         <Title>Solicitar Clase</Title>
         <Subtitle>Profesor: {profesorCompleto}</Subtitle>
 

@@ -110,15 +110,15 @@ export default function CompletarDatosGoogle() {
     e.preventDefault();
     if (!user) return;
     if (!nombre || !apellido || !telefono || !ciudad || (rol !== 'profesor' && !curso)) {
-      show('Completa todos los campos');
+      show('Completa todos los campos', 'error');
       return;
     }
     if (rol === 'alumno' && !fechaNac) {
-      show('Añade tu fecha de nacimiento');
+      show('Añade tu fecha de nacimiento', 'error');
       return;
     }
     if (rol === 'padre' && (!nombreHijo || !fechaNacHijo)) {
-      show('Completa datos del hijo');
+      show('Completa datos del hijo', 'error');
       return;
     }
     try {
@@ -152,7 +152,7 @@ export default function CompletarDatosGoogle() {
       navigate('/home');
     } catch (err) {
       console.error(err);
-      show('Error al guardar datos');
+      show('Error al guardar datos', 'error');
     }
   };
 
