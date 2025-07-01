@@ -108,7 +108,7 @@ export default function PanelAlumno() {
       if (selectedChild) {
         show(`Ahora estás usando a ${selectedChild.nombre}`);
       } else {
-        show('No hay hijo seleccionado');
+        show('No hay hijo seleccionado', 'error');
       }
     }
   }, [selectedChild, userData, show]);
@@ -143,7 +143,7 @@ export default function PanelAlumno() {
 
   const handleMenuClick = name => {
     if (userData?.rol === 'padre' && !selectedChild && name !== 'mis-hijos') {
-      show('Selecciona un hijo primero');
+      show('Selecciona un hijo primero', 'error');
       return;
     }
     setView(name);

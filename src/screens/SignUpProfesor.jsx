@@ -264,7 +264,7 @@ export default function SignUpProfesor() {
   const handleSubmit = async () => {
     if (submitting) return;
     if (!email || !password || !confirmPassword || !nombre || !apellido || !telefono || !ciudad) {
-      show('Completa todos los campos');
+      show('Completa todos los campos', 'error');
       return;
     }
     if (!isValidEmail(email)) {
@@ -272,7 +272,7 @@ export default function SignUpProfesor() {
       return;
     }
     if (password !== confirmPassword) {
-      return show('Las contraseñas no coinciden');
+      return show('Las contraseñas no coinciden', 'error');
     }
     setSubmitting(true);
     try {
@@ -287,11 +287,11 @@ export default function SignUpProfesor() {
         rol: 'profesor',
         createdAt: new Date()
       });
-      show('Profesor registrado con éxito');
+      show('Profesor registrado con éxito', 'success');
       navigate('/');
     } catch (err) {
       console.error(err);
-      show('Error: ' + err.message);
+      show('Error: ' + err.message, 'error');
     } finally {
       setSubmitting(false);
     }
