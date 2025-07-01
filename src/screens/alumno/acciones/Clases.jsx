@@ -50,7 +50,7 @@ const SwitchTrack = styled.div`
   position: relative;
   display: flex;
   width: 280px;
-  background: #e0e0e0;
+  background: #f5f5f5;
   border-radius: 20px;
   padding: 4px;
 `;
@@ -60,7 +60,7 @@ const SwitchBubble = styled.div`
   top: 4px;
   bottom: 4px;
   left: 4px;
-  width: calc(50% - 8px);
+  width: calc(50% - 4px);
   background: #046654;
   border-radius: 16px;
   transition: transform 0.3s ease;
@@ -142,6 +142,7 @@ export default function Clases() {
   const [sortBy, setSortBy] = useState('fecha');
   const [loading, setLoading] = useState(true);
   const [loadingReqs, setLoadingReqs] = useState(true);
+  const [showLoading, setShowLoading] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -215,6 +216,16 @@ export default function Clases() {
     setSearchParams({ tab: 'clases', view });
   }, [view, setSearchParams]);
 
+  useEffect(() => {
+    let timer;
+    if ((view === 'clases' && loading) || (view === 'solicitudes' && loadingReqs)) {
+      timer = setTimeout(() => setShowLoading(true), 200);
+    } else {
+      setShowLoading(false);
+    }
+    return () => clearTimeout(timer);
+  }, [loading, loadingReqs, view]);
+
   const sortedClases = React.useMemo(() => {
     const arr = [...clases];
     arr.sort((a, b) => {
@@ -239,7 +250,7 @@ export default function Clases() {
     return d ? new Date(d).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' }) : '—';
   };
 
-  if ((view === 'clases' && loading) || (view === 'solicitudes' && loadingReqs)) {
+  if (showLoading) {
     return <LoadingScreen fullscreen />;
   }
 
