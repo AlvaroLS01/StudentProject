@@ -515,7 +515,7 @@ export default function NuevaClase() {
       show('Clase solicitada con éxito');
       resetForm();
       setConfirmModal(false);
-      navigate('/alumno?tab=calendario');
+      navigate('/alumno?tab=clases&view=solicitudes');
     } catch (err) {
       console.error(err);
       show('Error: ' + err.message);
