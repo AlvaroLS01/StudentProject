@@ -1,15 +1,18 @@
 import styled from 'styled-components';
 
 const CommonCard = styled.div`
+  display: flex;
+  flex-direction: column;
   background: #ffffff;
-  border-radius: 12px;
-  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.06);
-  padding: 2rem;
-  margin-bottom: 1.75rem;
-  transition: transform 0.2s, box-shadow 0.2s;
+  border: 1px solid #e0e0e0;
+  border-radius: 10px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  transition: transform 0.1s ease-in-out, box-shadow 0.2s ease-in-out;
   &:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.12);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
   }
 `;
 

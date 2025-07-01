@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import styled, { keyframes } from 'styled-components';
+import LoadingScreen from '../../../components/LoadingScreen';
 import { db } from '../../../firebase/firebaseConfig';
 import {
   collection,
@@ -155,7 +156,7 @@ export default function Profesores() {
           <ClassesContainer>
             <h3>Clases de {selected.nombre}</h3>
             {loadingClasses ? (
-              <p>Cargando clases...</p>
+              <LoadingScreen />
             ) : classes.length === 0 ? (
               <p>No hay clases registradas.</p>
             ) : (

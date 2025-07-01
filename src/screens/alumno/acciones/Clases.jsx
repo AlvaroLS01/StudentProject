@@ -5,6 +5,7 @@ import { useSearchParams } from 'react-router-dom';
 import { useChild } from '../../../ChildContext';
 import LoadingScreen from '../../../components/LoadingScreen';
 import Card from '../../../components/CommonCard';
+import InfoGrid from '../../../components/InfoGrid';
 import { auth, db } from '../../../firebase/firebaseConfig';
 import {
   collection,
@@ -101,12 +102,6 @@ const Avatar = styled.img`
   margin-right: 1rem;
 `;
 
-const InfoGrid = styled.div`
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-  gap: 0.75rem 2rem;
-  margin-bottom: 1rem;
-`;
 
 const Label = styled.span`
   font-weight: 500;
