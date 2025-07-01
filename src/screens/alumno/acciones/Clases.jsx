@@ -46,19 +46,38 @@ const SwitchContainer = styled.div`
   margin-bottom: 1rem;
 `;
 
+const SwitchTrack = styled.div`
+  position: relative;
+  display: flex;
+  width: 280px;
+  background: #e0e0e0;
+  border-radius: 20px;
+  padding: 4px;
+`;
+
+const SwitchBubble = styled.div`
+  position: absolute;
+  top: 4px;
+  bottom: 4px;
+  left: 4px;
+  width: calc(50% - 8px);
+  background: #046654;
+  border-radius: 16px;
+  transition: transform 0.3s ease;
+  transform: ${({ view }) =>
+    view === 'solicitudes' ? 'translateX(100%)' : 'translateX(0)'};
+`;
+
 const SwitchButton = styled.button`
   flex: 1;
-  padding: 0.5rem 1rem;
-  background: ${({ active }) => (active ? '#046654' : '#e0e0e0')};
-  color: ${({ active }) => (active ? '#fff' : '#333')};
+  background: transparent;
   border: none;
+  padding: 0.5rem 1rem;
+  color: ${({ active }) => (active ? '#fff' : '#333')};
+  font-weight: 500;
+  position: relative;
+  z-index: 1;
   cursor: pointer;
-  &:first-child {
-    border-radius: 8px 0 0 8px;
-  }
-  &:last-child {
-    border-radius: 0 8px 8px 0;
-  }
 `;
 
 const FilterContainer = styled.div`
@@ -227,10 +246,17 @@ export default function Clases() {
   return (
     <Page>
       <Container>
-        <Title>Mis clases</Title>
+        <Title>Mis Clases & Solicitudes</Title>
         <SwitchContainer>
-          <SwitchButton active={view === 'clases'} onClick={() => setView('clases')}>Mis clases</SwitchButton>
-          <SwitchButton active={view === 'solicitudes'} onClick={() => setView('solicitudes')}>Mis solicitudes</SwitchButton>
+          <SwitchTrack>
+            <SwitchBubble view={view} />
+            <SwitchButton active={view === 'clases'} onClick={() => setView('clases')}>
+              Mis clases
+            </SwitchButton>
+            <SwitchButton active={view === 'solicitudes'} onClick={() => setView('solicitudes')}>
+              Mis solicitudes
+            </SwitchButton>
+          </SwitchTrack>
         </SwitchContainer>
         {view === 'clases' ? (
           <>
