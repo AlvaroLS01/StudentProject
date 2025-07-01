@@ -3,6 +3,7 @@ import React, { useEffect, useState, useMemo } from 'react';
 import styled, { keyframes } from 'styled-components';
 import LoadingScreen from '../../../components/LoadingScreen';
 import Card from '../../../components/CommonCard';
+import InfoGrid from '../../../components/InfoGrid';
 import { auth, db } from '../../../firebase/firebaseConfig';
 import { useNotification } from '../../../NotificationContext';
 import {
@@ -81,12 +82,6 @@ const StudentName = styled.span`
   margin-left: 0.75rem;
 `;
 
-const InfoGrid = styled.div`
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-  gap: 0.75rem 2rem;
-  margin-bottom: 1rem;
-`;
 
 const Label = styled.span`
   font-weight: 500;

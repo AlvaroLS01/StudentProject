@@ -3,6 +3,8 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styled, { keyframes } from 'styled-components';
 import Card from '../../../components/CommonCard';
+import InfoGrid from '../../../components/InfoGrid';
+import LoadingScreen from '../../../components/LoadingScreen';
 import { db } from '../../../firebase/firebaseConfig';
 import {
   collection,
@@ -43,11 +45,6 @@ const Title = styled.h1`
 `;
 
 
-const InfoGrid = styled.div`
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-  gap: 0.75rem 1.5rem;
-`;
 
 const Label = styled.span`
   font-weight: 500;
@@ -326,14 +323,7 @@ export default function GestionClases() {
   };
 
   if (loading) {
-    return (
-      <Page>
-        <Container>
-          <Title>Panel de Administración</Title>
-          <p style={{ textAlign: 'center', color: '#666' }}>Cargando clases...</p>
-        </Container>
-      </Page>
-    );
+    return <LoadingScreen fullscreen />;
   }
 
   return (

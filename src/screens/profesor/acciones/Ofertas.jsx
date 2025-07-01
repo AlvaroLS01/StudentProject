@@ -3,6 +3,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import styled, { keyframes } from 'styled-components';
 import { useNotification } from '../../../NotificationContext';
 import { auth, db } from '../../../firebase/firebaseConfig';
+import InfoGrid from '../../../components/InfoGrid';
 import { useAuth } from '../../../AuthContext';
 import CompleteTeacherProfileModal from '../../../components/CompleteTeacherProfileModal';
 import {
@@ -236,12 +237,6 @@ const HeaderBadges = styled.div`
   flex-wrap: wrap;
 `;
 const HeaderRight = styled.div``;
-const InfoGrid = styled.div`
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-  gap: 0.75rem 2rem;
-  margin-bottom: 1rem;
-`;
 const Label = styled.span`
   font-weight: 500;
   color: #014F40;
