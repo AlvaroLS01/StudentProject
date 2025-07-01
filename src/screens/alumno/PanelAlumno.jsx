@@ -106,9 +106,15 @@ export default function PanelAlumno() {
     }
     if (userData?.rol === 'padre') {
       if (selectedChild) {
-        show(`Ahora estás usando a ${selectedChild.nombre}`);
+        show(
+          <span>
+            Ahora estás usando a <strong>{selectedChild.nombre}</strong>
+          </span>,
+          'success',
+          2000
+        );
       } else {
-        show('No hay hijo seleccionado', 'error');
+        show('No hay hijo seleccionado', 'error', 2000);
       }
     }
   }, [selectedChild, userData, show]);

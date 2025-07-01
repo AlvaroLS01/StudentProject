@@ -10,7 +10,7 @@ const slideUp = keyframes`
 
 const Toast = styled.div`
   position: fixed;
-  bottom: 1.5rem;
+  bottom: 2.5rem;
   left: 50%;
   transform: translateX(-50%);
   padding: 1rem 1.5rem;
@@ -30,11 +30,11 @@ export function NotificationProvider({ children }) {
   const [toast, setToast] = useState({ message: '', type: 'success', visible: false });
   const [display, setDisplay] = useState(false);
 
-  const show = (msg, type = 'success') => {
+  const show = (msg, type = 'success', duration = 3000) => {
     setToast({ message: msg, type, visible: true });
     setDisplay(true);
-    setTimeout(() => setToast(t => ({ ...t, visible: false })), 3000);
-    setTimeout(() => setDisplay(false), 3400);
+    setTimeout(() => setToast(t => ({ ...t, visible: false })), duration);
+    setTimeout(() => setDisplay(false), duration + 400);
   };
 
   return (
