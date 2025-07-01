@@ -1,6 +1,8 @@
 // src/screens/alumno/acciones/Clases.jsx
 import React, { useEffect, useState } from 'react';
 import styled, { keyframes } from 'styled-components';
+import { useSearchParams } from 'react-router-dom';
+import { useChild } from '../../../ChildContext';
 import LoadingScreen from '../../../components/LoadingScreen';
 import Card from '../../../components/CommonCard';
 import { auth, db } from '../../../firebase/firebaseConfig';
@@ -35,6 +37,27 @@ const Title = styled.h2`
   color: #034640;
   font-size: 2rem;
   text-align: center;
+`;
+
+const SwitchContainer = styled.div`
+  display: flex;
+  justify-content: center;
+  margin-bottom: 1rem;
+`;
+
+const SwitchButton = styled.button`
+  flex: 1;
+  padding: 0.5rem 1rem;
+  background: ${({ active }) => (active ? '#046654' : '#e0e0e0')};
+  color: ${({ active }) => (active ? '#fff' : '#333')};
+  border: none;
+  cursor: pointer;
+  &:first-child {
+    border-radius: 8px 0 0 8px;
+  }
+  &:last-child {
+    border-radius: 0 8px 8px 0;
+  }
 `;
 
 const FilterContainer = styled.div`
@@ -95,16 +118,28 @@ const Value = styled.span`
 `;
 
 export default function Clases() {
+  const { selectedChild } = useChild();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const initialView = searchParams.get('view') || 'clases';
+  const [view, setView] = useState(initialView);
+
   const [clases, setClases] = useState([]);
+  const [solicitudes, setSolicitudes] = useState([]);
   const [sortBy, setSortBy] = useState('fecha');
   const [loading, setLoading] = useState(true);
+  const [loadingReqs, setLoadingReqs] = useState(true);
 
   useEffect(() => {
     (async () => {
       setLoading(true);
       const u = auth.currentUser;
       if (!u) { setLoading(false); return; }
-      const q = query(collection(db, 'clases_union'), where('alumnoId', '==', u.uid));
+      let q = query(collection(db, 'clases_union'), where('alumnoId', '==', u.uid));
+      if (selectedChild) {
+        q = query(collection(db, 'clases_union'),
+                  where('alumnoId', '==', u.uid),
+                  where('hijoId', '==', selectedChild.id));
+      }
       const snap = await getDocs(q);
       let all = [];
       for (const docu of snap.docs) {
@@ -138,7 +173,33 @@ export default function Clases() {
       setClases(all);
       setLoading(false);
     })();
-  }, []);
+  }, [selectedChild]);
+
+  useEffect(() => {
+    (async () => {
+      setLoadingReqs(true);
+      const u = auth.currentUser;
+      if (!u) { setLoadingReqs(false); return; }
+      let q = query(collection(db, 'clases'), where('alumnoId', '==', u.uid));
+      if (selectedChild) {
+        q = query(collection(db, 'clases'),
+                  where('alumnoId', '==', u.uid),
+                  where('hijoId', '==', selectedChild.id));
+      }
+      const snap = await getDocs(q);
+      const data = [];
+      for (const d of snap.docs) {
+        const offers = await getDocs(collection(db, 'clases', d.id, 'ofertas'));
+        data.push({ id: d.id, offers: offers.size, ...d.data() });
+      }
+      setSolicitudes(data);
+      setLoadingReqs(false);
+    })();
+  }, [selectedChild]);
+
+  useEffect(() => {
+    setSearchParams({ tab: 'clases', view });
+  }, [view, setSearchParams]);
 
   const sortedClases = React.useMemo(() => {
     const arr = [...clases];
@@ -160,7 +221,11 @@ export default function Clases() {
     return arr;
   }, [clases, sortBy]);
 
-  if (loading) {
+  const formatDate = d => {
+    return d ? new Date(d).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' }) : '—';
+  };
+
+  if ((view === 'clases' && loading) || (view === 'solicitudes' && loadingReqs)) {
     return <LoadingScreen fullscreen />;
   }
 
@@ -168,49 +233,91 @@ export default function Clases() {
     <Page>
       <Container>
         <Title>Mis clases</Title>
-        <FilterContainer>
-          <label htmlFor="sortAlumno">Ordenar por:</label>
-          <select
-            id="sortAlumno"
-            value={sortBy}
-            onChange={e => setSortBy(e.target.value)}
-          >
-            <option value="fecha">Fecha</option>
-            <option value="profesor">Profesor</option>
-            <option value="tipo">Modalidad</option>
-            <option value="asignatura">Asignatura</option>
-          </select>
-        </FilterContainer>
-        {sortedClases.length === 0 ? (
-          <p style={{ textAlign: 'center', color: '#666' }}>No tienes clases asignadas.</p>
+        <SwitchContainer>
+          <SwitchButton active={view === 'clases'} onClick={() => setView('clases')}>Mis clases</SwitchButton>
+          <SwitchButton active={view === 'solicitudes'} onClick={() => setView('solicitudes')}>Mis solicitudes</SwitchButton>
+        </SwitchContainer>
+        {view === 'clases' ? (
+          <>
+            <FilterContainer>
+              <label htmlFor="sortAlumno">Ordenar por:</label>
+              <select
+                id="sortAlumno"
+                value={sortBy}
+                onChange={e => setSortBy(e.target.value)}
+              >
+                <option value="fecha">Fecha</option>
+                <option value="profesor">Profesor</option>
+                <option value="tipo">Modalidad</option>
+                <option value="asignatura">Asignatura</option>
+              </select>
+            </FilterContainer>
+            {sortedClases.length === 0 ? (
+              <p style={{ textAlign: 'center', color: '#666' }}>No tienes clases asignadas.</p>
+            ) : (
+              sortedClases.map(c => (
+                <Card key={c.id}>
+                  <CardHeader>
+                    <HeaderLeft>
+                      {c.profesorFoto && <Avatar src={c.profesorFoto} alt="Profesor" />}
+                      <TeacherName>{c.profesorNombre}</TeacherName>
+                    </HeaderLeft>
+                  </CardHeader>
+                  <InfoGrid>
+                    <div>
+                      <Label>Asignatura:</Label> <Value>{c.asignatura}</Value>
+                    </div>
+                    <div>
+                      <Label>Curso:</Label> <Value>{c.curso || '-'}</Value>
+                    </div>
+                    <div>
+                      <Label>Fecha:</Label> <Value>{c.fecha} {c.hora}</Value>
+                    </div>
+                    <div>
+                      <Label>Modalidad:</Label> <Value>{c.modalidad}</Value>
+                    </div>
+                    <div>
+                      <Label>Duración:</Label> <Value>{c.duracion}h</Value>
+                    </div>
+                  </InfoGrid>
+                </Card>
+              ))
+            )}
+          </>
         ) : (
-          sortedClases.map(c => (
-            <Card key={c.id}>
-              <CardHeader>
-                <HeaderLeft>
-                  {c.profesorFoto && <Avatar src={c.profesorFoto} alt="Profesor" />}
-                  <TeacherName>{c.profesorNombre}</TeacherName>
-                </HeaderLeft>
-              </CardHeader>
-              <InfoGrid>
-                <div>
-                  <Label>Asignatura:</Label> <Value>{c.asignatura}</Value>
-                </div>
-                <div>
-                  <Label>Curso:</Label> <Value>{c.curso || '-'}</Value>
-                </div>
-                <div>
-                  <Label>Fecha:</Label> <Value>{c.fecha} {c.hora}</Value>
-                </div>
-                <div>
-                  <Label>Modalidad:</Label> <Value>{c.modalidad}</Value>
-                </div>
-                <div>
-                  <Label>Duración:</Label> <Value>{c.duracion}h</Value>
-                </div>
-              </InfoGrid>
-            </Card>
-          ))
+          solicitudes.length === 0 ? (
+            <p style={{ textAlign: 'center', color: '#666' }}>No tienes solicitudes.</p>
+          ) : (
+            solicitudes.map(s => {
+              const estado = s.estado === 'pendiente'
+                ? (s.offers === 0 ? 'En búsqueda de profesor' : 'En selección de profesor')
+                : 'Profesor asignado';
+              return (
+                <Card key={s.id}>
+                  <InfoGrid>
+                    <div>
+                      <Label>Asignaturas:</Label> <Value>{s.asignaturas ? s.asignaturas.join(', ') : s.asignatura}</Value>
+                    </div>
+                    <div>
+                      <Label>Curso:</Label> <Value>{s.curso}</Value>
+                    </div>
+                    <div>
+                      <Label>Modalidad:</Label> <Value>{s.modalidad}</Value>
+                    </div>
+                    <div>
+                      <Label>Inicio:</Label> <Value>{formatDate(s.fechaInicio)}</Value>
+                    </div>
+                    <div>
+                      <Label>Horas/semana:</Label> <Value>{s.horasSemana}</Value>
+                    </div>
+                    <div>
+                      <Label>Estado:</Label> <Value>{estado}</Value>
+                    </div>
+                  </InfoGrid>
+                </Card>
+              );
+            })
+          )
         )}
       </Container>
     </Page>
