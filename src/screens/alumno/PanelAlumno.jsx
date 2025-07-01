@@ -168,7 +168,7 @@ export default function PanelAlumno() {
               active={view === 'clases'}
               onClick={() => handleMenuClick('clases')}
             >
-              Mis clases particulares
+              Mis Clases & Solicitudes
             </Button>
           </MenuItem>
           <MenuItem>
