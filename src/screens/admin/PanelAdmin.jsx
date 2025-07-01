@@ -6,6 +6,7 @@ import styled from 'styled-components';
 import GestionClases from './acciones/GestionClases';
 import Facturacion   from './acciones/Facturacion';
 import Profesores    from './acciones/Profesores';
+import Usuarios      from './acciones/Usuarios';
 
 const Container = styled.div`
   display: flex;
@@ -86,6 +87,8 @@ export default function PanelAdmin() {
         return <Facturacion />;
       case 'profesores':
         return <Profesores />;
+      case 'usuarios':
+        return <Usuarios />;
       default:
         return <GestionClases />;
     }
@@ -118,6 +121,14 @@ export default function PanelAdmin() {
               onClick={() => setView('profesores')}
             >
               Profesores
+            </Button>
+          </MenuItem>
+          <MenuItem>
+            <Button
+              active={view === 'usuarios'}
+              onClick={() => setView('usuarios')}
+            >
+              Profesores &amp; Alumnos
             </Button>
           </MenuItem>
         </Menu>
