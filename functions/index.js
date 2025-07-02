@@ -134,6 +134,7 @@ exports.sendCustomPasswordResetEmail = functions.https.onRequest((req, res) => {
     }
 
     const email = (req.body.email || "").trim();
+    functions.logger.info("Solicitud de restablecimiento para", email);
     if (!email) {
       res.status(400).json({error: "Email requerido"});
       return;
@@ -147,6 +148,7 @@ exports.sendCustomPasswordResetEmail = functions.https.onRequest((req, res) => {
           .get();
 
       if (userSnap.empty) {
+        functions.logger.warn("Correo no registrado", email);
         res.status(404).json({error: "El correo no está registrado"});
         return;
       }
@@ -155,9 +157,13 @@ exports.sendCustomPasswordResetEmail = functions.https.onRequest((req, res) => {
       const nombre = `${userData.nombre || ""} ${
         userData.apellidos || ""}`.trim();
 
+      functions.logger.debug("Usuario encontrado", nombre);
+
       const link = await admin.auth().generatePasswordResetLink(email, {
         url: "https://studentproject-4c33d.web.app/inicio",
       });
+
+      functions.logger.debug("Enlace generado", link);
 
       const html =
         `<p>Hola, ${nombre || "usuario"}.</p>` +
@@ -167,7 +173,7 @@ exports.sendCustomPasswordResetEmail = functions.https.onRequest((req, res) => {
         `padding:10px 20px;border-radius:4px;text-decoration:none;">` +
         `Restablecer contraseña</a></p>`;
 
-      await db.collection("mail").add({
+      const docRef = await db.collection("mail").add({
         to: [email],
         message: {
           subject: "Restablecer contraseña",
@@ -175,10 +181,16 @@ exports.sendCustomPasswordResetEmail = functions.https.onRequest((req, res) => {
         },
       });
 
+      functions.logger.info(
+        "Documento de correo creado", docRef.id, "para", email,
+      );
+
       res.set("Access-Control-Allow-Origin", "*");
       res.json({success: true});
     } catch (err) {
-      functions.logger.error("Error al enviar correo de restablecimiento", err);
+      functions.logger.error(
+        "Error al enviar correo de restablecimiento", err,
+      );
       res.status(500).json({error: "No se pudo procesar la solicitud"});
     }
   });
