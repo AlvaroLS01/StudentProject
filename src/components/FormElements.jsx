@@ -44,14 +44,15 @@ export const PrimaryButton = styled.button`
 `;
 
 export const DangerButton = styled.button`
-  background: #e53e3e;
+  background: ${p => (p.disabled ? '#ccc' : '#e53e3e')};
   color: #fff;
   border: none;
   border-radius: 4px;
   padding: 0.4rem 0.75rem;
-  cursor: pointer;
+  cursor: ${p => (p.disabled ? 'not-allowed' : 'pointer')};
+  opacity: ${p => (p.disabled ? 0.6 : 1)};
   transition: background 0.2s ease;
   &:hover {
-    background: #c53030;
+    background: ${p => (p.disabled ? '#ccc' : '#c53030')};
   }
 `;

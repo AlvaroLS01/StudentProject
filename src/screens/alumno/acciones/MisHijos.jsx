@@ -148,7 +148,17 @@ export default function MisHijos() {
                   <div style={{ fontSize: '0.8rem', color: '#555' }}>{c.fechaNacimiento}</div>
                 </div>
               </div>
-              <DangerButton onClick={() => setChildToDelete(c)}>Eliminar</DangerButton>
+              <DangerButton
+                disabled={childList.length <= 1}
+                title={
+                  childList.length <= 1
+                    ? 'Deberás añadir un hijo antes de eliminar el último que tienes'
+                    : ''
+                }
+                onClick={() => setChildToDelete(c)}
+              >
+                Eliminar
+              </DangerButton>
             </Item>
           ))}
         </List>
@@ -181,7 +191,13 @@ export default function MisHijos() {
             </ModalText>
             <ModalActions>
               <ModalButton onClick={() => setChildToDelete(null)}>Cancelar</ModalButton>
-              <ModalButton primary onClick={() => { removeChild(childToDelete); }}>
+              <ModalButton
+                primary
+                onClick={() => {
+                  removeChild(childToDelete);
+                  setChildToDelete(null);
+                }}
+              >
                 Aceptar
               </ModalButton>
             </ModalActions>
