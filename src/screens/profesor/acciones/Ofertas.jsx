@@ -46,6 +46,18 @@ function calculateWeeks(startStr, endStr) {
   return Math.round(diffDays / 7);
 }
 
+// Helper: acorta nombre manteniendo privacidad
+// Ej: "Jos\u00e9 Antonio Lechuga G\u00f3mez" -> "jos\u00e9a.l.g"
+function shortStudentName(fullName) {
+  if (!fullName) return '';
+  const parts = fullName.trim().split(/\s+/);
+  if (parts.length === 0) return '';
+  const first = parts[0].toLowerCase();
+  const initials = parts.slice(1).map(p => p[0].toLowerCase());
+  if (initials.length === 0) return first;
+  return first + initials[0] + (initials.length > 1 ? '.' + initials.slice(1).join('.') : '');
+}
+
 // Grupos de cursos igual que en NuevaClase
 const cursosGrouped = [
   {
@@ -777,7 +789,7 @@ export default function Ofertas() {
               <CardHeader>
                 <HeaderLeft>
                   <StudentName>
-                    {c.alumnoNombre?.split(' ')[0]}
+                    {shortStudentName(c.alumnoNombre)}
                   </StudentName>
                   <HeaderBadges>
                     <Badge variant="asignatura">{c.asignaturas ? c.asignaturas.join(', ') : c.asignatura}</Badge>
@@ -882,7 +894,7 @@ export default function Ofertas() {
             <Modal>
               <ModalText>
                 Vas a enviar oferta de <strong>€{selected.precioProfesores}/h</strong><br/>
-                al alumno <strong>{selected.alumnoNombre}</strong>.<br/>
+                al alumno <strong>{shortStudentName(selected.alumnoNombre)}</strong>.<br/>
                 <strong>Indica si puedes impartir cada asignatura:</strong><br/>
                 {(selected.asignaturas || [selected.asignatura]).map((s,i) => (
                   <div key={i} style={{ marginBottom: '0.25rem' }}>
