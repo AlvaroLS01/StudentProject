@@ -512,10 +512,9 @@ export default function Ofertas() {
       userData.docType &&
       userData.studies &&
       userData.studyTime &&
-      userData.job &&
-      userData.job !== '' &&
       userData.status &&
-      userData.iban;
+      userData.iban &&
+      (userData.status !== 'trabaja' || (userData.job && userData.job !== ''));
     if (!profileComplete) {
       setShowProfileModal(true);
       return false;
