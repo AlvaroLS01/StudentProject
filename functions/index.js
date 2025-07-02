@@ -11,12 +11,17 @@ const functions = require("firebase-functions/v1");
 const admin = require("firebase-admin");
 const nodemailer = require("nodemailer");
 
+const smtpConfig = functions.config().smtp || {
+  user: process.env.SMTP_USER,
+  pass: process.env.SMTP_PASS,
+};
+
 const transporter = nodemailer.createTransport({
-  host: "smtp.mailtrap.io",
-  port: 587,
+  host: process.env.SMTP_HOST || "smtp.mailtrap.io",
+  port: process.env.SMTP_PORT || 587,
   auth: {
-    user: functions.config().smtp.user,
-    pass: functions.config().smtp.pass,
+    user: smtpConfig.user,
+    pass: smtpConfig.pass,
   },
 });
 
@@ -126,23 +131,26 @@ exports.onTeacherAssigned = functions.firestore
       }
     });
 
-exports.sendCustomPasswordResetEmail = functions.https.onRequest(async (req, res) => {
-  try {
-    const {email} = req.body;
-    const link = await admin.auth().generatePasswordResetLink(email, {
-      url: "https://studentproject-4c33d.web.app/inicio",
-    });
+exports.sendCustomPasswordResetEmail = functions.https.onRequest(
+    async (req, res) => {
+      try {
+        const {email} = req.body;
+        const link = await admin.auth().generatePasswordResetLink(email, {
+          url: "https://studentproject-4c33d.web.app/inicio",
+        });
 
-    await transporter.sendMail({
-      from: "no-reply@tudominio.com",
-      to: email,
-      subject: "Restablecer contraseña",
-      html: `<p>Pulsa <a href="${link}">aquí</a> para restablecer tu contraseña.</p>`,
-    });
+        await transporter.sendMail({
+          from: "no-reply@tudominio.com",
+          to: email,
+          subject: "Restablecer contraseña",
+          html:
+        `<p>Pulsa <a href="${link}">aquí</a> ` +
+        "para restablecer tu contraseña.</p>",
+        });
 
-    res.json({success: true});
-  } catch (error) {
-    console.error(error);
-    res.status(500).send({error: error.message});
-  }
-});
+        res.json({success: true});
+      } catch (error) {
+        console.error(error);
+        res.status(500).send({error: error.message});
+      }
+    });
