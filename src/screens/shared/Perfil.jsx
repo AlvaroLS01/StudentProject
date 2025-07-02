@@ -27,6 +27,7 @@ import {
 } from 'recharts';
 import { useChild } from '../../ChildContext';
 import { TextInput, SelectInput, PrimaryButton } from '../../components/FormElements';
+import InfoGrid from '../../components/InfoGrid';
 
 // Animación de fade-in
 const fadeIn = keyframes`
@@ -211,6 +212,15 @@ const ProgressBarFill = styled.div`
 const ChartContainer = styled.div`
   width: 100%;
   height: 300px;
+`;
+
+const Label = styled.span`
+  font-weight: 500;
+  color: #014F40;
+`;
+
+const Value = styled.span`
+  color: #333;
 `;
 
 const cursosGrouped = [
@@ -595,18 +605,51 @@ export default function Perfil() {
               </>
             ) : (
               <>
-                <p>Teléfono: {profile.telefono || '-'}</p>
-                <p>Ciudad: {profile.ciudad || '-'}</p>
-                {role === 'profesor' && (
-                  <>
-                    <p>Estudios: {profile.studies || '-'}</p>
-                    <p>Tiempo estudiando: {profile.studyTime || '-'}</p>
-                    <p>Carrera finalizada: {profile.careerFinished ? 'Sí' : 'No'}</p>
-                    <p>Trabajo: {profile.job || '-'}</p>
-                    <p>Situación: {profile.status || '-'}</p>
-                    <p>IBAN: {profile.iban || '-'}</p>
-                  </>
-                )}
+                <InfoGrid>
+                  {profile.telefono && (
+                    <div>
+                      <Label>Teléfono:</Label> <Value>{profile.telefono}</Value>
+                    </div>
+                  )}
+                  {profile.ciudad && (
+                    <div>
+                      <Label>Ciudad:</Label> <Value>{profile.ciudad}</Value>
+                    </div>
+                  )}
+                  {role === 'profesor' && profile.studies && (
+                    <div>
+                      <Label>Estudios:</Label> <Value>{profile.studies}</Value>
+                    </div>
+                  )}
+                  {role === 'profesor' && profile.studyTime && profile.status !== 'trabaja' && (
+                    <div>
+                      <Label>Tiempo estudiando:</Label>{' '}
+                      <Value>{profile.studyTime}</Value>
+                    </div>
+                  )}
+                  {role === 'profesor' && profile.careerFinished !== undefined && profile.careerFinished !== null && (
+                    <div>
+                      <Label>Carrera finalizada:</Label>{' '}
+                      <Value>{profile.careerFinished ? 'Sí' : 'No'}</Value>
+                    </div>
+                  )}
+                  {role === 'profesor' && profile.job && profile.status === 'trabaja' && (
+                    <div>
+                      <Label>Trabajo:</Label> <Value>{profile.job}</Value>
+                    </div>
+                  )}
+                  {role === 'profesor' && profile.status && (
+                    <div>
+                      <Label>Situación:</Label>{' '}
+                      <Value>{profile.status === 'estudia' ? 'Estudia' : 'Trabaja'}</Value>
+                    </div>
+                  )}
+                  {role === 'profesor' && profile.iban && (
+                    <div>
+                      <Label>IBAN:</Label> <Value>{profile.iban}</Value>
+                    </div>
+                  )}
+                </InfoGrid>
                 {isOwnProfile && (
                   <EditButton onClick={() => setIsEditing(true)}>
                     Editar datos
