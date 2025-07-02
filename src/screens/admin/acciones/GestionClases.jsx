@@ -467,26 +467,70 @@ export default function GestionClases() {
                         <br />
                         <Label>Asignaturas prof.:</Label>{' '}
                         <Value>{o.asignaturas ? o.asignaturas.join(', ') : (c.asignaturas ? c.asignaturas.join(', ') : c.asignatura)}</Value>
+                        {(() => {
+                          const studSubs = c.asignaturas || (c.asignatura ? [c.asignatura] : []);
+                          const profSubs = o.asignaturas || [];
+                          const allSelected =
+                            studSubs.length > 0 &&
+                            studSubs.every(s => profSubs.includes(s)) &&
+                            profSubs.length === studSubs.length;
+                          return (
+                            <>
+                              <br />
+                              <Label>Selección:</Label>{' '}
+                              <Value>
+                                {allSelected
+                                  ? 'Todas las solicitadas'
+                                  : `${profSubs.length} de ${studSubs.length}`}
+                              </Value>
+                            </>
+                          );
+                        })()}
                         {o.teacherInfo && (
                           <>
                             <br />
-                            <Label>Estudios:</Label>{' '}
-                            <Value>{o.teacherInfo.studies || '-'}</Value>
-                            <br />
-                            <Label>Trabajo:</Label>{' '}
-                            <Value>{o.teacherInfo.job || '-'}</Value>
-                            <br />
-                            <Label>Tiempo estudiando:</Label>{' '}
-                            <Value>{o.teacherInfo.studyTime || '-'}</Value>
-                            <br />
-                            <Label>Situación:</Label>{' '}
-                            <Value>{o.teacherInfo.status || '-'}</Value>
-                            <br />
-                            <Label>IBAN:</Label>{' '}
-                            <Value>{o.teacherInfo.iban || '-'}</Value>
-                            <br />
-                            <Label>Clases impartidas:</Label>{' '}
-                            <Value>{o.teacherInfo.classesCount}</Value>
+                            {o.teacherInfo.studies && (
+                              <>
+                                <Label>Estudios:</Label>{' '}
+                                <Value>{o.teacherInfo.studies}</Value>
+                                <br />
+                              </>
+                            )}
+                            {o.teacherInfo.job &&
+                              o.teacherInfo.job.toLowerCase() !== 'no trabaja' && (
+                                <>
+                                  <Label>Trabajo:</Label>{' '}
+                                  <Value>{o.teacherInfo.job}</Value>
+                                  <br />
+                                </>
+                              )}
+                            {o.teacherInfo.studyTime && (
+                              <>
+                                <Label>Tiempo estudiando:</Label>{' '}
+                                <Value>{o.teacherInfo.studyTime}</Value>
+                                <br />
+                              </>
+                            )}
+                            {o.teacherInfo.status && (
+                              <>
+                                <Label>Situación:</Label>{' '}
+                                <Value>{o.teacherInfo.status}</Value>
+                                <br />
+                              </>
+                            )}
+                            {o.teacherInfo.iban && (
+                              <>
+                                <Label>IBAN:</Label>{' '}
+                                <Value>{o.teacherInfo.iban}</Value>
+                                <br />
+                              </>
+                            )}
+                            {o.teacherInfo.classesCount !== undefined && (
+                              <>
+                                <Label>Clases impartidas:</Label>{' '}
+                                <Value>{o.teacherInfo.classesCount}</Value>
+                              </>
+                            )}
                           </>
                         )}
                       </div>
