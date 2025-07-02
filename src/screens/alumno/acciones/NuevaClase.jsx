@@ -440,9 +440,8 @@ export default function NuevaClase() {
   const handleNoEndDateChange = (checked) => {
     setNoEndDate(checked);
     if (checked) {
-      const year = new Date().getFullYear();
-      // Fecha de fin de curso: 23 de junio del año actual
-      setEndDate(`${year}-06-23`);
+      // Fecha de fin de curso: 23 de junio de 2026
+      setEndDate('2026-06-23');
     } else {
       setEndDate('');
     }
