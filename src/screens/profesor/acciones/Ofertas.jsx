@@ -402,7 +402,8 @@ export default function Ofertas() {
   const [expandedId, setExpandedId] = useState(null);
   const [selected, setSelected] = useState(null);
   const [selectedSlots, setSelectedSlots] = useState(new Set());
-  const [subjectChoices, setSubjectChoices] = useState({});
+  // Selección de asignaturas por cada clase
+  const [subjectSelections, setSubjectSelections] = useState({});
   const [confirmModal, setConfirmModal] = useState(false);
   const [infoModal, setInfoModal] = useState(false);
 
@@ -500,8 +501,14 @@ export default function Ofertas() {
     });
   };
 
-  const setSubjectChoice = (sub, can) => {
-    setSubjectChoices(prev => ({ ...prev, [sub]: can }));
+  const toggleSubjectSelection = (classId, sub) => {
+    setSubjectSelections(prev => {
+      const current = prev[classId] || {};
+      return {
+        ...prev,
+        [classId]: { ...current, [sub]: !current[sub] }
+      };
+    });
   };
 
   // Validación antes de abrir modal de confirmación
@@ -535,13 +542,14 @@ export default function Ofertas() {
   // Manejo de clic en "Enviar oferta"
   const handleSendOffer = clase => {
     if (!validateBeforeSubmit(clase)) return;
-    setSelected(clase);
+    const selections = subjectSelections[clase.id] || {};
     const subs = clase.asignaturas || (clase.asignatura ? [clase.asignatura] : []);
-    const choices = {};
-    subs.forEach(s => {
-      choices[s] = null;
-    });
-    setSubjectChoices(choices);
+    const chosen = subs.filter(s => selections[s]);
+    if (chosen.length === 0) {
+      show('Selecciona al menos una asignatura antes de continuar.', 'error');
+      return;
+    }
+    setSelected(clase);
     setConfirmModal(true);
   };
 
@@ -549,14 +557,10 @@ export default function Ofertas() {
   const confirmRequest = async () => {
     const clase = selected;
     const prof = auth.currentUser;
-    const undecided = Object.values(subjectChoices).some(v => v === null);
-    const selectedSubs = Object.entries(subjectChoices)
-      .filter(([,v]) => v === true)
+    const selections = subjectSelections[clase.id] || {};
+    const selectedSubs = Object.entries(selections)
+      .filter(([,v]) => v)
       .map(([s]) => s);
-    if (undecided) {
-      show('Indica si puedes o no en todas las asignaturas.', 'error');
-      return;
-    }
     if (selectedSubs.length === 0) {
       show('Selecciona al menos una asignatura.', 'error');
       return;
@@ -586,7 +590,11 @@ export default function Ofertas() {
     setConfirmModal(false);
     setSelected(null);
     setSelectedSlots(new Set());
-    setSubjectChoices({});
+    setSubjectSelections(prev => {
+      const updated = { ...prev };
+      delete updated[clase.id];
+      return updated;
+    });
 
     // Mostrar información de proceso de selección en un modal
     setInfoModal(true);
@@ -831,13 +839,27 @@ export default function Ofertas() {
                   <Label>Horas/semana:</Label>{' '}
                   <Value>{c.horasSemana} <em>(aprox.)</em></Value>
                 </div>
-                {c.notas && (
-                  <div style={{ gridColumn: '1 / -1' }}>
-                    <Label>Notas adicionales:</Label>{' '}
-                    <Value>{c.notas}</Value>
-                  </div>
-                )}
-              </InfoGrid>
+              {c.notas && (
+                <div style={{ gridColumn: '1 / -1' }}>
+                  <Label>Notas adicionales:</Label>{' '}
+                  <Value>{c.notas}</Value>
+                </div>
+              )}
+            </InfoGrid>
+
+            <div style={{ margin: '0.5rem 0' }}>
+              <strong>Selecciona asignaturas:</strong>{' '}
+              {(c.asignaturas || [c.asignatura]).map((s, i) => (
+                <label key={i} style={{ marginRight: '1rem' }}>
+                  <input
+                    type="checkbox"
+                    checked={!!subjectSelections[c.id]?.[s]}
+                    onChange={() => toggleSubjectSelection(c.id, s)}
+                  />{' '}
+                  {s}
+                </label>
+              ))}
+            </div>
 
               <Controls>
                 <ShowScheduleText onClick={() => toggleExpand(c.id)}>
@@ -894,26 +916,11 @@ export default function Ofertas() {
               <ModalText>
                 Vas a enviar oferta de <strong>€{selected.precioProfesores}/h</strong><br/>
                 al alumno <strong>{shortStudentName(selected.alumnoNombre)}</strong>.<br/>
-                <strong>Indica si puedes impartir cada asignatura:</strong><br/>
+                <strong>Asignaturas seleccionadas:</strong><br/>
                 {(selected.asignaturas || [selected.asignatura]).map((s,i) => (
                   <div key={i} style={{ marginBottom: '0.25rem' }}>
-                    <strong>{s}</strong>{' '}
-                    <label style={{ marginLeft: '0.5rem' }}>
-                      <input
-                        type="radio"
-                        name={`sub-${i}`}
-                        checked={subjectChoices[s] === true}
-                        onChange={() => setSubjectChoice(s, true)}
-                      />{' '}Sí
-                    </label>{' '}
-                    <label style={{ marginLeft: '0.5rem' }}>
-                      <input
-                        type="radio"
-                        name={`sub-${i}`}
-                        checked={subjectChoices[s] === false}
-                        onChange={() => setSubjectChoice(s, false)}
-                      />{' '}No
-                    </label>
+                    <strong>{s}:</strong>{' '}
+                    {subjectSelections[selected.id]?.[s] ? 'Sí' : 'No'}
                   </div>
                 ))}
                 <br/>
