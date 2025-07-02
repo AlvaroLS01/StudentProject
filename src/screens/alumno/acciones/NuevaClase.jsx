@@ -261,6 +261,9 @@ const ModalButton = styled.button`
 
 // Datos de tarifas y listas
 const ciudadesSur = ['Sevilla', 'Huelva', 'Granada', 'Malaga', 'Valencia'];
+
+// Utilidad para obtener la fecha de hoy en formato YYYY-MM-DD
+const getToday = () => new Date().toISOString().split('T')[0];
 const priceTable = {
   individual: {
     A: {
@@ -321,7 +324,7 @@ export default function NuevaClase() {
   const [modalidad, setModalidad]         = useState('online');
   const [ciudad, setCiudad]               = useState('');
   const [zona, setZona]                   = useState('');
-  const [startDate, setStartDate]         = useState('');
+  const [startDate, setStartDate]         = useState(getToday());
   const [endDate, setEndDate]             = useState('');
   const [noEndDate, setNoEndDate]         = useState(false);
   const [horasSemana, setHorasSemana]     = useState('');
@@ -473,7 +476,7 @@ export default function NuevaClase() {
     setModalidad('online');
     setCiudad('');
     setZona('');
-    setStartDate('');
+    setStartDate(getToday());
     setEndDate('');
     setNoEndDate(false);
     setHorasSemana('');
