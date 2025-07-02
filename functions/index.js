@@ -9,7 +9,16 @@
 
 const functions = require("firebase-functions/v1");
 const admin = require("firebase-admin");
-const cors = require("cors")({origin: true});
+const nodemailer = require("nodemailer");
+
+const transporter = nodemailer.createTransport({
+  host: "smtp.mailtrap.io",
+  port: 587,
+  auth: {
+    user: functions.config().smtp.user,
+    pass: functions.config().smtp.pass,
+  },
+});
 
 admin.initializeApp();
 const db = admin.firestore();
@@ -117,81 +126,23 @@ exports.onTeacherAssigned = functions.firestore
       }
     });
 
-exports.sendCustomPasswordResetEmail = functions.https.onRequest((req, res) => {
-  cors(req, res, async () => {
-    // Preflight CORS
-    if (req.method === "OPTIONS") {
-      res.set("Access-Control-Allow-Origin", "*");
-      res.set("Access-Control-Allow-Methods", "POST");
-      res.set("Access-Control-Allow-Headers", "Content-Type");
-      res.status(204).send("");
-      return;
-    }
+exports.sendCustomPasswordResetEmail = functions.https.onRequest(async (req, res) => {
+  try {
+    const {email} = req.body;
+    const link = await admin.auth().generatePasswordResetLink(email, {
+      url: "https://studentproject-4c33d.web.app/inicio",
+    });
 
-    if (req.method !== "POST") {
-      res.status(405).send("Method Not Allowed");
-      return;
-    }
+    await transporter.sendMail({
+      from: "no-reply@tudominio.com",
+      to: email,
+      subject: "Restablecer contraseña",
+      html: `<p>Pulsa <a href="${link}">aquí</a> para restablecer tu contraseña.</p>`,
+    });
 
-    const email = (req.body.email || "").trim();
-    functions.logger.info("Solicitud de restablecimiento para", email);
-    if (!email) {
-      res.status(400).json({error: "Email requerido"});
-      return;
-    }
-
-    try {
-      const userSnap = await db
-          .collection("usuarios")
-          .where("email", "==", email)
-          .limit(1)
-          .get();
-
-      if (userSnap.empty) {
-        functions.logger.warn("Correo no registrado", email);
-        res.status(404).json({error: "El correo no está registrado"});
-        return;
-      }
-
-      const userData = userSnap.docs[0].data();
-      const nombre = `${userData.nombre || ""} ${
-        userData.apellidos || ""}`.trim();
-
-      functions.logger.debug("Usuario encontrado", nombre);
-
-      const link = await admin.auth().generatePasswordResetLink(email, {
-        url: "https://studentproject-4c33d.web.app/inicio",
-      });
-
-      functions.logger.debug("Enlace generado", link);
-
-      const html =
-        `<p>Hola, ${nombre || "usuario"}.</p>` +
-        `<p>Parece que has olvidado la contraseña.</p>` +
-        `<p>Pulsa el siguiente botón para restablecerla:</p>` +
-        `<p><a href="${link}" style="background:#ccf3e5;color:#004640;` +
-        `padding:10px 20px;border-radius:4px;text-decoration:none;">` +
-        `Restablecer contraseña</a></p>`;
-
-      const docRef = await db.collection("mail").add({
-        to: [email],
-        message: {
-          subject: "Restablecer contraseña",
-          html: html,
-        },
-      });
-
-      functions.logger.info(
-        "Documento de correo creado", docRef.id, "para", email,
-      );
-
-      res.set("Access-Control-Allow-Origin", "*");
-      res.json({success: true});
-    } catch (err) {
-      functions.logger.error(
-        "Error al enviar correo de restablecimiento", err,
-      );
-      res.status(500).json({error: "No se pudo procesar la solicitud"});
-    }
-  });
+    res.json({success: true});
+  } catch (error) {
+    console.error(error);
+    res.status(500).send({error: error.message});
+  }
 });
