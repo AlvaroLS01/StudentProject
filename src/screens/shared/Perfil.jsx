@@ -156,10 +156,15 @@ const PhotoLabel = styled.label`
 `;
 
 const CameraOverlay = styled.img`
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
   width: 40px;
   height: 40px;
   opacity: ${({ hasPhoto }) => (hasPhoto ? 1 : 0.7)};
   filter: ${({ hasPhoto }) => (hasPhoto ? 'invert(1)' : 'none')};
+  pointer-events: none;
 `;
 
 const EditButton = styled.button`
@@ -311,7 +316,9 @@ export default function Perfil() {
   const handlePhotoChange = async e => {
     const file = e.target.files[0];
     if (!file) return;
-    const storageRef = ref(storage, `perfiles/${userId}`);
+    const localUrl = URL.createObjectURL(file);
+    setProfile(p => ({ ...p, photoURL: localUrl }));
+    const storageRef = ref(storage, `perfiles/${userId}/${file.name}`);
     await uploadBytes(storageRef, file);
     const url = await getDownloadURL(storageRef);
     await updateDoc(doc(db, 'usuarios', userId), { photoURL: url });
