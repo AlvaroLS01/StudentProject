@@ -10,6 +10,7 @@
 const functions = require("firebase-functions/v1");
 const admin = require("firebase-admin");
 const nodemailer = require("nodemailer");
+const {google} = require("googleapis");
 
 const smtpConfig = functions.config().smtp || {
   user: process.env.SMTP_USER,
@@ -27,6 +28,20 @@ const transporter = nodemailer.createTransport({
 
 admin.initializeApp();
 const db = admin.firestore();
+
+const sheetsConfig = functions.config().sheets || {
+  spreadsheet_id: process.env.SHEETS_ID,
+  client_email: process.env.SHEETS_CLIENT_EMAIL,
+  private_key: (process.env.SHEETS_PRIVATE_KEY || '').replace(/\\n/g, '\n'),
+};
+
+const sheetsAuth = new google.auth.JWT(
+  sheetsConfig.client_email,
+  null,
+  sheetsConfig.private_key,
+  ['https://www.googleapis.com/auth/spreadsheets']
+);
+const sheetsApi = google.sheets({version: 'v4', auth: sheetsAuth});
 
 // Si quieres controlar concurrencia en v1, por función:
 // exports.sendCustomPasswordResetEmail =
@@ -152,5 +167,77 @@ exports.sendCustomPasswordResetEmail = functions.https.onRequest(
       } catch (error) {
         console.error(error);
         res.status(500).send({error: error.message});
+      }
+    });
+
+exports.logClassToSheet = functions.firestore
+    .document('clases_union/{unionId}/clases_asignadas/{assignmentId}')
+    .onUpdate(async (change, context) => {
+      const before = change.before.data();
+      const after = change.after.data();
+      if (before.estado === 'aceptada' || after.estado !== 'aceptada') {
+        return null;
+      }
+      try {
+        const unionId = context.params.unionId;
+        const unionSnap = await db.collection('clases_union').doc(unionId).get();
+        if (!unionSnap.exists) {
+          functions.logger.warn('Union not found', unionId);
+          return null;
+        }
+        const union = unionSnap.data();
+
+        const classSnap = await db.collection('clases').doc(union.claseId).get();
+        const classData = classSnap.exists ? classSnap.data() : {};
+
+        const [teacherSnap, studentSnap] = await Promise.all([
+          db.collection('usuarios').doc(union.profesorId).get(),
+          db.collection('usuarios').doc(union.alumnoId).get(),
+        ]);
+
+        const teacherEmail = teacherSnap.exists ? teacherSnap.data().email : '';
+        const teacherName = union.profesorNombre ||
+          (teacherSnap.exists ? `${teacherSnap.data().nombre} ${
+            teacherSnap.data().apellidos || ''}`.trim() : '');
+
+        const studentEmail = studentSnap.exists ? studentSnap.data().email : '';
+        const studentName = union.padreNombre || union.alumnoNombre ||
+          (studentSnap.exists ? `${studentSnap.data().nombre} ${
+            studentSnap.data().apellidos || ''}`.trim() : '');
+
+        const beneficio =
+          (after.precioTotalPadres || 0) - (after.precioTotalProfesor || 0);
+
+        const asignatura =
+          after.asignatura || classData.asignatura ||
+          (classData.asignaturas || []).join(', ');
+
+        const row = [
+          context.params.assignmentId,
+          teacherEmail,
+          teacherName,
+          studentName,
+          studentEmail,
+          classData.curso || '',
+          asignatura || '',
+          after.fecha || '',
+          after.duracion || '',
+          after.modalidad || '',
+          classData.tipoClase || '',
+          after.precioTotalPadres || 0,
+          after.precioTotalProfesor || 0,
+          beneficio,
+        ];
+
+        await sheetsApi.spreadsheets.values.append({
+          spreadsheetId: sheetsConfig.spreadsheet_id,
+          range: 'A1',
+          valueInputOption: 'USER_ENTERED',
+          requestBody: {values: [row]},
+        });
+        return null;
+      } catch (error) {
+        functions.logger.error('Error writing to Google Sheets', error);
+        return null;
       }
     });
