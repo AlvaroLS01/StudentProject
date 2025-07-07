@@ -317,6 +317,7 @@ export default function MisAlumnos() {
   const [asignMateria, setAsignMateria] = useState('');
   const [modalidad, setModalidad] = useState('online');
   const [asignaturasList, setAsignaturasList] = useState([]);
+  const [requestedAsignaturas, setRequestedAsignaturas] = useState([]);
   const scrollRef = useRef();
   const navigate = useNavigate();
 
@@ -424,7 +425,7 @@ export default function MisAlumnos() {
   };
 
   // 5. Abre el modal para crear una propuesta de clase
-  const openProposal = union => {
+  const openProposal = async union => {
     setSelectedUnion(union);
     setOpenProposalModal(true);
     const today = new Date().toISOString().slice(0, 10);
@@ -432,6 +433,17 @@ export default function MisAlumnos() {
     setDuracion('');
     setAsignMateria('');
     setModalidad('online');
+    setRequestedAsignaturas([]);
+    try {
+      const snap = await getDoc(doc(db, 'clases', union.claseId));
+      if (snap.exists()) {
+        const data = snap.data();
+        const subs = data.asignaturas || (data.asignatura ? [data.asignatura] : []);
+        setRequestedAsignaturas(subs);
+      }
+    } catch (err) {
+      console.error(err);
+    }
   };
 
   // 6. Envía la propuesta de clase
@@ -653,9 +665,20 @@ export default function MisAlumnos() {
               <Label>Asignatura:</Label>
               <Select value={asignMateria} onChange={e => setAsignMateria(e.target.value)}>
                 <option value="" disabled>Selecciona asignatura</option>
-                {asignaturasList.map((a,i) => (
-                  <option key={i} value={a}>{a}</option>
-                ))}
+                {requestedAsignaturas.length > 0 && (
+                  <optgroup label="Asignaturas solicitadas">
+                    {requestedAsignaturas.map((a, i) => (
+                      <option key={`req-${i}`} value={a}>{a}</option>
+                    ))}
+                  </optgroup>
+                )}
+                <optgroup label="Resto de asignaturas">
+                  {asignaturasList
+                    .filter(a => !requestedAsignaturas.includes(a))
+                    .map((a, i) => (
+                      <option key={`rest-${i}`} value={a}>{a}</option>
+                    ))}
+                </optgroup>
               </Select>
             </Form>
             <ModalActions>
