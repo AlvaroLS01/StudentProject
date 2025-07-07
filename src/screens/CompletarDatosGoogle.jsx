@@ -144,6 +144,7 @@ export default function CompletarDatosGoogle() {
             id: Date.now().toString(),
             nombre: nombreHijo,
             fechaNacimiento: fechaNacHijo,
+            curso,
             photoURL: user.photoURL || ''
           }];
         }

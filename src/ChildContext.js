@@ -16,6 +16,9 @@ export const ChildProvider = ({ children }) => {
         if (prev && hijos.some(h => h.id === prev.id)) {
           return prev;
         }
+        if (hijos.length === 1) {
+          return hijos[0];
+        }
         return null;
       });
     } else {
