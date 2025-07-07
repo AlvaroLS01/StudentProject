@@ -110,6 +110,20 @@ const ModifyButton = styled.button`
   }
 `;
 
+const CancelButton = styled.button`
+  margin-top: 0.75rem;
+  background: #e53e3e;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 0.3rem 0.6rem;
+  font-size: 0.85rem;
+  cursor: pointer;
+  &:hover {
+    background: #c53030;
+  }
+`;
+
 const Overlay = styled.div`
   position: fixed;
   inset: 0;
@@ -194,21 +208,21 @@ export default function ClasesProfesor() {
           console.error(err);
         }
         const subSnap = await getDocs(
-          query(
-            collection(db, 'clases_union', docu.id, 'clases_asignadas'),
-            where('estado', '==', 'aceptada')
-          )
+          collection(db, 'clases_union', docu.id, 'clases_asignadas')
         );
         subSnap.docs.forEach(d => {
-          list.push({
-            id: d.id,
-            unionId: docu.id,
-            alumnoId: union.alumnoId,
-            alumno: `${union.alumnoNombre} ${alumnoApellido}`.trim(),
-            alumnoFoto,
-            curso,
-            ...d.data()
-          });
+          const data = d.data();
+          if (data.estado === 'aceptada' || data.estado === 'pendiente') {
+            list.push({
+              id: d.id,
+              unionId: docu.id,
+              alumnoId: union.alumnoId,
+              alumno: `${union.alumnoNombre} ${alumnoApellido}`.trim(),
+              alumnoFoto,
+              curso,
+              ...data
+            });
+          }
         });
       }
       setClases(list);
@@ -280,6 +294,21 @@ export default function ClasesProfesor() {
     setEditing(null);
   };
 
+  const cancelPending = async clase => {
+    const ref = doc(
+      db,
+      'clases_union',
+      clase.unionId,
+      'clases_asignadas',
+      clase.id
+    );
+    await updateDoc(ref, {
+      confirmada: false,
+      estado: 'cancelada',
+      canceladaEn: serverTimestamp()
+    });
+  };
+
   if (loading) {
     return <LoadingScreen fullscreen />;
   }
@@ -301,7 +330,7 @@ export default function ClasesProfesor() {
             <option value="asignatura">Asignatura</option>
           </select>
         </FilterContainer>
-        {sortedClases.length === 0 && <p>No tienes clases aceptadas.</p>}
+        {sortedClases.length === 0 && <p>No tienes clases asignadas.</p>}
         {sortedClases.map(c => (
           <Card key={c.id}>
             <CardHeader>
@@ -330,12 +359,18 @@ export default function ClasesProfesor() {
                 <Label>Ganancia:</Label> <Value>€{(c.precioTotalProfesor || 0).toFixed(2)}</Value>
               </div>
             </InfoGrid>
-            <ModifyButton
-              disabled={!isModificationAllowed(c)}
-              onClick={() => openEdit(c)}
-            >
-              {isModificationAllowed(c) ? 'Modificar clase' : 'Modificación no disponible'}
-            </ModifyButton>
+            {c.estado === 'pendiente' ? (
+              <CancelButton onClick={() => cancelPending(c)}>
+                Cancelar propuesta
+              </CancelButton>
+            ) : (
+              <ModifyButton
+                disabled={!isModificationAllowed(c)}
+                onClick={() => openEdit(c)}
+              >
+                {isModificationAllowed(c) ? 'Modificar clase' : 'Modificación no disponible'}
+              </ModifyButton>
+            )}
           </Card>
         ))}
       </Container>

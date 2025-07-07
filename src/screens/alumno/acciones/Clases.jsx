@@ -13,6 +13,9 @@ import {
   where,
   getDocs,
   getDoc,
+  addDoc,
+  updateDoc,
+  serverTimestamp,
   doc
 } from 'firebase/firestore';
 
@@ -131,6 +134,34 @@ const Value = styled.span`
   color: #333;
 `;
 
+const AcceptButton = styled.button`
+  margin-top: 0.5rem;
+  background: #006d5b;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 0.3rem 0.5rem;
+  cursor: pointer;
+  font-size: 0.85rem;
+  &:hover {
+    background: #005047;
+  }
+`;
+
+const RejectButton = styled.button`
+  margin-top: 0.5rem;
+  background: #f56565;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 0.3rem 0.5rem;
+  cursor: pointer;
+  font-size: 0.85rem;
+  &:hover {
+    background: #c53030;
+  }
+`;
+
 export default function Clases() {
   const { selectedChild } = useChild();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -170,19 +201,21 @@ export default function Clases() {
           console.error(err);
         }
         const subSnap = await getDocs(
-          query(
-            collection(db, 'clases_union', docu.id, 'clases_asignadas'),
-            where('estado', '==', 'aceptada')
-          )
+          collection(db, 'clases_union', docu.id, 'clases_asignadas')
         );
         subSnap.docs.forEach(d => {
-          all.push({
-            id: d.id,
-            profesorNombre: union.profesorNombre,
-            profesorFoto,
-            curso,
-            ...d.data()
-          });
+          const data = d.data();
+          if (data.estado === 'aceptada' || data.estado === 'pendiente') {
+            all.push({
+              id: d.id,
+              unionId: docu.id,
+              profesorId: union.profesorId,
+              profesorNombre: union.profesorNombre,
+              profesorFoto,
+              curso,
+              ...data
+            });
+          }
         });
       }
       setClases(all);
@@ -225,6 +258,42 @@ export default function Clases() {
     }
     return () => clearTimeout(timer);
   }, [loading, loadingReqs, view]);
+
+  const acceptProposal = async clase => {
+    const ref = doc(
+      db,
+      'clases_union',
+      clase.unionId,
+      'clases_asignadas',
+      clase.id
+    );
+    await updateDoc(ref, {
+      confirmada: true,
+      estado: 'aceptada',
+      confirmadaEn: serverTimestamp(),
+      pendienteAdmin: true
+    });
+    await addDoc(collection(db, 'clases_union', clase.unionId, 'chats'), {
+      senderId: clase.profesorId,
+      text: `He añadido una clase, ${clase.fecha}`,
+      createdAt: serverTimestamp()
+    });
+  };
+
+  const rejectProposal = async clase => {
+    const ref = doc(
+      db,
+      'clases_union',
+      clase.unionId,
+      'clases_asignadas',
+      clase.id
+    );
+    await updateDoc(ref, {
+      confirmada: false,
+      estado: 'rechazada',
+      rechazadoEn: serverTimestamp()
+    });
+  };
 
   const sortedClases = React.useMemo(() => {
     const arr = [...clases];
@@ -312,6 +381,16 @@ export default function Clases() {
                       <Label>Duración:</Label> <Value>{c.duracion}h</Value>
                     </div>
                   </InfoGrid>
+                  {c.estado === 'pendiente' && (
+                    <div>
+                      <AcceptButton onClick={() => acceptProposal(c)}>
+                        Aceptar
+                      </AcceptButton>{' '}
+                      <RejectButton onClick={() => rejectProposal(c)}>
+                        Rechazar
+                      </RejectButton>
+                    </div>
+                  )}
                 </Card>
               ))
             )}
