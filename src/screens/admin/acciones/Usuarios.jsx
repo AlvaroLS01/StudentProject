@@ -206,12 +206,19 @@ export default function Usuarios() {
 
   const list = view === 'profesores' ? sortUsers(teachers) : sortUsers(students);
 
+  const totalStudents = students.reduce((acc, s) => {
+    if (s.rol === 'padre') {
+      return acc + (s.hijos ? s.hijos.length : 0);
+    }
+    return acc + 1;
+  }, 0);
+
   return (
     <Page>
       <Container>
         <Title>Profesores &amp; Alumnos</Title>
         <Counter>
-          Total {view === 'profesores' ? teachers.length : students.length}
+          Total {view === 'profesores' ? teachers.length : totalStudents}
         </Counter>
         <SwitchContainer>
           <SwitchTrack>
