@@ -111,14 +111,16 @@ const ModifyButton = styled.button`
 `;
 
 const CancelButton = styled.button`
-  margin-top: 0.75rem;
+  margin: 0.5rem auto 0;
   background: #e53e3e;
   color: #fff;
   border: none;
   border-radius: 6px;
-  padding: 0.3rem 0.6rem;
+  padding: 0.25rem 0.8rem;
   font-size: 0.85rem;
   cursor: pointer;
+  display: block;
+  width: fit-content;
   &:hover {
     background: #c53030;
   }
@@ -362,11 +364,6 @@ export default function ClasesProfesor() {
             {c.estado === 'pendiente' && (
               <CancelButton onClick={() => cancelPending(c)}>
                 Cancelar propuesta
-              </CancelButton>
-            )}
-            {c.estado === 'aceptada' && (
-              <CancelButton onClick={() => cancelPending(c)}>
-                Cancelar clase
               </CancelButton>
             )}
             {c.estado !== 'pendiente' && (
