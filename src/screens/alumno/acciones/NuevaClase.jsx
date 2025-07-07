@@ -95,6 +95,10 @@ const Field = styled.div`
     resize: vertical;
     min-height: 100px;
   }
+  ${p => p.error && `
+    label { color: #c0392b; }
+    input, textarea, select { border-color: #c0392b; }
+  `}
 `;
 const InfoWrapper = styled.div`
   position: relative;
@@ -148,6 +152,7 @@ const DropdownHeader = styled.div`
   cursor: pointer;
   opacity: ${p => (p.disabled ? 0.6 : 1)};
   pointer-events: ${p => (p.disabled ? 'none' : 'auto')};
+  ${p => p.error && 'border-color: #c0392b;'}
 `;
 const ArrowSpan = styled.span`
   font-size: 0.8rem;
@@ -338,7 +343,10 @@ export default function NuevaClase() {
   const [openCity, setOpenCity]                 = useState(false);
   const [selectedSlots, setSelectedSlots]       = useState(new Set());
   const [confirmModal, setConfirmModal]         = useState(false);
-  const [submitting, setSubmitting] = useState(false);
+  const [submitting, setSubmitting]             = useState(false);
+  const [successModal, setSuccessModal]         = useState(false);
+
+  const [errors, setErrors] = useState({});
 
   const { userData } = useAuth();
   const { selectedChild } = useChild();
@@ -348,6 +356,9 @@ export default function NuevaClase() {
   const asignRef = useRef();
   const cursoRef = useRef();
   const cityRef  = useRef();
+  const datesRef = useRef();
+  const horasRef = useRef();
+  const scheduleRef = useRef();
   const navigate = useNavigate();
   const { show } = useNotification();
 
@@ -437,6 +448,7 @@ export default function NuevaClase() {
       next.has(key) ? next.delete(key) : next.add(key);
       return next;
     });
+    setErrors(prev => ({ ...prev, horario: false }));
   };
 
   // Manejar cambio de checkbox "sin fecha de fin planeada"
@@ -448,21 +460,45 @@ export default function NuevaClase() {
     } else {
       setEndDate('');
     }
+    setErrors(prev => ({ ...prev, fechas: false }));
   };
 
   // Validar y abrir modal
   const handleSubmit = () => {
-    if (
-      asignaturas.length === 0 ||
-      !curso ||
-      !ciudad ||
-      !startDate ||
-      !endDate ||
-      !horasSemana ||
-      parseInt(horasSemana, 10) < 1 ||
-      selectedSlots.size === 0
-    ) {
+    const newErrors = {};
+    let firstRef = null;
+    if (asignaturas.length === 0) {
+      newErrors.asignaturas = true;
+      firstRef = firstRef || asignRef;
+    }
+    if (!curso) {
+      newErrors.curso = true;
+      firstRef = firstRef || cursoRef;
+    }
+    if (!ciudad) {
+      newErrors.ciudad = true;
+      firstRef = firstRef || cityRef;
+    }
+    if (!startDate || !endDate) {
+      newErrors.fechas = true;
+      firstRef = firstRef || datesRef;
+    }
+    if (!horasSemana || parseInt(horasSemana, 10) < 1) {
+      newErrors.horas = true;
+      firstRef = firstRef || horasRef;
+    }
+    if (selectedSlots.size === 0) {
+      newErrors.horario = true;
+      firstRef = firstRef || scheduleRef;
+    }
+
+    setErrors(newErrors);
+
+    if (Object.keys(newErrors).length > 0) {
       show('Completa todos los campos obligatorios antes de continuar', 'error');
+      if (firstRef && firstRef.current) {
+        firstRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
       return;
     }
     setConfirmModal(true);
@@ -514,16 +550,20 @@ export default function NuevaClase() {
         estado: 'pendiente',
         createdAt: serverTimestamp()
       });
-      show('Clase solicitada con éxito', 'success');
       resetForm();
       setConfirmModal(false);
-      navigate('/alumno?tab=clases&view=solicitudes');
+      setSuccessModal(true);
     } catch (err) {
       console.error(err);
       show('Error: ' + err.message, 'error');
     } finally {
       setSubmitting(false);
     }
+  };
+
+  const handleSuccessClose = () => {
+    setSuccessModal(false);
+    navigate('/alumno?tab=clases&view=solicitudes');
   };
 
   return (
@@ -537,10 +577,10 @@ export default function NuevaClase() {
 
         <FormGrid>
           {/* Asignatura */}
-          <Field ref={asignRef}>
+          <Field ref={asignRef} error={errors.asignaturas}>
             <label>Asignatura *</label>
             <DropdownContainer>
-              <DropdownHeader onClick={() => setOpenAsign(o => !o)}>
+              <DropdownHeader error={errors.asignaturas} onClick={() => setOpenAsign(o => !o)}>
                 {asignaturas.length > 0 ? asignaturas.join(', ') : 'Selecciona asignaturas'} <ArrowSpan>{openAsign ? '▲' : '▼'}</ArrowSpan>
               </DropdownHeader>
               {openAsign && (
@@ -552,6 +592,7 @@ export default function NuevaClase() {
                           ? prev.filter(s => s !== a)
                           : [...prev, a]
                       );
+                      setErrors(prev => ({ ...prev, asignaturas: false }));
                     }}>
                       <label style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
                         <input type="checkbox" checked={asignaturas.includes(a)} readOnly /> {a}
@@ -564,10 +605,10 @@ export default function NuevaClase() {
           </Field>
 
           {/* Curso */}
-          <Field ref={cursoRef}>
+          <Field ref={cursoRef} error={errors.curso}>
             <label>Curso *</label>
             <DropdownContainer>
-              <DropdownHeader onClick={() => setOpenCurso(o => !o)}>
+              <DropdownHeader error={errors.curso} onClick={() => setOpenCurso(o => !o)}>
                 {curso || 'Selecciona curso'} <ArrowSpan>{openCurso ? '▲' : '▼'}</ArrowSpan>
               </DropdownHeader>
               {openCurso && (
@@ -578,7 +619,7 @@ export default function NuevaClase() {
                       {options.map((c,i) => (
                         <DropdownItem
                           key={i}
-                          onClick={() => { setCurso(c); setOpenCurso(false); }}
+                          onClick={() => { setCurso(c); setOpenCurso(false); setErrors(prev => ({ ...prev, curso:false })); }}
                         >
                           {c}
                         </DropdownItem>
@@ -650,10 +691,10 @@ export default function NuevaClase() {
           </Field>
 
           {/* Ciudad */}
-          <Field ref={cityRef}>
+          <Field ref={cityRef} error={errors.ciudad}>
             <label>Ciudad *</label>
             <DropdownContainer>
-              <DropdownHeader onClick={() => setOpenCity(o => !o)}>
+              <DropdownHeader error={errors.ciudad} onClick={() => setOpenCity(o => !o)}>
                 {ciudad || 'Selecciona ciudad'} <ArrowSpan>{openCity ? '▲' : '▼'}</ArrowSpan>
               </DropdownHeader>
               {openCity && (
@@ -661,7 +702,7 @@ export default function NuevaClase() {
                   {ciudadesList.map((c,i) => (
                     <DropdownItem
                       key={i}
-                      onClick={() => { setCiudad(c); setOpenCity(false); }}
+                      onClick={() => { setCiudad(c); setOpenCity(false); setErrors(prev => ({ ...prev, ciudad:false })); }}
                     >
                       {c}
                     </DropdownItem>
@@ -684,7 +725,7 @@ export default function NuevaClase() {
           )}
 
           {/* Fecha de inicio y fecha de fin por día */}
-          <Field style={{ gridColumn: '1 / -1' }}>
+          <Field ref={datesRef} error={errors.fechas} style={{ gridColumn: '1 / -1' }}>
             <label>
               Fecha inicio y fin *
               <InfoWrapper>
@@ -698,12 +739,12 @@ export default function NuevaClase() {
               <input
                 type="date"
                 value={startDate}
-                onChange={e => setStartDate(e.target.value)}
+                onChange={e => { setStartDate(e.target.value); setErrors(prev => ({ ...prev, fechas:false })); }}
               />
               <input
                 type="date"
                 value={endDate}
-                onChange={e => setEndDate(e.target.value)}
+                onChange={e => { setEndDate(e.target.value); setErrors(prev => ({ ...prev, fechas:false })); }}
                 disabled={noEndDate}
               />
               <label style={{ display: 'flex', alignItems: 'center', margin: 0 }}>
@@ -719,7 +760,7 @@ export default function NuevaClase() {
           </Field>
 
           {/* Horas por semana */}
-          <Field>
+          <Field ref={horasRef} error={errors.horas}>
             <label>
               Horas por semana *
               <InfoWrapper>
@@ -734,13 +775,13 @@ export default function NuevaClase() {
               min="1"
               step="1"
               value={horasSemana}
-              onChange={e => setHorasSemana(e.target.value)}
+              onChange={e => { setHorasSemana(e.target.value); setErrors(prev => ({ ...prev, horas:false })); }}
               placeholder="Introduce horas semanales"
             />
           </Field>
 
           {/* Disponibilidad semanal */}
-          <Field style={{ gridColumn: '1 / -1' }}>
+          <Field ref={scheduleRef} error={errors.horario} style={{ gridColumn: '1 / -1' }}>
             <label>
               Selecciona tu disponibilidad *
               <InfoWrapper>
@@ -793,6 +834,20 @@ export default function NuevaClase() {
               <ModalActions>
                 <ModalButton onClick={() => setConfirmModal(false)}>Cancelar</ModalButton>
                 <ModalButton primary onClick={confirmRequest} disabled={submitting}>Confirmar</ModalButton>
+              </ModalActions>
+            </Modal>
+          </Overlay>
+        )}
+
+        {successModal && (
+          <Overlay>
+            <Modal>
+              <ModalText>
+                Se ha publicado una solicitud.<br/>
+                La podrás encontrar en Mis Clases &amp; Solicitudes en el apartado de mis solicitudes.
+              </ModalText>
+              <ModalActions>
+                <ModalButton primary onClick={handleSuccessClose}>Entendido</ModalButton>
               </ModalActions>
             </Modal>
           </Overlay>
