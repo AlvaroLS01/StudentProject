@@ -34,6 +34,14 @@ const Title = styled.h1`
   font-size: 2.5rem;
 `;
 
+const Counter = styled.p`
+  text-align: center;
+  color: #046654;
+  margin-top: -1rem;
+  margin-bottom: 1rem;
+  font-weight: 500;
+`;
+
 const SwitchContainer = styled.div`
   display: flex;
   justify-content: center;
@@ -202,6 +210,9 @@ export default function Usuarios() {
     <Page>
       <Container>
         <Title>Profesores &amp; Alumnos</Title>
+        <Counter>
+          Total {view === 'profesores' ? teachers.length : students.length}
+        </Counter>
         <SwitchContainer>
           <SwitchTrack>
             <SwitchBubble view={view} />

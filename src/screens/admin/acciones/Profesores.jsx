@@ -35,6 +35,12 @@ const Title = styled.h1`
   font-size: 2.5rem;
 `;
 
+const Counter = styled.span`
+  font-size: 1.25rem;
+  color: #046654;
+  margin-left: 0.5rem;
+`;
+
 const List = styled.ul`
   list-style: none;
   padding: 0;
@@ -142,7 +148,7 @@ export default function Profesores() {
   return (
     <Page>
       <Container>
-        <Title>Profesores</Title>
+        <Title>Profesores<Counter>({teachers.length})</Counter></Title>
         <List>
           {teachers.map((t) => (
             <Item key={t.id} onClick={() => openTeacher(t)}>
