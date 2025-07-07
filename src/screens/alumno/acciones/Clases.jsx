@@ -295,6 +295,32 @@ export default function Clases() {
     });
   };
 
+  const acceptModification = async clase => {
+    const ref = doc(db, 'clases_union', clase.unionId, 'clases_asignadas', clase.id);
+    await updateDoc(ref, {
+      modificacionPendiente: false,
+      modificacionAceptada: serverTimestamp()
+    });
+    await addDoc(collection(db, 'clases_union', clase.unionId, 'chats'), {
+      senderId: auth.currentUser.uid,
+      text: `He aceptado la modificación para el ${clase.fecha}`,
+      createdAt: serverTimestamp()
+    });
+  };
+
+  const rejectModification = async clase => {
+    const ref = doc(db, 'clases_union', clase.unionId, 'clases_asignadas', clase.id);
+    await updateDoc(ref, {
+      modificacionPendiente: false,
+      modificacionRechazada: serverTimestamp()
+    });
+    await addDoc(collection(db, 'clases_union', clase.unionId, 'chats'), {
+      senderId: auth.currentUser.uid,
+      text: `He rechazado la modificación para el ${clase.fecha}`,
+      createdAt: serverTimestamp()
+    });
+  };
+
   const sortedClases = React.useMemo(() => {
     const arr = [...clases];
     arr.sort((a, b) => {
@@ -388,6 +414,19 @@ export default function Clases() {
                       </AcceptButton>{' '}
                       <RejectButton onClick={() => rejectProposal(c)}>
                         Rechazar
+                      </RejectButton>
+                    </div>
+                  )}
+                  {c.modificacionPendiente && (
+                    <div>
+                      <p style={{ marginTop: '0.5rem' }}>
+                        El profesor propone modificar esta clase.
+                      </p>
+                      <AcceptButton onClick={() => acceptModification(c)}>
+                        Aceptar cambio
+                      </AcceptButton>{' '}
+                      <RejectButton onClick={() => rejectModification(c)}>
+                        Rechazar cambio
                       </RejectButton>
                     </div>
                   )}

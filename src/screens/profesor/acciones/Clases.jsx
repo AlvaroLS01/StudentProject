@@ -359,11 +359,17 @@ export default function ClasesProfesor() {
                 <Label>Ganancia:</Label> <Value>€{(c.precioTotalProfesor || 0).toFixed(2)}</Value>
               </div>
             </InfoGrid>
-            {c.estado === 'pendiente' ? (
+            {c.estado === 'pendiente' && (
               <CancelButton onClick={() => cancelPending(c)}>
                 Cancelar propuesta
               </CancelButton>
-            ) : (
+            )}
+            {c.estado === 'aceptada' && (
+              <CancelButton onClick={() => cancelPending(c)}>
+                Cancelar clase
+              </CancelButton>
+            )}
+            {c.estado !== 'pendiente' && (
               <ModifyButton
                 disabled={!isModificationAllowed(c)}
                 onClick={() => openEdit(c)}
