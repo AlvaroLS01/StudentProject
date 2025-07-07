@@ -1,0 +1,145 @@
+[debug] [2025-07-07T16:56:52.393Z] ----------------------------------------------------------------------
+[debug] [2025-07-07T16:56:52.400Z] Command:       C:\Program Files\nodejs\node.exe C:\Users\Tier1\AppData\Roaming\npm\node_modules\firebase-tools\lib\bin\firebase.js deploy --only functions
+[debug] [2025-07-07T16:56:52.401Z] CLI Version:   14.8.0
+[debug] [2025-07-07T16:56:52.401Z] Platform:      win32
+[debug] [2025-07-07T16:56:52.401Z] Node Version:  v22.14.0
+[debug] [2025-07-07T16:56:52.401Z] Time:          Mon Jul 07 2025 18:56:52 GMT+0200 (hora de verano de Europa central)
+[debug] [2025-07-07T16:56:52.402Z] ----------------------------------------------------------------------
+[debug] 
+[debug] [2025-07-07T16:56:52.799Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2025-07-07T16:56:52.800Z] > authorizing via signed-in user (alvarito.lechuga@gmail.com)
+[debug] [2025-07-07T16:56:52.800Z] [iam] checking project studentproject-4c33d for permissions ["cloudfunctions.functions.create","cloudfunctions.functions.delete","cloudfunctions.functions.get","cloudfunctions.functions.list","cloudfunctions.functions.update","cloudfunctions.operations.get","firebase.projects.get"]
+[debug] [2025-07-07T16:56:52.802Z] Checked if tokens are valid: true, expires at: 1751910729312
+[debug] [2025-07-07T16:56:52.802Z] Checked if tokens are valid: true, expires at: 1751910729312
+[debug] [2025-07-07T16:56:52.806Z] >>> [apiv2][query] POST https://cloudresourcemanager.googleapis.com/v1/projects/studentproject-4c33d:testIamPermissions [none]
+[debug] [2025-07-07T16:56:52.807Z] >>> [apiv2][(partial)header] POST https://cloudresourcemanager.googleapis.com/v1/projects/studentproject-4c33d:testIamPermissions x-goog-quota-user=projects/studentproject-4c33d
+[debug] [2025-07-07T16:56:52.807Z] >>> [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/studentproject-4c33d:testIamPermissions {"permissions":["cloudfunctions.functions.create","cloudfunctions.functions.delete","cloudfunctions.functions.get","cloudfunctions.functions.list","cloudfunctions.functions.update","cloudfunctions.operations.get","firebase.projects.get"]}
+[debug] [2025-07-07T16:56:53.535Z] <<< [apiv2][status] POST https://cloudresourcemanager.googleapis.com/v1/projects/studentproject-4c33d:testIamPermissions 200
+[debug] [2025-07-07T16:56:53.535Z] <<< [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/studentproject-4c33d:testIamPermissions {"permissions":["cloudfunctions.functions.create","cloudfunctions.functions.delete","cloudfunctions.functions.get","cloudfunctions.functions.list","cloudfunctions.functions.update","cloudfunctions.operations.get","firebase.projects.get"]}
+[debug] [2025-07-07T16:56:53.536Z] Checked if tokens are valid: true, expires at: 1751910729312
+[debug] [2025-07-07T16:56:53.536Z] Checked if tokens are valid: true, expires at: 1751910729312
+[debug] [2025-07-07T16:56:53.536Z] >>> [apiv2][query] POST https://iam.googleapis.com/v1/projects/studentproject-4c33d/serviceAccounts/studentproject-4c33d@appspot.gserviceaccount.com:testIamPermissions [none]
+[debug] [2025-07-07T16:56:53.537Z] >>> [apiv2][body] POST https://iam.googleapis.com/v1/projects/studentproject-4c33d/serviceAccounts/studentproject-4c33d@appspot.gserviceaccount.com:testIamPermissions {"permissions":["iam.serviceAccounts.actAs"]}
+[debug] [2025-07-07T16:56:54.209Z] <<< [apiv2][status] POST https://iam.googleapis.com/v1/projects/studentproject-4c33d/serviceAccounts/studentproject-4c33d@appspot.gserviceaccount.com:testIamPermissions 200
+[debug] [2025-07-07T16:56:54.210Z] <<< [apiv2][body] POST https://iam.googleapis.com/v1/projects/studentproject-4c33d/serviceAccounts/studentproject-4c33d@appspot.gserviceaccount.com:testIamPermissions {"permissions":["iam.serviceAccounts.actAs"]}
+[info] 
+[info] === Deploying to 'studentproject-4c33d'...
+[info] 
+[info] i  deploying functions 
+[info] Running command: npm --prefix "$RESOURCE_DIR" run lint
+[info] +  functions: Finished running predeploy script. 
+[debug] [2025-07-07T16:56:56.749Z] Checked if tokens are valid: true, expires at: 1751910729312
+[debug] [2025-07-07T16:56:56.749Z] Checked if tokens are valid: true, expires at: 1751910729312
+[debug] [2025-07-07T16:56:56.749Z] >>> [apiv2][query] GET https://cloudresourcemanager.googleapis.com/v1/projects/studentproject-4c33d [none]
+[debug] [2025-07-07T16:56:56.940Z] <<< [apiv2][status] GET https://cloudresourcemanager.googleapis.com/v1/projects/studentproject-4c33d 200
+[debug] [2025-07-07T16:56:56.940Z] <<< [apiv2][body] GET https://cloudresourcemanager.googleapis.com/v1/projects/studentproject-4c33d {"projectNumber":"296236131547","projectId":"studentproject-4c33d","lifecycleState":"ACTIVE","name":"StudentProject","labels":{"firebase":"enabled","firebase-core":"disabled"},"createTime":"2025-05-02T14:38:21.284032Z"}
+[info] i  functions: preparing codebase default for deployment 
+[info] i  functions: ensuring required API cloudfunctions.googleapis.com is enabled... 
+[info] i  functions: ensuring required API cloudbuild.googleapis.com is enabled... 
+[info] i  artifactregistry: ensuring required API artifactregistry.googleapis.com is enabled... 
+[debug] [2025-07-07T16:56:56.946Z] Checked if tokens are valid: true, expires at: 1751910729312
+[debug] [2025-07-07T16:56:56.947Z] Checked if tokens are valid: true, expires at: 1751910729312
+[debug] [2025-07-07T16:56:56.947Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects/studentproject-4c33d/adminSdkConfig [none]
+[debug] [2025-07-07T16:56:57.224Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/projects/studentproject-4c33d/adminSdkConfig 200
+[debug] [2025-07-07T16:56:57.225Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/projects/studentproject-4c33d/adminSdkConfig {"projectId":"studentproject-4c33d","storageBucket":"studentproject-4c33d.firebasestorage.app"}
+[debug] [2025-07-07T16:56:57.225Z] Checked if tokens are valid: true, expires at: 1751910729312
+[debug] [2025-07-07T16:56:57.226Z] Checked if tokens are valid: true, expires at: 1751910729312
+[debug] [2025-07-07T16:56:57.226Z] >>> [apiv2][query] GET https://runtimeconfig.googleapis.com/v1beta1/projects/studentproject-4c33d/configs [none]
+[debug] [2025-07-07T16:56:57.498Z] <<< [apiv2][status] GET https://runtimeconfig.googleapis.com/v1beta1/projects/studentproject-4c33d/configs 200
+[debug] [2025-07-07T16:56:57.498Z] <<< [apiv2][body] GET https://runtimeconfig.googleapis.com/v1beta1/projects/studentproject-4c33d/configs {"configs":[{"name":"projects/studentproject-4c33d/configs/smtp"},{"name":"projects/studentproject-4c33d/configs/sheets"}]}
+[debug] [2025-07-07T16:56:57.499Z] Checked if tokens are valid: true, expires at: 1751910729312
+[debug] [2025-07-07T16:56:57.499Z] Checked if tokens are valid: true, expires at: 1751910729312
+[debug] [2025-07-07T16:56:57.499Z] Checked if tokens are valid: true, expires at: 1751910729312
+[debug] [2025-07-07T16:56:57.499Z] Checked if tokens are valid: true, expires at: 1751910729312
+[debug] [2025-07-07T16:56:57.499Z] >>> [apiv2][query] GET https://runtimeconfig.googleapis.com/v1beta1/projects/studentproject-4c33d/configs/smtp/variables [none]
+[debug] [2025-07-07T16:56:57.500Z] >>> [apiv2][query] GET https://runtimeconfig.googleapis.com/v1beta1/projects/studentproject-4c33d/configs/sheets/variables [none]
+[debug] [2025-07-07T16:56:57.698Z] <<< [apiv2][status] GET https://runtimeconfig.googleapis.com/v1beta1/projects/studentproject-4c33d/configs/smtp/variables 200
+[debug] [2025-07-07T16:56:57.698Z] <<< [apiv2][body] GET https://runtimeconfig.googleapis.com/v1beta1/projects/studentproject-4c33d/configs/smtp/variables {"variables":[{"name":"projects/studentproject-4c33d/configs/smtp/variables/pass","updateTime":"2025-07-07T16:56:29.404593809Z"},{"name":"projects/studentproject-4c33d/configs/smtp/variables/port","updateTime":"2025-07-07T16:56:29.560151142Z"},{"name":"projects/studentproject-4c33d/configs/smtp/variables/user","updateTime":"2025-07-07T16:56:29.405255247Z"},{"name":"projects/studentproject-4c33d/configs/smtp/variables/host","updateTime":"2025-07-07T16:56:29.530560433Z"}]}
+[debug] [2025-07-07T16:56:57.699Z] Checked if tokens are valid: true, expires at: 1751910729312
+[debug] [2025-07-07T16:56:57.699Z] Checked if tokens are valid: true, expires at: 1751910729312
+[debug] [2025-07-07T16:56:57.699Z] Checked if tokens are valid: true, expires at: 1751910729312
+[debug] [2025-07-07T16:56:57.699Z] Checked if tokens are valid: true, expires at: 1751910729312
+[debug] [2025-07-07T16:56:57.700Z] Checked if tokens are valid: true, expires at: 1751910729312
+[debug] [2025-07-07T16:56:57.700Z] Checked if tokens are valid: true, expires at: 1751910729312
+[debug] [2025-07-07T16:56:57.700Z] Checked if tokens are valid: true, expires at: 1751910729312
+[debug] [2025-07-07T16:56:57.700Z] Checked if tokens are valid: true, expires at: 1751910729312
+[debug] [2025-07-07T16:56:57.700Z] >>> [apiv2][query] GET https://runtimeconfig.googleapis.com/v1beta1/projects/studentproject-4c33d/configs/smtp/variables/pass [none]
+[debug] [2025-07-07T16:56:57.702Z] >>> [apiv2][query] GET https://runtimeconfig.googleapis.com/v1beta1/projects/studentproject-4c33d/configs/smtp/variables/port [none]
+[debug] [2025-07-07T16:56:57.708Z] >>> [apiv2][query] GET https://runtimeconfig.googleapis.com/v1beta1/projects/studentproject-4c33d/configs/smtp/variables/user [none]
+[debug] [2025-07-07T16:56:57.714Z] >>> [apiv2][query] GET https://runtimeconfig.googleapis.com/v1beta1/projects/studentproject-4c33d/configs/smtp/variables/host [none]
+[debug] [2025-07-07T16:56:57.728Z] <<< [apiv2][status] GET https://runtimeconfig.googleapis.com/v1beta1/projects/studentproject-4c33d/configs/sheets/variables 200
+[debug] [2025-07-07T16:56:57.729Z] <<< [apiv2][body] GET https://runtimeconfig.googleapis.com/v1beta1/projects/studentproject-4c33d/configs/sheets/variables {"variables":[{"name":"projects/studentproject-4c33d/configs/sheets/variables/client_email","updateTime":"2025-07-07T15:43:30.687540626Z"},{"name":"projects/studentproject-4c33d/configs/sheets/variables/private_key","updateTime":"2025-07-07T15:43:30.830165467Z"},{"name":"projects/studentproject-4c33d/configs/sheets/variables/spreadsheet_id","updateTime":"2025-07-07T15:43:31.721929244Z"}]}
+[debug] [2025-07-07T16:56:57.729Z] Checked if tokens are valid: true, expires at: 1751910729312
+[debug] [2025-07-07T16:56:57.729Z] Checked if tokens are valid: true, expires at: 1751910729312
+[debug] [2025-07-07T16:56:57.729Z] Checked if tokens are valid: true, expires at: 1751910729312
+[debug] [2025-07-07T16:56:57.729Z] Checked if tokens are valid: true, expires at: 1751910729312
+[debug] [2025-07-07T16:56:57.729Z] Checked if tokens are valid: true, expires at: 1751910729312
+[debug] [2025-07-07T16:56:57.729Z] Checked if tokens are valid: true, expires at: 1751910729312
+[debug] [2025-07-07T16:56:57.729Z] >>> [apiv2][query] GET https://runtimeconfig.googleapis.com/v1beta1/projects/studentproject-4c33d/configs/sheets/variables/client_email [none]
+[debug] [2025-07-07T16:56:57.730Z] >>> [apiv2][query] GET https://runtimeconfig.googleapis.com/v1beta1/projects/studentproject-4c33d/configs/sheets/variables/private_key [none]
+[debug] [2025-07-07T16:56:57.735Z] >>> [apiv2][query] GET https://runtimeconfig.googleapis.com/v1beta1/projects/studentproject-4c33d/configs/sheets/variables/spreadsheet_id [none]
+[debug] [2025-07-07T16:56:57.909Z] <<< [apiv2][status] GET https://runtimeconfig.googleapis.com/v1beta1/projects/studentproject-4c33d/configs/smtp/variables/pass 200
+[debug] [2025-07-07T16:56:57.909Z] <<< [apiv2][body] GET https://runtimeconfig.googleapis.com/v1beta1/projects/studentproject-4c33d/configs/smtp/variables/pass {"name":"projects/studentproject-4c33d/configs/smtp/variables/pass","updateTime":"2025-07-07T16:56:29.404593809Z","text":"ssgz wbmo ffpw sljz"}
+[debug] [2025-07-07T16:56:57.926Z] <<< [apiv2][status] GET https://runtimeconfig.googleapis.com/v1beta1/projects/studentproject-4c33d/configs/smtp/variables/host 200
+[debug] [2025-07-07T16:56:57.926Z] <<< [apiv2][body] GET https://runtimeconfig.googleapis.com/v1beta1/projects/studentproject-4c33d/configs/smtp/variables/host {"name":"projects/studentproject-4c33d/configs/smtp/variables/host","updateTime":"2025-07-07T16:56:29.530560433Z","text":"smtp.gmail.com"}
+[debug] [2025-07-07T16:56:57.929Z] <<< [apiv2][status] GET https://runtimeconfig.googleapis.com/v1beta1/projects/studentproject-4c33d/configs/smtp/variables/port 200
+[debug] [2025-07-07T16:56:57.929Z] <<< [apiv2][body] GET https://runtimeconfig.googleapis.com/v1beta1/projects/studentproject-4c33d/configs/smtp/variables/port {"name":"projects/studentproject-4c33d/configs/smtp/variables/port","updateTime":"2025-07-07T16:56:29.560151142Z","text":"465"}
+[debug] [2025-07-07T16:56:57.938Z] <<< [apiv2][status] GET https://runtimeconfig.googleapis.com/v1beta1/projects/studentproject-4c33d/configs/sheets/variables/client_email 200
+[debug] [2025-07-07T16:56:57.939Z] <<< [apiv2][body] GET https://runtimeconfig.googleapis.com/v1beta1/projects/studentproject-4c33d/configs/sheets/variables/client_email {"name":"projects/studentproject-4c33d/configs/sheets/variables/client_email","updateTime":"2025-07-07T15:43:30.687540626Z","text":"sheet-writer@tu-proyecto.iam.gserviceaccount.com"}
+[debug] [2025-07-07T16:56:57.954Z] <<< [apiv2][status] GET https://runtimeconfig.googleapis.com/v1beta1/projects/studentproject-4c33d/configs/sheets/variables/spreadsheet_id 200
+[debug] [2025-07-07T16:56:57.954Z] <<< [apiv2][body] GET https://runtimeconfig.googleapis.com/v1beta1/projects/studentproject-4c33d/configs/sheets/variables/spreadsheet_id {"name":"projects/studentproject-4c33d/configs/sheets/variables/spreadsheet_id","updateTime":"2025-07-07T15:43:31.721929244Z","text":"1qMLGRYqiH206a-l3Vp1EAWtZl_QHSOQc2P2HHfg3uM0"}
+[debug] [2025-07-07T16:56:57.974Z] <<< [apiv2][status] GET https://runtimeconfig.googleapis.com/v1beta1/projects/studentproject-4c33d/configs/sheets/variables/private_key 200
+[debug] [2025-07-07T16:56:57.974Z] <<< [apiv2][body] GET https://runtimeconfig.googleapis.com/v1beta1/projects/studentproject-4c33d/configs/sheets/variables/private_key {"name":"projects/studentproject-4c33d/configs/sheets/variables/private_key","updateTime":"2025-07-07T15:43:30.830165467Z","text":"-----BEGIN PRIVATE KEY-----\\nTU_PRIVATE_KEY_COMPLETA\\n-----END PRIVATE KEY-----\\n"}
+[debug] [2025-07-07T16:56:58.049Z] <<< [apiv2][status] GET https://runtimeconfig.googleapis.com/v1beta1/projects/studentproject-4c33d/configs/smtp/variables/user 200
+[debug] [2025-07-07T16:56:58.050Z] <<< [apiv2][body] GET https://runtimeconfig.googleapis.com/v1beta1/projects/studentproject-4c33d/configs/smtp/variables/user {"name":"projects/studentproject-4c33d/configs/smtp/variables/user","updateTime":"2025-07-07T16:56:29.405255247Z","text":"alvarito.lechuga@gmail.com"}
+[debug] [2025-07-07T16:56:58.054Z] Validating nodejs source
+[debug] [2025-07-07T16:56:59.819Z] > [functions] package.json contents: {
+  "name": "functions",
+  "description": "Cloud Functions for Firebase",
+  "scripts": {
+    "lint": "eslint .",
+    "serve": "firebase emulators:start --only functions",
+    "shell": "firebase functions:shell",
+    "start": "npm run shell",
+    "deploy": "firebase deploy --only functions",
+    "logs": "firebase functions:log"
+  },
+  "engines": {
+    "node": "20"
+  },
+  "main": "index.js",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "firebase-admin": "^12.6.0",
+    "firebase-functions": "^6.0.1",
+    "googleapis": "^150.0.1",
+    "nodemailer": "^7.0.4"
+  },
+  "devDependencies": {
+    "eslint": "^8.57.1",
+    "eslint-config-google": "^0.14.0",
+    "firebase-functions-test": "^3.1.0"
+  },
+  "private": true
+}
+[debug] [2025-07-07T16:56:59.820Z] Building nodejs source
+[info] i  functions: Loading and analyzing source code for codebase default to determine what to deploy 
+[debug] [2025-07-07T16:56:59.823Z] Could not find functions.yaml. Must use http discovery
+[debug] [2025-07-07T16:56:59.852Z] Found firebase-functions binary at 'C:\Users\Tier1\Desktop\StudentProject\functions\node_modules\.bin\firebase-functions'
+[info] Serving at port 8495
+
+[debug] [2025-07-07T16:57:04.298Z] Got response from /__/functions.yaml {"endpoints":{"onTeacherAssigned":{"platform":"gcfv1","availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"serviceAccountEmail":null,"vpc":null,"eventTrigger":{"eventType":"providers/cloud.firestore/eventTypes/document.update","eventFilters":{"resource":"projects/studentproject-4c33d/databases/(default)/documents/clases/{classId}"},"retry":false},"labels":{},"entryPoint":"onTeacherAssigned"},"sendCustomPasswordResetEmail":{"platform":"gcfv1","availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"serviceAccountEmail":null,"vpc":null,"httpsTrigger":{},"entryPoint":"sendCustomPasswordResetEmail"},"logClassToSheet":{"platform":"gcfv1","availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"serviceAccountEmail":null,"vpc":null,"eventTrigger":{"eventType":"providers/cloud.firestore/eventTypes/document.write","eventFilters":{"resource":"projects/studentproject-4c33d/databases/(default)/documents/clases_union/{unionId}/clases_asignadas/{assignmentId}"},"retry":false},"labels":{},"entryPoint":"logClassToSheet"}},"specVersion":"v1alpha1","requiredAPIs":[],"extensions":{}}
+[info] i  extensions: ensuring required API firebaseextensions.googleapis.com is enabled... 
+[debug] [2025-07-07T16:57:08.390Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2025-07-07T16:57:08.391Z] > authorizing via signed-in user (alvarito.lechuga@gmail.com)
+[debug] [2025-07-07T16:57:08.391Z] [iam] checking project studentproject-4c33d for permissions ["firebase.projects.get","firebaseextensions.instances.list"]
+[debug] [2025-07-07T16:57:08.391Z] Checked if tokens are valid: true, expires at: 1751910729312
+[debug] [2025-07-07T16:57:08.391Z] Checked if tokens are valid: true, expires at: 1751910729312
+[debug] [2025-07-07T16:57:08.392Z] >>> [apiv2][query] POST https://cloudresourcemanager.googleapis.com/v1/projects/studentproject-4c33d:testIamPermissions [none]
+[debug] [2025-07-07T16:57:08.392Z] >>> [apiv2][(partial)header] POST https://cloudresourcemanager.googleapis.com/v1/projects/studentproject-4c33d:testIamPermissions x-goog-quota-user=projects/studentproject-4c33d
+[debug] [2025-07-07T16:57:08.392Z] >>> [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/studentproject-4c33d:testIamPermissions {"permissions":["firebase.projects.get","firebaseextensions.instances.list"]}
+[debug] [2025-07-07T16:57:09.010Z] <<< [apiv2][status] POST https://cloudresourcemanager.googleapis.com/v1/projects/studentproject-4c33d:testIamPermissions 200
+[debug] [2025-07-07T16:57:09.011Z] <<< [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/studentproject-4c33d:testIamPermissions {"permissions":["firebase.projects.get","firebaseextensions.instances.list"]}
+[debug] [2025-07-07T16:57:09.011Z] Checked if tokens are valid: true, expires at: 1751910729312
+[debug] [2025-07-07T16:57:09.012Z] Checked if tokens are valid: true, expires at: 1751910729312
+[debug] [2025-07-07T16:57:09.012Z] >>> [apiv2][query] GET https://firebaseextensions.googleapis.com/v1beta/projects/studentproject-4c33d/instances pageSize=100&pageToken=

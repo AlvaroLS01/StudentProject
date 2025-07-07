@@ -1,17 +1,9 @@
 /* eslint-disable */
-/**
- * Import function triggers from their respective submodules:
- *
- * const {onCall} = require("firebase-functions/v2/https");
- * const {onDocumentWritten} = require("firebase-functions/v2/firestore");
- *
- * See a full list of supported triggers at https://firebase.google.com/docs/functions
- */
-
 const functions = require("firebase-functions/v1");
 const admin = require("firebase-admin");
 const nodemailer = require("nodemailer");
-const {google} = require("googleapis");
+const { google } = require("googleapis");
+const cors = require("cors")({ origin: true });
 
 const smtpConfig = functions.config().smtp || {
   user: process.env.SMTP_USER,
@@ -37,7 +29,6 @@ exports.onTeacherAssigned = functions.firestore
     const before = change.before.data();
     const after = change.after.data();
     const classId = context.params.classId;
-
     const beforeTeacher = before.profesorSeleccionado;
     const afterTeacher = after.profesorSeleccionado;
     if (!afterTeacher || beforeTeacher === afterTeacher) {
@@ -122,41 +113,38 @@ exports.onTeacherAssigned = functions.firestore
   });
 
 // Trigger HTTP para envío de email de restablecimiento
-exports.sendCustomPasswordResetEmail = functions.https.onRequest(async (req, res) => {
-  try {
-    const {email} = req.body;
-    const link = await admin.auth().generatePasswordResetLink(email, {
-      url: "https://studentproject-4c33d.web.app/inicio",
-    });
+exports.sendCustomPasswordResetEmail = functions.https.onRequest((req, res) => {
+  cors(req, res, async () => {
+    try {
+      const { email } = req.body;
+      const link = await admin.auth().generatePasswordResetLink(email, {
+        url: "https://studentproject-4c33d.web.app/inicio",
+      });
 
-    await transporter.sendMail({
-      from: "no-reply@tudominio.com",
-      to: email,
-      subject: "Restablecer contraseña",
-      html: `<p>Pulsa <a href="${link}">aquí</a> para restablecer tu contraseña.</p>`,
-    });
+      await transporter.sendMail({
+        from: "no-reply@tudominio.com",
+        to: email,
+        subject: "Restablecer contraseña",
+        html: `<p>Pulsa <a href="${link}">aquí</a> para restablecer tu contraseña.</p>`,
+      });
 
-    res.json({success: true});
-  } catch (error) {
-    console.error(error);
-    res.status(500).send({error: error.message});
-  }
+      return res.json({ success: true });
+    } catch (error) {
+      console.error(error);
+      return res.status(500).json({ error: error.message });
+    }
+  });
 });
 
-// Trigger para volcar en Google Sheets
+// Trigger para volcar en Google Sheets (append o update)
 exports.logClassToSheet = functions.firestore
   .document("clases_union/{unionId}/clases_asignadas/{assignmentId}")
   .onWrite(async (change, context) => {
-    if (!change.after.exists) {
-      return null; // Ignore deletions
-    }
-    const before = change.before.data() || {};
+    if (!change.after.exists) return null; // borrado
     const after = change.after.data();
-    if (after.estado !== "aceptada") {
-      return null;
-    }
+    if (after.estado !== "aceptada") return null;
 
-    // Muevo aquí la inicialización de Sheets para no bloquear la carga del módulo
+    // Inicialización de Sheets dentro del trigger
     const sheetsConfig = functions.config().sheets || {
       spreadsheet_id: process.env.SHEETS_ID,
       client_email: process.env.SHEETS_CLIENT_EMAIL,
@@ -168,7 +156,7 @@ exports.logClassToSheet = functions.firestore
       sheetsConfig.private_key,
       ["https://www.googleapis.com/auth/spreadsheets"]
     );
-    const sheetsApi = google.sheets({version: "v4", auth: sheetsAuth});
+    const sheetsApi = google.sheets({ version: "v4", auth: sheetsAuth });
 
     try {
       const unionId = context.params.unionId;
@@ -227,28 +215,33 @@ exports.logClassToSheet = functions.firestore
         beneficio,
       ];
 
+      // Leer columna A para ver si existe el assignmentId
       const existing = await sheetsApi.spreadsheets.values.get({
         spreadsheetId: sheetsConfig.spreadsheet_id,
         range: "A:A",
       });
       const values = existing.data.values || [];
       const rowIndex = values.findIndex((r) => r[0] === context.params.assignmentId);
+
       if (rowIndex !== -1) {
+        // actualizar fila existente
         const rowNumber = rowIndex + 1;
         await sheetsApi.spreadsheets.values.update({
           spreadsheetId: sheetsConfig.spreadsheet_id,
           range: `A${rowNumber}`,
           valueInputOption: "USER_ENTERED",
-          requestBody: {values: [row]},
+          requestBody: { values: [row] },
         });
       } else {
+        // añadir al final
         await sheetsApi.spreadsheets.values.append({
           spreadsheetId: sheetsConfig.spreadsheet_id,
           range: "A1",
           valueInputOption: "USER_ENTERED",
-          requestBody: {values: [row]},
+          requestBody: { values: [row] },
         });
       }
+
       return null;
     } catch (error) {
       functions.logger.error("Error writing to Google Sheets", error);
