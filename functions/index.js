@@ -146,10 +146,13 @@ exports.sendCustomPasswordResetEmail = functions.https.onRequest(async (req, res
 // Trigger para volcar en Google Sheets
 exports.logClassToSheet = functions.firestore
   .document("clases_union/{unionId}/clases_asignadas/{assignmentId}")
-  .onUpdate(async (change, context) => {
-    const before = change.before.data();
+  .onWrite(async (change, context) => {
+    if (!change.after.exists) {
+      return null; // Ignore deletions
+    }
+    const before = change.before.data() || {};
     const after = change.after.data();
-    if (before.estado === "aceptada" || after.estado !== "aceptada") {
+    if (after.estado !== "aceptada") {
       return null;
     }
 
@@ -224,12 +227,28 @@ exports.logClassToSheet = functions.firestore
         beneficio,
       ];
 
-      await sheetsApi.spreadsheets.values.append({
+      const existing = await sheetsApi.spreadsheets.values.get({
         spreadsheetId: sheetsConfig.spreadsheet_id,
-        range: "A1",
-        valueInputOption: "USER_ENTERED",
-        requestBody: {values: [row]},
+        range: "A:A",
       });
+      const values = existing.data.values || [];
+      const rowIndex = values.findIndex((r) => r[0] === context.params.assignmentId);
+      if (rowIndex !== -1) {
+        const rowNumber = rowIndex + 1;
+        await sheetsApi.spreadsheets.values.update({
+          spreadsheetId: sheetsConfig.spreadsheet_id,
+          range: `A${rowNumber}`,
+          valueInputOption: "USER_ENTERED",
+          requestBody: {values: [row]},
+        });
+      } else {
+        await sheetsApi.spreadsheets.values.append({
+          spreadsheetId: sheetsConfig.spreadsheet_id,
+          range: "A1",
+          valueInputOption: "USER_ENTERED",
+          requestBody: {values: [row]},
+        });
+      }
       return null;
     } catch (error) {
       functions.logger.error("Error writing to Google Sheets", error);
