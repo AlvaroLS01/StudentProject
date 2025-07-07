@@ -4,6 +4,7 @@ import styled, { keyframes } from 'styled-components';
 import LoadingScreen from '../../../components/LoadingScreen';
 import { auth, db } from '../../../firebase/firebaseConfig';
 import { useNotification } from '../../../NotificationContext';
+import { useChild } from '../../../ChildContext';
 import {
   collection,
   query,
@@ -207,6 +208,7 @@ export default function MisProfesores() {
   const scrollRef = useRef();
   const navigate = useNavigate();
   const { show } = useNotification();
+  const { selectedChild } = useChild();
 
   // Bloquea el scroll de la página cuando el chat está abierto
   useEffect(() => {
@@ -225,10 +227,17 @@ export default function MisProfesores() {
       setLoading(true);
       const u = auth.currentUser;
       if (!u) { setLoading(false); return; }
-      const q = query(
+      let q = query(
         collection(db, 'clases_union'),
         where('alumnoId', '==', u.uid)
       );
+      if (selectedChild) {
+        q = query(
+          collection(db, 'clases_union'),
+          where('alumnoId', '==', u.uid),
+          where('hijoId', '==', selectedChild.id)
+        );
+      }
       const snap = await getDocs(q);
       const items = await Promise.all(
         snap.docs.map(async d => {
@@ -247,7 +256,14 @@ export default function MisProfesores() {
       setLoading(false);
     }
     fetchUnions();
-  }, []);
+  }, [selectedChild]);
+
+  useEffect(() => {
+    setChatUnionId(null);
+    setMessages([]);
+    setProposals([]);
+    setModifications([]);
+  }, [selectedChild]);
 
   // 2. Escucha los mensajes del chat activo
   useEffect(() => {

@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import styled, { keyframes } from 'styled-components';
 import { auth, db } from '../../../firebase/firebaseConfig';
 import { collection, query, where, getDocs } from 'firebase/firestore';
+import { useChild } from '../../../ChildContext';
 import {
   startOfMonth,
   endOfMonth,
@@ -120,15 +121,23 @@ export default function Calendario() {
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [clases, setClases] = useState([]);
   const [facturacion, setFacturacion] = useState([]);
+  const { selectedChild } = useChild();
 
   useEffect(() => {
     const fetchClases = async () => {
       const u = auth.currentUser;
       if (!u) return;
-      const q = query(
+      let q = query(
         collection(db, 'clases_union'),
         where('alumnoId', '==', u.uid)
       );
+      if (selectedChild) {
+        q = query(
+          collection(db, 'clases_union'),
+          where('alumnoId', '==', u.uid),
+          where('hijoId', '==', selectedChild.id)
+        );
+      }
       const snap = await getDocs(q);
       let all = [];
       for (const docu of snap.docs) {
@@ -151,7 +160,11 @@ export default function Calendario() {
     };
     fetchClases();
     fetchFact();
-  }, []);
+  }, [selectedChild]);
+
+  useEffect(() => {
+    setClases([]);
+  }, [selectedChild]);
 
   const prevMonth = () =>
     setCurrentMonth(addDays(startOfMonth(currentMonth), -1));
