@@ -214,6 +214,22 @@ const Badge = styled.span`
   margin-right: 0.5rem;
 `;
 
+// Botón tipo burbuja para seleccionar asignaturas
+const SubjectChip = styled.button`
+  display: inline-block;
+  margin-right: 0.5rem;
+  margin-top: 0.5rem;
+  padding: 0.4rem 0.9rem;
+  font-size: 0.9rem;
+  font-weight: 500;
+  border-radius: 20px;
+  border: 1px solid ${p => (p.active ? '#02634A' : '#ccc')};
+  background: ${p => (p.active ? '#02634A' : '#f1faf7')};
+  color: ${p => (p.active ? '#fff' : '#014F40')};
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s, border-color 0.2s;
+`;
+
 // Card de oferta de clase con estilo profesional
 const Card = styled.div`
   background: #ffffff;
@@ -850,14 +866,14 @@ export default function Ofertas() {
             <div style={{ margin: '0.5rem 0' }}>
               <strong>Selecciona asignaturas:</strong>{' '}
               {(c.asignaturas || [c.asignatura]).map((s, i) => (
-                <label key={i} style={{ marginRight: '1rem' }}>
-                  <input
-                    type="checkbox"
-                    checked={!!subjectSelections[c.id]?.[s]}
-                    onChange={() => toggleSubjectSelection(c.id, s)}
-                  />{' '}
+                <SubjectChip
+                  key={i}
+                  type="button"
+                  active={!!subjectSelections[c.id]?.[s]}
+                  onClick={() => toggleSubjectSelection(c.id, s)}
+                >
                   {s}
-                </label>
+                </SubjectChip>
               ))}
             </div>
 
