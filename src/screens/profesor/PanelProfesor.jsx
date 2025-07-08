@@ -114,7 +114,7 @@ export default function PanelProfesor() {
               active={view === 'clases'}
               onClick={() => setView('clases')}
             >
-              Mis clases asignadas
+              Mis clases & Ofertas
             </Button>
           </MenuItem>
           <MenuItem>
