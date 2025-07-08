@@ -143,8 +143,12 @@ const AcceptButton = styled.button`
   padding: 0.3rem 0.5rem;
   cursor: pointer;
   font-size: 0.85rem;
-  &:hover {
+  &:hover:not(:disabled) {
     background: #005047;
+  }
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
   }
 `;
 
@@ -157,8 +161,12 @@ const RejectButton = styled.button`
   padding: 0.3rem 0.5rem;
   cursor: pointer;
   font-size: 0.85rem;
-  &:hover {
+  &:hover:not(:disabled) {
     background: #c53030;
+  }
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
   }
 `;
 
@@ -174,6 +182,7 @@ export default function Clases() {
   const [loading, setLoading] = useState(true);
   const [loadingReqs, setLoadingReqs] = useState(true);
   const [showLoading, setShowLoading] = useState(false);
+  const [processingIds, setProcessingIds] = useState(new Set());
 
   useEffect(() => {
     (async () => {
@@ -260,6 +269,8 @@ export default function Clases() {
   }, [loading, loadingReqs, view]);
 
   const acceptProposal = async clase => {
+    if (processingIds.has(clase.id)) return;
+    setProcessingIds(prev => new Set(prev).add(clase.id));
     const ref = doc(
       db,
       'clases_union',
@@ -267,20 +278,33 @@ export default function Clases() {
       'clases_asignadas',
       clase.id
     );
-    await updateDoc(ref, {
-      confirmada: true,
-      estado: 'aceptada',
-      confirmadaEn: serverTimestamp(),
-      pendienteAdmin: true
-    });
-    await addDoc(collection(db, 'clases_union', clase.unionId, 'chats'), {
-      senderId: clase.profesorId,
-      text: `He añadido una clase, ${clase.fecha}`,
-      createdAt: serverTimestamp()
-    });
+    try {
+      await updateDoc(ref, {
+        confirmada: true,
+        estado: 'aceptada',
+        confirmadaEn: serverTimestamp(),
+        pendienteAdmin: true
+      });
+      await addDoc(collection(db, 'clases_union', clase.unionId, 'chats'), {
+        senderId: clase.profesorId,
+        text: `He añadido una clase, ${clase.fecha}`,
+        createdAt: serverTimestamp()
+      });
+      setClases(prev => prev.map(c =>
+        c.id === clase.id ? { ...c, estado: 'aceptada', confirmada: true } : c
+      ));
+    } finally {
+      setProcessingIds(prev => {
+        const s = new Set(prev);
+        s.delete(clase.id);
+        return s;
+      });
+    }
   };
 
   const rejectProposal = async clase => {
+    if (processingIds.has(clase.id)) return;
+    setProcessingIds(prev => new Set(prev).add(clase.id));
     const ref = doc(
       db,
       'clases_union',
@@ -288,37 +312,74 @@ export default function Clases() {
       'clases_asignadas',
       clase.id
     );
-    await updateDoc(ref, {
-      confirmada: false,
-      estado: 'rechazada',
-      rechazadoEn: serverTimestamp()
-    });
+    try {
+      await updateDoc(ref, {
+        confirmada: false,
+        estado: 'rechazada',
+        rechazadoEn: serverTimestamp()
+      });
+      setClases(prev => prev.map(c =>
+        c.id === clase.id ? { ...c, estado: 'rechazada', confirmada: false } : c
+      ));
+    } finally {
+      setProcessingIds(prev => {
+        const s = new Set(prev);
+        s.delete(clase.id);
+        return s;
+      });
+    }
   };
 
   const acceptModification = async clase => {
+    if (processingIds.has(clase.id)) return;
+    setProcessingIds(prev => new Set(prev).add(clase.id));
     const ref = doc(db, 'clases_union', clase.unionId, 'clases_asignadas', clase.id);
-    await updateDoc(ref, {
-      modificacionPendiente: false,
-      modificacionAceptada: serverTimestamp()
-    });
-    await addDoc(collection(db, 'clases_union', clase.unionId, 'chats'), {
-      senderId: auth.currentUser.uid,
-      text: `He aceptado la modificación para el ${clase.fecha}`,
-      createdAt: serverTimestamp()
-    });
+    try {
+      await updateDoc(ref, {
+        modificacionPendiente: false,
+        modificacionAceptada: serverTimestamp()
+      });
+      await addDoc(collection(db, 'clases_union', clase.unionId, 'chats'), {
+        senderId: auth.currentUser.uid,
+        text: `He aceptado la modificación para el ${clase.fecha}`,
+        createdAt: serverTimestamp()
+      });
+      setClases(prev => prev.map(c =>
+        c.id === clase.id ? { ...c, modificacionPendiente: false } : c
+      ));
+    } finally {
+      setProcessingIds(prev => {
+        const s = new Set(prev);
+        s.delete(clase.id);
+        return s;
+      });
+    }
   };
 
   const rejectModification = async clase => {
+    if (processingIds.has(clase.id)) return;
+    setProcessingIds(prev => new Set(prev).add(clase.id));
     const ref = doc(db, 'clases_union', clase.unionId, 'clases_asignadas', clase.id);
-    await updateDoc(ref, {
-      modificacionPendiente: false,
-      modificacionRechazada: serverTimestamp()
-    });
-    await addDoc(collection(db, 'clases_union', clase.unionId, 'chats'), {
-      senderId: auth.currentUser.uid,
-      text: `He rechazado la modificación para el ${clase.fecha}`,
-      createdAt: serverTimestamp()
-    });
+    try {
+      await updateDoc(ref, {
+        modificacionPendiente: false,
+        modificacionRechazada: serverTimestamp()
+      });
+      await addDoc(collection(db, 'clases_union', clase.unionId, 'chats'), {
+        senderId: auth.currentUser.uid,
+        text: `He rechazado la modificación para el ${clase.fecha}`,
+        createdAt: serverTimestamp()
+      });
+      setClases(prev => prev.map(c =>
+        c.id === clase.id ? { ...c, modificacionPendiente: false } : c
+      ));
+    } finally {
+      setProcessingIds(prev => {
+        const s = new Set(prev);
+        s.delete(clase.id);
+        return s;
+      });
+    }
   };
 
   const sortedClases = React.useMemo(() => {
@@ -409,10 +470,16 @@ export default function Clases() {
                   </InfoGrid>
                   {c.estado === 'pendiente' && (
                     <div>
-                      <AcceptButton onClick={() => acceptProposal(c)}>
+                      <AcceptButton
+                        onClick={() => acceptProposal(c)}
+                        disabled={processingIds.has(c.id)}
+                      >
                         Aceptar
                       </AcceptButton>{' '}
-                      <RejectButton onClick={() => rejectProposal(c)}>
+                      <RejectButton
+                        onClick={() => rejectProposal(c)}
+                        disabled={processingIds.has(c.id)}
+                      >
                         Rechazar
                       </RejectButton>
                     </div>
@@ -422,10 +489,16 @@ export default function Clases() {
                       <p style={{ marginTop: '0.5rem' }}>
                         El profesor propone modificar esta clase.
                       </p>
-                      <AcceptButton onClick={() => acceptModification(c)}>
+                      <AcceptButton
+                        onClick={() => acceptModification(c)}
+                        disabled={processingIds.has(c.id)}
+                      >
                         Aceptar cambio
                       </AcceptButton>{' '}
-                      <RejectButton onClick={() => rejectModification(c)}>
+                      <RejectButton
+                        onClick={() => rejectModification(c)}
+                        disabled={processingIds.has(c.id)}
+                      >
                         Rechazar cambio
                       </RejectButton>
                     </div>
