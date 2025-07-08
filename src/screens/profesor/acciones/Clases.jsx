@@ -1,6 +1,7 @@
 // src/screens/profesor/acciones/Clases.jsx
 import React, { useEffect, useState, useMemo } from 'react';
 import styled, { keyframes } from 'styled-components';
+import { useSearchParams } from 'react-router-dom';
 import LoadingScreen from '../../../components/LoadingScreen';
 import Card from '../../../components/CommonCard';
 import InfoGrid from '../../../components/InfoGrid';
@@ -8,6 +9,7 @@ import { auth, db } from '../../../firebase/firebaseConfig';
 import { useNotification } from '../../../NotificationContext';
 import {
   collection,
+  collectionGroup,
   query,
   where,
   getDocs,
@@ -17,6 +19,8 @@ import {
   addDoc,
   serverTimestamp
 } from 'firebase/firestore';
+
+import MisOfertas from './MisOfertas';
 
 const fadeIn = keyframes`
   from { opacity: 0; transform: translateY(-10px); }
@@ -38,6 +42,46 @@ const Container = styled.div`
 const Title = styled.h2`
   color: #034640;
   margin-bottom: 1rem;
+`;
+
+const SwitchContainer = styled.div`
+  display: flex;
+  justify-content: center;
+  margin-bottom: 1rem;
+`;
+
+const SwitchTrack = styled.div`
+  position: relative;
+  display: flex;
+  width: 280px;
+  background: #f5f5f5;
+  border-radius: 20px;
+  padding: 4px;
+`;
+
+const SwitchBubble = styled.div`
+  position: absolute;
+  top: 4px;
+  bottom: 4px;
+  left: 4px;
+  width: calc(50% - 4px);
+  background: #046654;
+  border-radius: 16px;
+  transition: transform 0.3s ease;
+  transform: ${({ view }) =>
+    view === 'ofertas' ? 'translateX(100%)' : 'translateX(0)'};
+`;
+
+const SwitchButton = styled.button`
+  flex: 1;
+  background: transparent;
+  border: none;
+  padding: 0.5rem 1rem;
+  color: ${({ active }) => (active ? '#fff' : '#333')};
+  font-weight: 500;
+  position: relative;
+  z-index: 1;
+  cursor: pointer;
 `;
 
 const FilterContainer = styled.div`
@@ -177,7 +221,11 @@ const ModalButton = styled.button`
 `;
 
 export default function ClasesProfesor() {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const initialView = searchParams.get('view') || 'clases';
+  const [view, setView] = useState(initialView);
   const [clases, setClases] = useState([]);
+  const [offers, setOffers] = useState([]);
   const [sortBy, setSortBy] = useState('fecha');
   const [editing, setEditing] = useState(null);
   const [newDate, setNewDate] = useState('');
@@ -229,6 +277,32 @@ export default function ClasesProfesor() {
       }
       setClases(list);
       setLoading(false);
+    })();
+  }, []);
+
+  useEffect(() => {
+    setSearchParams({ view });
+  }, [view, setSearchParams]);
+
+  useEffect(() => {
+    (async () => {
+      const u = auth.currentUser;
+      if (!u) return;
+      const q = query(collectionGroup(db, 'ofertas'), where('profesorId', '==', u.uid));
+      const snap = await getDocs(q);
+      const data = [];
+      for (const d of snap.docs) {
+        const classId = d.ref.parent.parent.id;
+        let classData = {};
+        try {
+          const cs = await getDoc(doc(db, 'clases', classId));
+          if (cs.exists()) classData = { classEstado: cs.data().estado, alumnoNombre: cs.data().alumnoNombre };
+        } catch (err) {
+          console.error(err);
+        }
+        data.push({ id: d.id, classId, ...classData, ...d.data() });
+      }
+      setOffers(data);
     })();
   }, []);
 
@@ -318,64 +392,81 @@ export default function ClasesProfesor() {
   return (
     <Page>
       <Container>
-        <Title>Mis clases asignadas</Title>
-        <FilterContainer>
-          <label htmlFor="sortProfesor">Ordenar por:</label>
-          <select
-            id="sortProfesor"
-            value={sortBy}
-            onChange={e => setSortBy(e.target.value)}
-          >
-            <option value="fecha">Fecha</option>
-            <option value="alumno">Alumno</option>
-            <option value="tipo">Modalidad</option>
-            <option value="asignatura">Asignatura</option>
-          </select>
-        </FilterContainer>
-        {sortedClases.length === 0 && <p>No tienes clases asignadas.</p>}
-        {sortedClases.map(c => (
-          <Card key={c.id}>
-            <CardHeader>
-              <HeaderLeft>
-                {c.alumnoFoto && <Avatar src={c.alumnoFoto} alt="Alumno" />}
-                <StudentName>{c.alumno}</StudentName>
-              </HeaderLeft>
-            </CardHeader>
-            <InfoGrid>
-              <div>
-                <Label>Asignatura:</Label> <Value>{c.asignatura}</Value>
-              </div>
-              <div>
-                <Label>Curso:</Label> <Value>{c.curso || '-'}</Value>
-              </div>
-              <div>
-                <Label>Fecha:</Label> <Value>{c.fecha} {c.hora}</Value>
-              </div>
-              <div>
-                <Label>Modalidad:</Label> <Value>{c.modalidad}</Value>
-              </div>
-              <div>
-                <Label>Duración:</Label> <Value>{c.duracion}h</Value>
-              </div>
-              <div>
-                <Label>Ganancia:</Label> <Value>€{(c.precioTotalProfesor || 0).toFixed(2)}</Value>
-              </div>
-            </InfoGrid>
-            {c.estado === 'pendiente' && (
-              <CancelButton onClick={() => cancelPending(c)}>
-                Cancelar propuesta
-              </CancelButton>
-            )}
-            {c.estado !== 'pendiente' && (
-              <ModifyButton
-                disabled={!isModificationAllowed(c)}
-                onClick={() => openEdit(c)}
+        <Title>Mis Clases & Ofertas</Title>
+        <SwitchContainer>
+          <SwitchTrack>
+            <SwitchBubble view={view} />
+            <SwitchButton active={view === 'clases'} onClick={() => setView('clases')}>
+              Mis clases
+            </SwitchButton>
+            <SwitchButton active={view === 'ofertas'} onClick={() => setView('ofertas')}>
+              Mis ofertas
+            </SwitchButton>
+          </SwitchTrack>
+        </SwitchContainer>
+        {view === 'clases' ? (
+          <>
+            <FilterContainer>
+              <label htmlFor="sortProfesor">Ordenar por:</label>
+              <select
+                id="sortProfesor"
+                value={sortBy}
+                onChange={e => setSortBy(e.target.value)}
               >
-                {isModificationAllowed(c) ? 'Modificar clase' : 'Modificación no disponible'}
-              </ModifyButton>
-            )}
-          </Card>
-        ))}
+                <option value="fecha">Fecha</option>
+                <option value="alumno">Alumno</option>
+                <option value="tipo">Modalidad</option>
+                <option value="asignatura">Asignatura</option>
+              </select>
+            </FilterContainer>
+            {sortedClases.length === 0 && <p>No tienes clases asignadas.</p>}
+            {sortedClases.map(c => (
+              <Card key={c.id}>
+                <CardHeader>
+                  <HeaderLeft>
+                    {c.alumnoFoto && <Avatar src={c.alumnoFoto} alt="Alumno" />}
+                    <StudentName>{c.alumno}</StudentName>
+                  </HeaderLeft>
+                </CardHeader>
+                <InfoGrid>
+                  <div>
+                    <Label>Asignatura:</Label> <Value>{c.asignatura}</Value>
+                  </div>
+                  <div>
+                    <Label>Curso:</Label> <Value>{c.curso || '-'}</Value>
+                  </div>
+                  <div>
+                    <Label>Fecha:</Label> <Value>{c.fecha} {c.hora}</Value>
+                  </div>
+                  <div>
+                    <Label>Modalidad:</Label> <Value>{c.modalidad}</Value>
+                  </div>
+                  <div>
+                    <Label>Duración:</Label> <Value>{c.duracion}h</Value>
+                  </div>
+                  <div>
+                    <Label>Ganancia:</Label> <Value>€{(c.precioTotalProfesor || 0).toFixed(2)}</Value>
+                  </div>
+                </InfoGrid>
+                {c.estado === 'pendiente' && (
+                  <CancelButton onClick={() => cancelPending(c)}>
+                    Cancelar propuesta
+                  </CancelButton>
+                )}
+                {c.estado !== 'pendiente' && (
+                  <ModifyButton
+                    disabled={!isModificationAllowed(c)}
+                    onClick={() => openEdit(c)}
+                  >
+                    {isModificationAllowed(c) ? 'Modificar clase' : 'Modificación no disponible'}
+                  </ModifyButton>
+                )}
+              </Card>
+            ))}
+          </>
+        ) : (
+          <MisOfertas />
+        )}
       </Container>
 
       {editing && (
