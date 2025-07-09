@@ -34,7 +34,6 @@ import LoadingScreen   from './components/LoadingScreen';
 import NotificationBell from './components/NotificationBell';
 import SeleccionRol    from './screens/SeleccionRol';
 import CompletarDatosGoogle from './screens/CompletarDatosGoogle';
-import { useSyncClassToSheet } from './hooks/useSyncClassToSheet';
 
 const AppContainer = styled.div`
   display: flex;
@@ -58,9 +57,6 @@ const Layout = () => (
 function AppContent() {
   const location = useLocation();
   const [loading, setLoading] = useState(true);
-
-  // Example: sync a specific class to Google Sheets
-  useSyncClassToSheet('union123', 'assignment456');
 
   useEffect(() => {
     setLoading(true);
