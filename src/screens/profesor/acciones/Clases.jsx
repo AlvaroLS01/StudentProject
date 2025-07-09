@@ -286,6 +286,7 @@ export default function ClasesProfesor() {
     return () => unsub();
   }, []);
 
+  useEffect(() => {
     setSearchParams({ view });
   }, [view, setSearchParams]);
 
