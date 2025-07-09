@@ -68,3 +68,22 @@ This section has moved here: [https://facebook.github.io/create-react-app/docs/d
 ### `npm run build` fails to minify
 
 This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+
+## Google Sheets Sync
+
+The app includes a custom hook `useSyncClassToSheet` that sends class data to a Google Apps Script when a class document is marked as `aceptada` in Firestore. The hook posts using `mode: no-cors` so the request works without extra CORS headers. Configure the webhook secret in `.env`:
+
+```
+REACT_APP_SHEET_SECRET=yourSecret
+```
+
+Deploy the script in `apps-script/Code.gs` as a web app and set the same secret and spreadsheet ID in the script properties. Import and use the hook with the union and assignment IDs of the class:
+
+```jsx
+import { useSyncClassToSheet } from './hooks/useSyncClassToSheet';
+
+function Example() {
+  useSyncClassToSheet('union123', 'assignment456');
+  return null;
+}
+```
