@@ -4,7 +4,7 @@ import Card from '../../../components/CommonCard';
 import InfoGrid from '../../../components/InfoGrid';
 import LoadingScreen from '../../../components/LoadingScreen';
 import { auth, db } from '../../../firebase/firebaseConfig';
-import { collectionGroup, query, where, getDocs, getDoc, doc } from 'firebase/firestore';
+import { collection, getDocs, getDoc, doc } from 'firebase/firestore';
 
 const StatusText = styled.span`
   font-weight: 600;
@@ -19,20 +19,29 @@ export default function MisOfertas() {
     (async () => {
       const u = auth.currentUser;
       if (!u) { setLoading(false); return; }
-      const q = query(collectionGroup(db, 'ofertas'), where('profesorId', '==', u.uid));
-      const snap = await getDocs(q);
+
+      const snap = await getDocs(collection(db, 'usuarios', u.uid, 'ofertas'));
       const data = [];
+
       for (const d of snap.docs) {
-        const classId = d.ref.parent.parent.id;
+        const { classId } = d.data();
         let classData = {};
+        let offerData = {};
+        try {
+          const offSnap = await getDoc(doc(db, 'clases', classId, 'ofertas', d.id));
+          if (offSnap.exists()) offerData = offSnap.data();
+        } catch (err) {
+          console.error(err);
+        }
         try {
           const cSnap = await getDoc(doc(db, 'clases', classId));
           if (cSnap.exists()) classData = { classEstado: cSnap.data().estado, alumnoNombre: cSnap.data().alumnoNombre };
         } catch (err) {
           console.error(err);
         }
-        data.push({ id: d.id, classId, ...classData, ...d.data() });
+        data.push({ id: d.id, classId, ...classData, ...offerData });
       }
+
       setOffers(data);
       setLoading(false);
     })();

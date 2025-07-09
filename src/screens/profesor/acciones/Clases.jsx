@@ -9,7 +9,6 @@ import { auth, db } from '../../../firebase/firebaseConfig';
 import { useNotification } from '../../../NotificationContext';
 import {
   collection,
-  collectionGroup,
   query,
   where,
   getDocs,
@@ -294,19 +293,25 @@ export default function ClasesProfesor() {
     (async () => {
       const u = auth.currentUser;
       if (!u) return;
-      const q = query(collectionGroup(db, 'ofertas'), where('profesorId', '==', u.uid));
-      const snap = await getDocs(q);
+      const snap = await getDocs(collection(db, 'usuarios', u.uid, 'ofertas'));
       const data = [];
       for (const d of snap.docs) {
-        const classId = d.ref.parent.parent.id;
+        const { classId } = d.data();
         let classData = {};
+        let offerData = {};
+        try {
+          const offSnap = await getDoc(doc(db, 'clases', classId, 'ofertas', d.id));
+          if (offSnap.exists()) offerData = offSnap.data();
+        } catch (err) {
+          console.error(err);
+        }
         try {
           const cs = await getDoc(doc(db, 'clases', classId));
           if (cs.exists()) classData = { classEstado: cs.data().estado, alumnoNombre: cs.data().alumnoNombre };
         } catch (err) {
           console.error(err);
         }
-        data.push({ id: d.id, classId, ...classData, ...d.data() });
+        data.push({ id: d.id, classId, ...classData, ...offerData });
       }
       setOffers(data);
     })();
