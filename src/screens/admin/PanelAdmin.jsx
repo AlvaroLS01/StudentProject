@@ -7,7 +7,7 @@ import {
   getDoc,
   doc
 } from 'firebase/firestore';
-import { db } from '../firebase/firebaseConfig';
+import { db } from '../../firebase/firebaseConfig';
 
 // Importa tu componente de gestión de clases para admin
 import GestionClases from './acciones/GestionClases';
