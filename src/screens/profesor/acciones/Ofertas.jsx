@@ -12,6 +12,7 @@ import {
   where,
   getDocs,
   addDoc,
+  setDoc,
   serverTimestamp,
   doc,
   getDoc
@@ -589,7 +590,7 @@ export default function Ofertas() {
       const [day, h] = slot.split('-');
       return `${day} ${h}.00–${parseInt(h,10)+1}.00`;
     }).join(', ');
-    await addDoc(collection(db, 'clases', clase.id, 'ofertas'), {
+    const offerRef = await addDoc(collection(db, 'clases', clase.id, 'ofertas'), {
       profesorId: prof.uid,
       profesorNombre: profName,
       precio: clase.precioProfesores,
@@ -601,6 +602,13 @@ export default function Ofertas() {
       fechaFin: clase.fechaFin,
       horasSemana: clase.horasSemana,
       duracionSemanas: calculateWeeks(clase.fechaInicio, clase.fechaFin)
+    });
+
+    // Registrar la oferta en el perfil del profesor para consultas sin índices
+    await setDoc(doc(db, 'usuarios', prof.uid, 'ofertas', offerRef.id), {
+      classId: clase.id,
+      createdAt: serverTimestamp(),
+      estado: 'oferta'
     });
     setClases(cs => cs.filter(c => c.id !== clase.id));
     setConfirmModal(false);
