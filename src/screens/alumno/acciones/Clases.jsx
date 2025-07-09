@@ -361,7 +361,6 @@ export default function Clases() {
   const formatDate = d => {
     return d ? new Date(d).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' }) : '—';
   };
-  }
 
   return (
     <Page>
