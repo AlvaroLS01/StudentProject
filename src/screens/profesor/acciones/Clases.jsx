@@ -5,6 +5,7 @@ import { useSearchParams } from 'react-router-dom';
 import LoadingScreen from '../../../components/LoadingScreen';
 import Card from '../../../components/CommonCard';
 import InfoGrid from '../../../components/InfoGrid';
+import ToggleSwitch from "../../../components/ToggleSwitch";
 import { auth, db } from '../../../firebase/firebaseConfig';
 import { useNotification } from '../../../NotificationContext';
 import {
@@ -42,46 +43,6 @@ const Container = styled.div`
 const Title = styled.h2`
   color: #034640;
   margin-bottom: 1rem;
-`;
-
-const SwitchContainer = styled.div`
-  display: flex;
-  justify-content: center;
-  margin-bottom: 1rem;
-`;
-
-const SwitchTrack = styled.div`
-  position: relative;
-  display: flex;
-  width: 280px;
-  background: #f5f5f5;
-  border-radius: 20px;
-  padding: 4px;
-`;
-
-const SwitchBubble = styled.div`
-  position: absolute;
-  top: 4px;
-  bottom: 4px;
-  left: 4px;
-  width: calc(50% - 4px);
-  background: #046654;
-  border-radius: 16px;
-  transition: transform 0.3s ease;
-  transform: ${({ view }) =>
-    view === 'ofertas' ? 'translateX(100%)' : 'translateX(0)'};
-`;
-
-const SwitchButton = styled.button`
-  flex: 1;
-  background: transparent;
-  border: none;
-  padding: 0.5rem 1rem;
-  color: ${({ active }) => (active ? '#fff' : '#333')};
-  font-weight: 500;
-  position: relative;
-  z-index: 1;
-  cursor: pointer;
 `;
 
 const FilterContainer = styled.div`
@@ -404,17 +365,8 @@ export default function ClasesProfesor() {
     <Page>
       <Container>
         <Title>Mis Clases & Ofertas</Title>
-        <SwitchContainer>
-          <SwitchTrack>
-            <SwitchBubble view={view} />
-            <SwitchButton active={view === 'clases'} onClick={() => setView('clases')}>
-              Mis clases
-            </SwitchButton>
-            <SwitchButton active={view === 'ofertas'} onClick={() => setView('ofertas')}>
-              Mis ofertas
-            </SwitchButton>
-          </SwitchTrack>
-        </SwitchContainer>
+        <ToggleSwitch leftLabel="Mis clases" rightLabel="Mis ofertas" value={view === "clases" ? "left" : "right"} onChange={(val) => setView(val === "left" ? "clases" : "ofertas")}/>
+
         {view === 'clases' ? (
           <>
             <FilterContainer>

@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import styled, { keyframes } from 'styled-components';
 import { Link } from 'react-router-dom';
 import LoadingScreen from '../../../components/LoadingScreen';
+import ToggleSwitch from "../../../components/ToggleSwitch";
 import { db } from '../../../firebase/firebaseConfig';
 import {
   collection,
@@ -40,46 +41,6 @@ const Counter = styled.p`
   margin-top: -1rem;
   margin-bottom: 1rem;
   font-weight: 500;
-`;
-
-const SwitchContainer = styled.div`
-  display: flex;
-  justify-content: center;
-  margin-bottom: 1rem;
-`;
-
-const SwitchTrack = styled.div`
-  position: relative;
-  display: flex;
-  width: 280px;
-  background: #e0e0e0;
-  border-radius: 20px;
-  padding: 4px;
-`;
-
-const SwitchBubble = styled.div`
-  position: absolute;
-  top: 4px;
-  bottom: 4px;
-  left: 4px;
-  width: calc(50% - 8px);
-  background: #046654;
-  border-radius: 16px;
-  transition: transform 0.3s ease;
-  transform: ${({ view }) =>
-    view === 'alumnos' ? 'translateX(100%)' : 'translateX(0)'};
-`;
-
-const SwitchButton = styled.button`
-  flex: 1;
-  background: transparent;
-  border: none;
-  padding: 0.5rem 1rem;
-  color: ${({ active }) => (active ? '#fff' : '#333')};
-  font-weight: 500;
-  position: relative;
-  z-index: 1;
-  cursor: pointer;
 `;
 
 const FilterContainer = styled.div`
@@ -220,17 +181,8 @@ export default function Usuarios() {
         <Counter>
           Total {view === 'profesores' ? teachers.length : totalStudents}
         </Counter>
-        <SwitchContainer>
-          <SwitchTrack>
-            <SwitchBubble view={view} />
-            <SwitchButton active={view === 'profesores'} onClick={() => setView('profesores')}>
-              Profesores
-            </SwitchButton>
-            <SwitchButton active={view === 'alumnos'} onClick={() => setView('alumnos')}>
-              Alumnos / Padres
-            </SwitchButton>
-          </SwitchTrack>
-        </SwitchContainer>
+        <ToggleSwitch leftLabel="Profesores" rightLabel="Alumnos / Padres" value={view === "profesores" ? "left" : "right"} onChange={(val) => setView(val === "left" ? "profesores" : "alumnos")}/>
+
         <FilterContainer>
           <label htmlFor="sortUsuarios">Ordenar por:</label>
           <select
