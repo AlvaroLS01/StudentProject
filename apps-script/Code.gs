@@ -1,24 +1,35 @@
 // apps-script/Code.gs
 // Google Apps Script to log classes to Google Sheets
-function doPost(e) {
-  const props = PropertiesService.getScriptProperties();
-  const SECRET = props.getProperty('SECRET');
-  const SPREADSHEET_ID = props.getProperty('SPREADSHEET_ID');
 
+// obtenemos las props
+const SCRIPT_PROPS   = PropertiesService.getScriptProperties();
+const SECRET         = SCRIPT_PROPS.getProperty('SECRET');
+const SPREADSHEET_ID = SCRIPT_PROPS.getProperty('SPREADSHEET_ID');
+const SHEET_NAME     = SCRIPT_PROPS.getProperty('SHEET_NAME'); // opcional
+
+function doPost(e) {
+  // 1) datos recibidos?
+  if (!e.postData || !e.postData.contents) {
+    return ContentService
+      .createTextOutput('NO_DATA')
+      .setMimeType(ContentService.MimeType.TEXT);
+  }
   const body = JSON.parse(e.postData.contents);
+
+  // 2) validamos secreto
   if (body.secret !== SECRET) {
-    return ContentService.createTextOutput('UNAUTHORIZED')
+    return ContentService
+      .createTextOutput('UNAUTHORIZED')
       .setMimeType(ContentService.MimeType.TEXT);
   }
 
-  const sheet = SpreadsheetApp.openById(SPREADSHEET_ID).getSheets()[0];
-  const lastRow = sheet.getLastRow();
-  const ids = lastRow > 0 ? sheet.getRange(1, 1, lastRow, 1).getValues().flat() : [];
-  const rowIndex = ids.indexOf(body.idClase);
+  // 3) abrimos la hoja
+  const ss    = SpreadsheetApp.openById(SPREADSHEET_ID);
+  const sheet = SHEET_NAME
+    ? ss.getSheetByName(SHEET_NAME)
+    : ss.getActiveSheet();
 
-  const beneficio = Number(body.precioTotalPadres || 0) -
-    Number(body.precioTotalProfesor || 0);
-
+  // 4) preparamos la fila
   const row = [
     body.idClase,
     body.emailProfesor,
@@ -34,18 +45,17 @@ function doPost(e) {
     Number(body.numeroAlumnos || 0),
     Number(body.precioTotalPadres || 0),
     Number(body.precioTotalProfesor || 0),
-    beneficio,
+    Number(
+      body.beneficio != null
+        ? body.beneficio
+        : ((body.precioTotalPadres || 0) - (body.precioTotalProfesor || 0))
+    ),
   ];
 
-  let result;
-  if (rowIndex !== -1) {
-    sheet.getRange(rowIndex + 1, 1, 1, row.length).setValues([row]);
-    result = 'UPDATED';
-  } else {
-    sheet.appendRow(row);
-    result = 'APPENDED';
-  }
+  // 5) añadimos al final
+  sheet.appendRow(row);
 
-  return ContentService.createTextOutput(result)
+  return ContentService
+    .createTextOutput('OK')
     .setMimeType(ContentService.MimeType.TEXT);
 }

@@ -87,3 +87,15 @@ function Example() {
   return null;
 }
 ```
+
+### Script properties
+
+In the Apps Script editor open **File → Project properties → Script Properties** and add:
+
+```
+SECRET=yourSecret
+SPREADSHEET_ID=yourSpreadsheetId
+SHEET_NAME=SheetName    # optional
+```
+
+Use the same secret in `.env` and deploy the web app. When a class document transitions to `aceptada`, the hook will post its details to the script and a new row will be appended to the Google Sheet.
