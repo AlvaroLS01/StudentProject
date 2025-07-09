@@ -17,7 +17,8 @@ import {
   doc,
   updateDoc,
   addDoc,
-  serverTimestamp
+  serverTimestamp,
+  onSnapshot
 } from 'firebase/firestore';
 
 import MisOfertas from './MisOfertas';
@@ -235,12 +236,13 @@ export default function ClasesProfesor() {
   const { show } = useNotification();
 
   useEffect(() => {
-    (async () => {
-      setLoading(true);
-      const q = query(collection(db, 'clases_union'), where('profesorId', '==', auth.currentUser.uid));
-      const snap = await getDocs(q);
-      const list = [];
-      for (const docu of snap.docs) {
+    setLoading(true);
+    const q = query(
+      collection(db, 'clases_union'),
+      where('profesorId', '==', auth.currentUser.uid)
+    );
+    const unsub = onSnapshot(q, async snap => {
+      const promises = snap.docs.map(async docu => {
         const union = docu.data();
         let alumnoFoto = '';
         let alumnoApellido = '';
@@ -260,10 +262,11 @@ export default function ClasesProfesor() {
         const subSnap = await getDocs(
           collection(db, 'clases_union', docu.id, 'clases_asignadas')
         );
+        const arr = [];
         subSnap.docs.forEach(d => {
           const data = d.data();
           if (data.estado === 'aceptada' || data.estado === 'pendiente') {
-            list.push({
+            arr.push({
               id: d.id,
               unionId: docu.id,
               alumnoId: union.alumnoId,
@@ -274,13 +277,15 @@ export default function ClasesProfesor() {
             });
           }
         });
-      }
-      setClases(list);
+        return arr;
+      });
+      const results = await Promise.all(promises);
+      setClases(results.flat());
       setLoading(false);
-    })();
+    });
+    return () => unsub();
   }, []);
 
-  useEffect(() => {
     setSearchParams({ view });
   }, [view, setSearchParams]);
 

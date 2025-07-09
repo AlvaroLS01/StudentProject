@@ -16,7 +16,8 @@ import {
   addDoc,
   updateDoc,
   serverTimestamp,
-  doc
+  doc,
+  onSnapshot
 } from 'firebase/firestore';
 
 const fadeIn = keyframes`
@@ -185,19 +186,19 @@ export default function Clases() {
   const [processingIds, setProcessingIds] = useState(new Set());
 
   useEffect(() => {
-    (async () => {
-      setLoading(true);
-      const u = auth.currentUser;
-      if (!u) { setLoading(false); return; }
-      let q = query(collection(db, 'clases_union'), where('alumnoId', '==', u.uid));
-      if (selectedChild) {
-        q = query(collection(db, 'clases_union'),
-                  where('alumnoId', '==', u.uid),
-                  where('hijoId', '==', selectedChild.id));
-      }
-      const snap = await getDocs(q);
-      let all = [];
-      for (const docu of snap.docs) {
+    setLoading(true);
+    const u = auth.currentUser;
+    if (!u) { setLoading(false); return; }
+    let q = query(collection(db, 'clases_union'), where('alumnoId', '==', u.uid));
+    if (selectedChild) {
+      q = query(
+        collection(db, 'clases_union'),
+        where('alumnoId', '==', u.uid),
+        where('hijoId', '==', selectedChild.id)
+      );
+    }
+    const unsub = onSnapshot(q, async snap => {
+      const promises = snap.docs.map(async docu => {
         const union = docu.data();
         let profesorFoto = '';
         let curso = '';
@@ -212,10 +213,11 @@ export default function Clases() {
         const subSnap = await getDocs(
           collection(db, 'clases_union', docu.id, 'clases_asignadas')
         );
+        const arr = [];
         subSnap.docs.forEach(d => {
           const data = d.data();
           if (data.estado === 'aceptada' || data.estado === 'pendiente') {
-            all.push({
+            arr.push({
               id: d.id,
               unionId: docu.id,
               profesorId: union.profesorId,
@@ -226,10 +228,13 @@ export default function Clases() {
             });
           }
         });
-      }
-      setClases(all);
+        return arr;
+      });
+      const results = await Promise.all(promises);
+      setClases(results.flat());
       setLoading(false);
-    })();
+    });
+    return () => unsub();
   }, [selectedChild]);
 
   useEffect(() => {
