@@ -6,6 +6,7 @@ import { useChild } from '../../../ChildContext';
 import LoadingScreen from '../../../components/LoadingScreen';
 import Card from '../../../components/CommonCard';
 import InfoGrid from '../../../components/InfoGrid';
+import ToggleSwitch from "../../../components/ToggleSwitch";
 import { auth, db } from '../../../firebase/firebaseConfig';
 import {
   collection,
@@ -42,46 +43,6 @@ const Title = styled.h2`
   color: #034640;
   font-size: 2rem;
   text-align: center;
-`;
-
-const SwitchContainer = styled.div`
-  display: flex;
-  justify-content: center;
-  margin-bottom: 1rem;
-`;
-
-const SwitchTrack = styled.div`
-  position: relative;
-  display: flex;
-  width: 280px;
-  background: #f5f5f5;
-  border-radius: 20px;
-  padding: 4px;
-`;
-
-const SwitchBubble = styled.div`
-  position: absolute;
-  top: 4px;
-  bottom: 4px;
-  left: 4px;
-  width: calc(50% - 4px);
-  background: #046654;
-  border-radius: 16px;
-  transition: transform 0.3s ease;
-  transform: ${({ view }) =>
-    view === 'solicitudes' ? 'translateX(100%)' : 'translateX(0)'};
-`;
-
-const SwitchButton = styled.button`
-  flex: 1;
-  background: transparent;
-  border: none;
-  padding: 0.5rem 1rem;
-  color: ${({ active }) => (active ? '#fff' : '#333')};
-  font-weight: 500;
-  position: relative;
-  z-index: 1;
-  cursor: pointer;
 `;
 
 const FilterContainer = styled.div`
@@ -182,7 +143,6 @@ export default function Clases() {
   const [sortBy, setSortBy] = useState('fecha');
   const [loading, setLoading] = useState(true);
   const [loadingReqs, setLoadingReqs] = useState(true);
-  const [showLoading, setShowLoading] = useState(false);
   const [processingIds, setProcessingIds] = useState(new Set());
 
   useEffect(() => {
@@ -263,15 +223,6 @@ export default function Clases() {
     setSearchParams({ tab: 'clases', view });
   }, [view, setSearchParams]);
 
-  useEffect(() => {
-    let timer;
-    if ((view === 'clases' && loading) || (view === 'solicitudes' && loadingReqs)) {
-      timer = setTimeout(() => setShowLoading(true), 200);
-    } else {
-      setShowLoading(false);
-    }
-    return () => clearTimeout(timer);
-  }, [loading, loadingReqs, view]);
 
   const acceptProposal = async clase => {
     if (processingIds.has(clase.id)) return;
@@ -410,26 +361,14 @@ export default function Clases() {
   const formatDate = d => {
     return d ? new Date(d).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' }) : '—';
   };
-
-  if (showLoading) {
-    return <LoadingScreen fullscreen />;
   }
 
   return (
     <Page>
       <Container>
         <Title>Mis Clases & Solicitudes</Title>
-        <SwitchContainer>
-          <SwitchTrack>
-            <SwitchBubble view={view} />
-            <SwitchButton active={view === 'clases'} onClick={() => setView('clases')}>
-              Mis clases
-            </SwitchButton>
-            <SwitchButton active={view === 'solicitudes'} onClick={() => setView('solicitudes')}>
-              Mis solicitudes
-            </SwitchButton>
-          </SwitchTrack>
-        </SwitchContainer>
+        <ToggleSwitch leftLabel="Mis clases" rightLabel="Mis solicitudes" value={view === "clases" ? "left" : "right"} onChange={(val) => setView(val === "left" ? "clases" : "solicitudes")}/>
+
         {view === 'clases' ? (
           <>
             <FilterContainer>
