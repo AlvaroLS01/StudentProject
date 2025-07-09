@@ -1,11 +1,17 @@
 // src/screens/admin/PanelAdmin.jsx
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
+import {
+  collectionGroup,
+  getDocs,
+  getDoc,
+  doc
+} from 'firebase/firestore';
+import { db } from '../firebase/firebaseConfig';
 
 // Importa tu componente de gestión de clases para admin
 import GestionClases from './acciones/GestionClases';
 import Facturacion   from './acciones/Facturacion';
-import Profesores    from './acciones/Profesores';
 import Usuarios      from './acciones/Usuarios';
 
 const Container = styled.div`
@@ -73,6 +79,134 @@ const Content = styled.div`
 export default function PanelAdmin() {
   // Por defecto abrimos "Gestión de clases"
   const [view, setView] = useState('gestion-clases');
+  const [downloading, setDownloading] = useState(false);
+
+  const handleDownloadCsv = async () => {
+    if (downloading) return;
+    setDownloading(true);
+    try {
+      const snap = await getDocs(collectionGroup(db, 'clases_asignadas'));
+      const unionCache = {};
+      const teacherCache = {};
+      const studentCache = {};
+      const classCache = {};
+      const rows = [];
+
+      for (const d of snap.docs) {
+        const data = d.data();
+        const unionId = d.ref.parent.parent.id;
+
+        if (!unionCache[unionId]) {
+          const uSnap = await getDoc(doc(db, 'clases_union', unionId));
+          unionCache[unionId] = uSnap.exists() ? uSnap.data() : {};
+        }
+        const union = unionCache[unionId];
+
+        const teacherId = union.profesorId;
+        if (teacherId && !teacherCache[teacherId]) {
+          const tSnap = await getDoc(doc(db, 'usuarios', teacherId));
+          teacherCache[teacherId] = tSnap.exists() ? tSnap.data() : {};
+        }
+        const teacher = teacherCache[teacherId] || {};
+
+        const studentId = union.alumnoId;
+        if (studentId && !studentCache[studentId]) {
+          const sSnap = await getDoc(doc(db, 'usuarios', studentId));
+          studentCache[studentId] = sSnap.exists() ? sSnap.data() : {};
+        }
+        const student = studentCache[studentId] || {};
+
+        const classId = union.claseId;
+        if (classId && !classCache[classId]) {
+          const cSnap = await getDoc(doc(db, 'clases', classId));
+          classCache[classId] = cSnap.exists() ? cSnap.data() : {};
+        }
+        const classData = classCache[classId] || {};
+
+        const beneficio =
+          (data.precioTotalPadres || 0) - (data.precioTotalProfesor || 0);
+
+        rows.push({
+          assignmentId: d.id,
+          teacherEmail: teacher.email || '',
+          teacherName:
+            union.profesorNombre ||
+            `${teacher.nombre || ''} ${teacher.apellidos || ''}`.trim(),
+          studentName:
+            union.padreNombre ||
+            union.alumnoNombre ||
+            `${student.nombre || ''} ${student.apellidos || ''}`.trim(),
+          studentEmail: student.email || '',
+          curso: classData.curso || '',
+          asignatura:
+            data.asignatura ||
+            classData.asignatura ||
+            (classData.asignaturas || []).join(', '),
+          fecha: data.fecha || '',
+          duracion: data.duracion || '',
+          modalidad: data.modalidad || '',
+          tipoClase: classData.tipoClase || '',
+          precioTotalPadres: data.precioTotalPadres || 0,
+          precioTotalProfesor: data.precioTotalProfesor || 0,
+          beneficio,
+        });
+      }
+
+      const headers = [
+        'ID de Asignación',
+        'Correo Profesor',
+        'Nombre Profesor',
+        'Nombre Alumno',
+        'Correo Alumno',
+        'Curso',
+        'Asignatura',
+        'Fecha',
+        'Duración',
+        'Modalidad',
+        'Tipo de Clase',
+        'Precio Total Padres',
+        'Precio Total Profesor',
+        'Beneficio',
+      ];
+
+      const csv = [
+        headers.join(','),
+        ...rows.map((r) =>
+          [
+            r.assignmentId,
+            r.teacherEmail,
+            r.teacherName,
+            r.studentName,
+            r.studentEmail,
+            r.curso,
+            r.asignatura,
+            r.fecha,
+            r.duracion,
+            r.modalidad,
+            r.tipoClase,
+            r.precioTotalPadres,
+            r.precioTotalProfesor,
+            r.beneficio,
+          ]
+            .map((v) => `"${String(v).replace(/"/g, '""')}"`)
+            .join(',')
+        ),
+      ].join('\n');
+
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', 'clases.csv');
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error('Error generating CSV', err);
+    }
+    setDownloading(false);
+  };
 
   // Cuando cambia la vista, subimos al tope
   useEffect(() => {
@@ -85,8 +219,6 @@ export default function PanelAdmin() {
         return <GestionClases />;
       case 'facturacion':
         return <Facturacion />;
-      case 'profesores':
-        return <Profesores />;
       case 'usuarios':
         return <Usuarios />;
       default:
@@ -116,11 +248,8 @@ export default function PanelAdmin() {
             </Button>
           </MenuItem>
           <MenuItem>
-            <Button
-              active={view === 'profesores'}
-              onClick={() => setView('profesores')}
-            >
-              Profesores
+            <Button onClick={handleDownloadCsv}>
+              Descargar CSV
             </Button>
           </MenuItem>
           <MenuItem>
