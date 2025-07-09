@@ -5,22 +5,20 @@ const nodemailer = require("nodemailer");
 const { google } = require("googleapis");
 const cors = require("cors")({ origin: true });
 
-const smtpConfig = functions.config().smtp || {
-  user: process.env.SMTP_USER,
-  pass: process.env.SMTP_PASS,
-};
-
-const transporter = nodemailer.createTransport({
-  host: process.env.SMTP_HOST || "smtp.mailtrap.io",
-  port: process.env.SMTP_PORT || 587,
-  auth: {
-    user: smtpConfig.user,
-    pass: smtpConfig.pass,
-  },
-});
-
 admin.initializeApp();
 const db = admin.firestore();
+
+// SMTP config from functions.config()
+const { host: smtpHost, port: smtpPort, user: smtpUser, pass: smtpPass } = functions.config().smtp;
+const transporter = nodemailer.createTransport({
+  host: smtpHost,
+  port: Number(smtpPort),
+  secure: Number(smtpPort) === 465, // true for SSL (465), false for STARTTLS (587)
+  auth: {
+    user: smtpUser,
+    pass: smtpPass,
+  },
+});
 
 // Trigger para notificar asignación de profesor
 exports.onTeacherAssigned = functions.firestore
@@ -122,7 +120,7 @@ exports.sendCustomPasswordResetEmail = functions.https.onRequest((req, res) => {
       });
 
       await transporter.sendMail({
-        from: "no-reply@tudominio.com",
+        from: "no-reply@studentproject-4c33d.firebaseapp.com",
         to: email,
         subject: "Restablecer contraseña",
         html: `<p>Pulsa <a href="${link}">aquí</a> para restablecer tu contraseña.</p>`,
@@ -140,7 +138,7 @@ exports.sendCustomPasswordResetEmail = functions.https.onRequest((req, res) => {
 exports.logClassToSheet = functions.firestore
   .document("clases_union/{unionId}/clases_asignadas/{assignmentId}")
   .onWrite(async (change, context) => {
-    if (!change.after.exists) return null; // borrado
+    if (!change.after.exists) return null; // ignore deletions
     const after = change.after.data();
     if (after.estado !== "aceptada") return null;
 
