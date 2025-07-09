@@ -62,7 +62,7 @@ function AppContent() {
     setLoading(true);
     const timer = setTimeout(() => setLoading(false), 800);
     return () => clearTimeout(timer);
-  }, [location]);
+  }, [location.pathname]);
 
   return (
     <AppContainer>
