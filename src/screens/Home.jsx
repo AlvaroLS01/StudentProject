@@ -1,7 +1,7 @@
 import React, { useRef, useState, useEffect } from 'react';
 import styled, { keyframes } from 'styled-components';
 import { useTheme } from 'styled-components';
-import { Link } from 'react-router-dom';
+import { PrimaryLink } from '../components/FormElements';
 import banner from '../assets/banner.jpg';
 import personas from '../assets/personas.jpg';
 import bolis from '../assets/bolis.jpg';
@@ -69,21 +69,10 @@ const Subtitle = styled.p`
   margin: 2rem 0 3rem;
 `;
 
-const Button = styled(Link)`
-  display: inline-block;
-  background-color: ${({ theme }) => theme.colors.secondary};
-  color: ${({ theme }) => theme.colors.primary};
-  padding: 0.75rem 1.5rem;
-  border-radius: 4px;
-  font-weight: 700;
+const Button = styled(PrimaryLink)`
   font-size: 1.125rem;
-  text-decoration: none;
+  padding: 0.75rem 1.5rem;
   margin-bottom: 1rem;
-  transition: background-color 0.3s, transform 0.3s;
-  &:hover {
-    background-color: ${({ theme }) => theme.colors.accent};
-    transform: translateY(-4px);
-  }
 `;
 
 const InfoText = styled.p`
@@ -158,22 +147,12 @@ const SubtitleText = styled.p`
   color: ${({ theme }) => theme.colors.secondary};
 `;
 
-const CardButton = styled(Link)`
+const CardButton = styled(PrimaryLink)`
   display: block;
-  background-color: ${({ theme }) => theme.colors.secondary};
-  color: ${({ theme }) => theme.colors.primary};
-  padding: 0.65rem 1.25rem;
-  border-radius: 4px;
-  font-weight: 700;
   font-size: 0.95rem;
-  text-decoration: none;
+  padding: 0.65rem 1.25rem;
   width: fit-content;
   margin: 2rem auto 0;
-  transition: background-color 0.3s, transform 0.3s;
-  &:hover {
-    background-color: ${({ theme }) => theme.colors.accent};
-    transform: translateY(-4px);
-  }
 `;
 
 /* ============ SCROLL-REVEAL SECTION ============ */
@@ -217,23 +196,13 @@ const RevealColImage = styled(ColImage)`
   flex: 1 1 45%;
 `;
 
-const RevealButton = styled(Link)`
+const RevealButton = styled(PrimaryLink).attrs({ accent: true })`
   display: block;
-  background-color: ${({ theme }) => theme.colors.accent};
-  color: #ffffff;
-  padding: 0.75rem 1.5rem;
-  border-radius: 4px;
-  font-weight: 700;
   font-size: 1rem;
-  text-decoration: none;
+  padding: 0.75rem 1.5rem;
   width: fit-content;
   margin: 1.5rem auto 0;
   box-shadow: 0 12px 24px rgba(0,0,0,0.3);
-  transition: background-color 0.3s, transform 0.3s;
-  &:hover {
-    background-color: ${({ theme }) => theme.colors.accentHover};
-    transform: translateY(-4px);
-  }
 `;
 
 /* ============ VIDEO SECTION ============ */
@@ -279,22 +248,12 @@ const InfoSub = styled.p`
   line-height: 1.4;
 `;
 
-const StartButton = styled(Link)`
+const StartButton = styled(PrimaryLink).attrs({ accent: true })`
   display: block;
-  background-color: ${({ theme }) => theme.colors.accent};
-  color: #ffffff;
-  padding: 0.75rem 1.5rem;
-  border-radius: 4px;
-  font-weight: 700;
   font-size: 1rem;
-  text-decoration: none;
+  padding: 0.75rem 1.5rem;
   width: fit-content;
   margin: 1rem auto 0;
-  transition: background-color 0.3s, transform 0.3s;
-  &:hover {
-    background-color: ${({ theme }) => theme.colors.accentHover};
-    transform: translateY(-4px);
-  }
 `;
 
 /* ============ PARTNER SECTION ============ */

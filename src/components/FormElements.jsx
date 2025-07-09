@@ -1,4 +1,5 @@
 import styled from 'styled-components';
+import { Link } from 'react-router-dom';
 
 export const TextInput = styled.input`
   width: 100%;
@@ -54,5 +55,26 @@ export const DangerButton = styled.button`
   transition: background 0.2s ease;
   &:hover {
     background: ${p => (p.disabled ? '#ccc' : '#c53030')};
+  }
+`;
+
+export const PrimaryLink = styled(Link)`
+  display: inline-block;
+  background: ${({ theme, accent }) =>
+    accent ? theme.colors.accent : theme.colors.secondary};
+  color: ${({ theme, accent }) =>
+    accent ? '#ffffff' : theme.colors.primary};
+  padding: 0.75rem 1rem;
+  border-radius: 6px;
+  font-weight: 700;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.2s ease;
+  opacity: ${p => (p.disabled ? 0.6 : 1)};
+  pointer-events: ${p => (p.disabled ? 'none' : 'auto')};
+  &:hover {
+    background: ${({ theme, accent }) =>
+      accent ? theme.colors.accentHover : theme.colors.accent};
+    transform: translateY(-2px);
   }
 `;

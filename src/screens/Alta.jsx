@@ -1,7 +1,7 @@
 // src/components/Alta.jsx
 import React from 'react';
 import styled, { keyframes } from 'styled-components';
-import { Link } from 'react-router-dom';
+import { PrimaryLink } from '../components/FormElements';
 import alumnosImg from '../assets/alumnos.jpg';
 import profesoresImg from '../assets/profesores.png';
 
@@ -92,21 +92,12 @@ const CardDesc = styled.p`
   flex: 1;
 `;
 
-const CardButton = styled(Link)`
-  display: inline-block;
-  background: #034640;
-  color: #fff;
-  text-decoration: none;
+const CardButton = styled(PrimaryLink).attrs({ accent: true })`
   padding: 0.85rem 1.75rem;
-  border-radius: 6px;
-  font-weight: 700;
   font-size: 1rem;
   text-align: center;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
-  transition: background-color 0.3s ease, box-shadow 0.3s ease;
-
   &:hover {
-    background-color: #046654;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   }
 `;
