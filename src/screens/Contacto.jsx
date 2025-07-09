@@ -1,7 +1,7 @@
 // src/components/Contacto.jsx
 import React from 'react';
 import styled, { keyframes } from 'styled-components';
-import { Link } from 'react-router-dom';
+import { PrimaryLink } from '../components/FormElements';
 import whatsapp from '../assets/whatsapp.webp';
 import correo from '../assets/correo.webp';
 
@@ -96,15 +96,9 @@ const InfoSub = styled.p`
   line-height: 1.4;
 `;
 
-const StartButton = styled(Link)`
-  display: inline-block;
-  background-color: #02c37e;
-  color: #fff;
+const StartButton = styled(PrimaryLink).attrs({ accent: true })`
   padding: 0.6rem 1.75rem;
-  border-radius: 6px;
   font-size: 1rem;
-  font-weight: 700;
-  text-decoration: none;
   transition: transform 0.3s;
   &:hover {
     transform: translateY(-2px);

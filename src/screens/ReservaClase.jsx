@@ -2,7 +2,7 @@
 
 import React from 'react';
 import styled, { keyframes } from 'styled-components';
-import { Link } from 'react-router-dom';
+import { PrimaryLink } from '../components/FormElements';
 import personas from '../assets/personas.jpg';
 import escribiendo from '../assets/escribiendo.jpg';
 
@@ -91,22 +91,14 @@ const CardText = styled.p`
   flex-grow: 1;
 `;
 
-const ReserveButton = styled(Link)`
+const ReserveButton = styled(PrimaryLink).attrs({ accent: true })`
   display: inline-block;
-  background-color: #014f40;
-  color: #ffffff;
   padding: 0.75rem 2rem;
-  border-radius: 8px;
   font-size: 1.125rem;
-  font-weight: 700;
-  text-decoration: none;
+  border-radius: 8px;
   margin-top: 1rem;
   opacity: 0;
   animation: ${slideUp} 1s ease-out 0.6s forwards;
-
-  &:hover {
-    background-color: #02332a;
-  }
 `;
 
 const VideoSection = styled.section`
@@ -153,21 +145,14 @@ const InfoSub = styled.p`
   line-height: 1.4;
 `;
 
-const StartButton = styled(Link)`
+const StartButton = styled(PrimaryLink).attrs({ accent: true })`
   display: inline-block;
-  background-color: #02c37e;
-  color: #ffffff;
   padding: 0.75rem 2rem;
   border-radius: 8px;
   font-weight: 700;
   font-size: 1rem;
-  text-decoration: none;
   opacity: 0;
   animation: ${slideUp} 1s ease-out 1.2s forwards;
-
-  &:hover {
-    background-color: #02b36e;
-  }
 `;
 
 const ProfSection = styled.section`
@@ -228,23 +213,16 @@ const ProfDesc = styled.p`
   line-height: 1.6;
 `;
 
-const ProfButton = styled(Link)`
+const ProfButton = styled(PrimaryLink)`
   display: block;
-  background-color: #ccf3e5;
-  color: #014f40;
   padding: 0.75rem 1.5rem;
   border-radius: 8px;
   font-size: 1rem;
   font-weight: 700;
-  text-decoration: none;
   margin: 2.5rem auto 0;
   width: fit-content;
   opacity: 0;
   animation: ${slideUp} 1s ease-out 1.8s forwards;
-
-  &:hover {
-    background-color: #b2e8d4;
-  }
 `;
 
 /* ========== Componente ========== */
