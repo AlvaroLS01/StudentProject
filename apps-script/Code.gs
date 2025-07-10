@@ -1,61 +1,64 @@
-// apps-script/Code.gs
-// Google Apps Script to log classes to Google Sheets
+const hojaRegistros = 'Registros';
 
-// obtenemos las props
-const SCRIPT_PROPS   = PropertiesService.getScriptProperties();
-const SECRET         = SCRIPT_PROPS.getProperty('SECRET');
-const SPREADSHEET_ID = SCRIPT_PROPS.getProperty('SPREADSHEET_ID');
-const SHEET_NAME     = SCRIPT_PROPS.getProperty('SHEET_NAME'); // opcional
+function onOpen() {
+    // La función onOpen se ejecuta automáticamente cada vez que se carga un Libro de cálculo
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    var menuEntries = [];
+ 
+    menuEntries.push({
+        name : "Leer Datos",
+        functionName : "update"
+    });
+  
+    menuEntries.push(null);
+  
+    ss.addMenu("Actualizar Datos", menuEntries);
+}
 
-function doPost(e) {
-  // 1) datos recibidos?
-  if (!e.postData || !e.postData.contents) {
-    return ContentService
-      .createTextOutput('NO_DATA')
-      .setMimeType(ContentService.MimeType.TEXT);
+function update() {  
+  getFireStore();
+
+}
+
+function writeInSpreadSheet(data, current_sheet) {
+  var numRows = data.length;
+  if (numRows > 0) {
+    var numCols = data[0].length;
+	
+	  var Avals = current_sheet.getRange("B1:B").getValues();
+	  var last_row = Avals.filter(String).length;
+	  last_row++;
+    current_sheet.getRange(last_row, 1, numRows, numCols).setValues(data);
   }
-  const body = JSON.parse(e.postData.contents);
+}
 
-  // 2) validamos secreto
-  if (body.secret !== SECRET) {
-    return ContentService
-      .createTextOutput('UNAUTHORIZED')
-      .setMimeType(ContentService.MimeType.TEXT);
-  }
 
-  // 3) abrimos la hoja
-  const ss    = SpreadsheetApp.openById(SPREADSHEET_ID);
-  const sheet = SHEET_NAME
-    ? ss.getSheetByName(SHEET_NAME)
-    : ss.getActiveSheet();
+function getFireStore() {
 
-  // 4) preparamos la fila
-  const row = [
-    body.idClase,
-    body.emailProfesor,
-    body.nombreProfesor,
-    body.emailAlumno,
-    body.nombreAlumno,
-    body.curso,
-    body.asignatura,
-    body.ciudad,
-    body.fecha,
-    body.duracion,
-    body.modalidad,
-    Number(body.numeroAlumnos || 0),
-    Number(body.precioTotalPadres || 0),
-    Number(body.precioTotalProfesor || 0),
-    Number(
-      body.beneficio != null
-        ? body.beneficio
-        : ((body.precioTotalPadres || 0) - (body.precioTotalProfesor || 0))
-    ),
-  ];
+ var ss = SpreadsheetApp.getActiveSpreadsheet();
+ var sheet = ss.getSheetByName(hojaRegistros);
+ const allDocuments = firestore.getDocuments("registros");
 
-  // 5) añadimos al final
-  sheet.appendRow(row);
+ var data = [];
 
-  return ContentService
-    .createTextOutput('OK')
-    .setMimeType(ContentService.MimeType.TEXT);
+ // for each column and row in the document selected
+ for(var i = 0; i < allDocuments.length; i++){
+
+  var document_key = allDocuments[i].name.split("/").pop();
+  var nombre = allDocuments[i].fields["nombre"].stringValue;
+  //var agregado = new Date(allDocuments[i].fields["agregado"].timestampValue).toISOString();
+
+  data.push([
+    document_key,
+    nombre,
+    //agregado,
+  ]);
+
+ }
+
+ if (data.length > 0) {  
+  // write to ss    
+  writeInSpreadSheet(data, sheet);
+ }
+
 }
