@@ -1,4 +1,7 @@
-const SHEET_NAME = 'Registros';
+const SHEET_NAME = 'CLASES';
+const TEACHERS_SHEET = 'PROFESORES';
+const PARENTS_SHEET = 'PADRES';
+const STUDENTS_SHEET = 'ALUMNOS';
 
 function onOpen() {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
@@ -7,6 +10,9 @@ function onOpen() {
 
 function update() {
   fetchClasses();
+  fetchTeachers();
+  fetchParents();
+  fetchStudents();
 }
 
 function fetchClasses() {
@@ -14,30 +20,34 @@ function fetchClasses() {
   var sheet = ss.getSheetByName(SHEET_NAME) || ss.insertSheet(SHEET_NAME);
 
   var headers = [
-    'ID de Asignación',
-    'Correo Profesor',
-    'Nombre Profesor',
-    'Nombre Alumno',
-    'Correo Alumno',
-    'Curso',
-    'Asignatura',
-    'Fecha',
-    'Duración',
-    'Modalidad',
-    'Tipo de Clase',
-    'Precio Total Padres',
-    'Precio Total Profesor',
-    'Beneficio'
+    'ID DE ASIGNACIÓN',
+    'NOMBRE PROFESOR',
+    'CORREO PROFESOR',
+    'NOMBRE ALUMNO',
+    'CORREO ALUMNO',
+    'CURSO',
+    'ASIGNATURA',
+    'FECHA',
+    'DURACIÓN',
+    'MODALIDAD',
+    'LOCALIZACION',
+    'TIPO DE CLASE',
+    'PRECIO TOTAL PADRES',
+    'PRECIO TOTAL PROFESOR',
+    'BENEFICIO'
   ];
 
-  sheet.clearContents();
-  sheet.appendRow(headers);
+  setHeaders(sheet, headers);
+  formatClassHeaders(sheet);
+
+  var idMap = getIdMap(sheet, 1);
 
   var unions = firestore.getDocuments('clases_union');
   var teacherCache = {};
   var studentCache = {};
   var classCache = {};
-  var rows = [];
+  var updates = [];
+  var appends = [];
 
   for (var i = 0; i < unions.length; i++) {
     var u = unions[i];
@@ -80,14 +90,15 @@ function fetchClasses() {
       var fecha = getString(af.fecha);
       var duracion = getString(af.duracion);
       var modalidad = getString(af.modalidad);
+      var localizacion = getString(af.localizacion) || getString(classData.ciudad);
       var precioPadres = getNumber(af.precioTotalPadres);
       var precioProfesor = getNumber(af.precioTotalProfesor);
       var beneficio = precioPadres - precioProfesor;
 
-      rows.push([
+      var row = [
         a.name.split('/').pop(),
-        teacherEmail,
         teacherName,
+        teacherEmail,
         studentName,
         studentEmail,
         curso,
@@ -95,16 +106,25 @@ function fetchClasses() {
         fecha,
         duracion,
         modalidad,
+        localizacion,
         tipoClase,
         precioPadres,
         precioProfesor,
         beneficio
-      ]);
+      ];
+      if (idMap[row[0]]) {
+        updates.push({ r: idMap[row[0]], data: row });
+      } else {
+        appends.push(row);
+      }
     }
   }
 
-  if (rows.length) {
-    sheet.getRange(2, 1, rows.length, rows[0].length).setValues(rows);
+  updates.forEach(function(u) {
+    sheet.getRange(u.r, 1, 1, headers.length).setValues([u.data]);
+  });
+  if (appends.length) {
+    sheet.getRange(sheet.getLastRow() + 1, 1, appends.length, headers.length).setValues(appends);
   }
 }
 
@@ -128,4 +148,130 @@ function getArray(obj) {
   if (!obj || !obj.arrayValue) return [];
   var vals = obj.arrayValue.values || [];
   return vals.map(function(v) { return getString(v); });
+}
+
+function setHeaders(sheet, headers) {
+  sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
+  sheet.getRange(1, 1, 1, headers.length).setFontWeight('bold');
+}
+
+function getIdMap(sheet, col) {
+  var last = sheet.getLastRow();
+  var data = last > 1 ? sheet.getRange(2, col, last - 1, 1).getValues() : [];
+  var map = {};
+  for (var i = 0; i < data.length; i++) {
+    var id = data[i][0];
+    if (id) map[id] = i + 2;
+  }
+  return map;
+}
+
+function formatClassHeaders(sheet) {
+  sheet.getRange(1, 1, 1, 12).setBackground('#bdbdbd');
+  sheet.getRange(1, 13, 1, 2).setBackground('#5b95f9');
+  sheet.getRange(1, 15, 1, 1).setBackground('#b6d7a8');
+}
+
+function fetchTeachers() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sheet = ss.getSheetByName(TEACHERS_SHEET) || ss.insertSheet(TEACHERS_SHEET);
+  var headers = ['ID PROFESOR', 'NOMBRE', 'CORREO', 'CIUDAD', 'IBAN'];
+  setHeaders(sheet, headers);
+  var idMap = getIdMap(sheet, 1);
+
+  var unions = firestore.getDocuments('clases_union');
+  var ids = {};
+  for (var i = 0; i < unions.length; i++) {
+    var f = unions[i].fields || {};
+    var tid = getString(f.profesorId);
+    if (tid) ids[tid] = true;
+  }
+
+  var updates = [];
+  var appends = [];
+  for (var id in ids) {
+    var doc = firestore.getDocument('usuarios/' + id);
+    var d = doc ? doc.fields : {};
+    var row = [
+      id,
+      (getString(d.nombre) + ' ' + getString(d.apellidos)).trim(),
+      getString(d.email),
+      getString(d.ciudad),
+      getString(d.iban)
+    ];
+    if (idMap[id]) {
+      updates.push({ r: idMap[id], data: row });
+    } else {
+      appends.push(row);
+    }
+  }
+  updates.forEach(function(u) { sheet.getRange(u.r, 1, 1, headers.length).setValues([u.data]); });
+  if (appends.length) sheet.getRange(sheet.getLastRow() + 1, 1, appends.length, headers.length).setValues(appends);
+}
+
+function fetchParents() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sheet = ss.getSheetByName(PARENTS_SHEET) || ss.insertSheet(PARENTS_SHEET);
+  var headers = ['ID PADRE', 'NOMBRE', 'CORREO', 'CIUDAD'];
+  setHeaders(sheet, headers);
+  var idMap = getIdMap(sheet, 1);
+
+  var unions = firestore.getDocuments('clases_union');
+  var ids = {};
+  for (var i = 0; i < unions.length; i++) {
+    var f = unions[i].fields || {};
+    var uid = getString(f.alumnoId);
+    if (uid) ids[uid] = true;
+  }
+
+  var updates = [];
+  var appends = [];
+  for (var id in ids) {
+    var doc = firestore.getDocument('usuarios/' + id);
+    var d = doc ? doc.fields : {};
+    var row = [
+      id,
+      (getString(d.nombre) + ' ' + getString(d.apellidos)).trim(),
+      getString(d.email),
+      getString(d.ciudad)
+    ];
+    if (idMap[id]) {
+      updates.push({ r: idMap[id], data: row });
+    } else {
+      appends.push(row);
+    }
+  }
+  updates.forEach(function(u) { sheet.getRange(u.r, 1, 1, headers.length).setValues([u.data]); });
+  if (appends.length) sheet.getRange(sheet.getLastRow() + 1, 1, appends.length, headers.length).setValues(appends);
+}
+
+function fetchStudents() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sheet = ss.getSheetByName(STUDENTS_SHEET) || ss.insertSheet(STUDENTS_SHEET);
+  var headers = ['ID ALUMNO', 'NOMBRE', 'PADRE', 'CURSO'];
+  setHeaders(sheet, headers);
+  var idMap = getIdMap(sheet, 1);
+
+  var unions = firestore.getDocuments('clases_union');
+  var rowsById = {};
+  for (var i = 0; i < unions.length; i++) {
+    var f = unions[i].fields || {};
+    var sid = getString(f.hijoId);
+    if (!sid) sid = getString(f.alumnoId);
+    var nombre = getString(f.alumnoNombre);
+    var padre = getString(f.padreNombre);
+    var curso = '';
+    if (sid && !rowsById[sid]) {
+      rowsById[sid] = [sid, nombre, padre, curso];
+    }
+  }
+  var updates = [];
+  var appends = [];
+  for (var id in rowsById) {
+    var row = rowsById[id];
+    if (idMap[id]) updates.push({ r: idMap[id], data: row });
+    else appends.push(row);
+  }
+  updates.forEach(function(u) { sheet.getRange(u.r, 1, 1, headers.length).setValues([u.data]); });
+  if (appends.length) sheet.getRange(sheet.getLastRow() + 1, 1, appends.length, headers.length).setValues(appends);
 }
