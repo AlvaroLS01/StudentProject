@@ -8,7 +8,7 @@ import { isValidEmail } from '../utils/validateEmail';
 // Firebase (inicializado en firebaseConfig.js)
 import { auth, db } from '../firebase/firebaseConfig';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
-import { collection, getDocs, doc, setDoc } from 'firebase/firestore';
+import { collection, getDocs, doc, setDoc, query, where } from 'firebase/firestore';
 
 // Animación de entrada
 const fadeIn = keyframes`
@@ -270,6 +270,8 @@ export default function SignUpAlumno() {
   const [nombre, setNombre]         = useState('');
   const [apellido, setApellido]     = useState('');
   const [telefono, setTelefono]     = useState('');
+  const [confirmTelefono, setConfirmTelefono] = useState('');
+  const [telefonoError, setTelefonoError] = useState('');
   const [ciudad, setCiudad]         = useState('');
   const [cities, setCities]         = useState([]);
   const [rolUser, setRolUser]       = useState('alumno');
@@ -317,6 +319,7 @@ export default function SignUpAlumno() {
       !nombre ||
       !apellido ||
       !telefono ||
+      !confirmTelefono ||
       !ciudad ||
       !curso
     ) {
@@ -327,6 +330,10 @@ export default function SignUpAlumno() {
       setEmailError('Correo electrónico no válido.');
       return;
     }
+    if (telefono !== confirmTelefono) {
+      setTelefonoError('Los números no coinciden');
+      return;
+    }
     if (password !== confirmPwd)
       return show('Las contraseñas no coinciden', 'error');
     if (rolUser === 'alumno' && !fechaNac)
@@ -334,8 +341,15 @@ export default function SignUpAlumno() {
     if (rolUser === 'padre' && (!nombreHijo || !fechaNacHijo))
       return show('Completa datos del hijo', 'error');
 
+    setTelefonoError('');
     setSubmitting(true);
     try {
+      const phoneSnap = await getDocs(query(collection(db, 'usuarios'), where('telefono', '==', telefono)));
+      if (!phoneSnap.empty) {
+        setTelefonoError('Este teléfono ya está registrado');
+        setSubmitting(false);
+        return;
+      }
       const { user } = await createUserWithEmailAndPassword(auth, email, password);
       const data = {
         uid: user.uid,
@@ -443,9 +457,25 @@ export default function SignUpAlumno() {
             <input
               type="tel"
               value={telefono}
-              onChange={e => setTelefono(e.target.value)}
+              onChange={e => {
+                setTelefono(e.target.value);
+                setTelefonoError('');
+              }}
               placeholder="Ej. +34 600 123 456"
             />
+          </Field>
+          <Field>
+            <label>Repite Teléfono</label>
+            <input
+              type="tel"
+              value={confirmTelefono}
+              onChange={e => {
+                setConfirmTelefono(e.target.value);
+                setTelefonoError('');
+              }}
+              placeholder="Confirma teléfono"
+            />
+            {telefonoError && <ErrorText>{telefonoError}</ErrorText>}
           </Field>
 
           {/* Ciudad y Curso lado a lado */}
