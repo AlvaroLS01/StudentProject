@@ -4,7 +4,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../AuthContext';
 import { useNotification } from '../NotificationContext';
 import { db } from '../firebase/firebaseConfig';
-import { collection, getDocs, doc, setDoc } from 'firebase/firestore';
+import { collection, getDocs, doc, setDoc, query, where } from 'firebase/firestore';
 
 const Page = styled.div`
   display: flex;
@@ -51,6 +51,12 @@ const Field = styled.div`
   }
 `;
 
+const ErrorText = styled.p`
+  color: #ff6b6b;
+  font-size: 0.9rem;
+  margin: 0.25rem 0 0.5rem;
+`;
+
 const Button = styled.button`
   grid-column: 1 / -1;
   margin-top: 1rem;
@@ -74,6 +80,8 @@ export default function CompletarDatosGoogle() {
   const [nombre, setNombre] = useState('');
   const [apellido, setApellido] = useState('');
   const [telefono, setTelefono] = useState('');
+  const [confirmTelefono, setConfirmTelefono] = useState('');
+  const [telefonoError, setTelefonoError] = useState('');
   const [ciudad, setCiudad] = useState('');
   const [curso, setCurso] = useState('');
   const [fechaNac, setFechaNac] = useState('');
@@ -109,8 +117,12 @@ export default function CompletarDatosGoogle() {
   const handleSubmit = async e => {
     e.preventDefault();
     if (!user) return;
-    if (!nombre || !apellido || !telefono || !ciudad || (rol !== 'profesor' && !curso)) {
+    if (!nombre || !apellido || !telefono || !confirmTelefono || !ciudad || (rol !== 'profesor' && !curso)) {
       show('Completa todos los campos', 'error');
+      return;
+    }
+    if (telefono !== confirmTelefono) {
+      setTelefonoError('Los números no coinciden');
       return;
     }
     if (rol === 'alumno' && !fechaNac) {
@@ -121,7 +133,13 @@ export default function CompletarDatosGoogle() {
       show('Completa datos del hijo', 'error');
       return;
     }
+    setTelefonoError('');
     try {
+      const phoneSnap = await getDocs(query(collection(db, 'usuarios'), where('telefono', '==', telefono)));
+      if (!phoneSnap.empty) {
+        setTelefonoError('Este teléfono ya está registrado');
+        return;
+      }
       const data = {
         uid: user.uid,
         email: user.email,
@@ -172,7 +190,26 @@ export default function CompletarDatosGoogle() {
           </Field>
           <Field>
             <label>Teléfono</label>
-            <input type="tel" value={telefono} onChange={e => setTelefono(e.target.value)} />
+            <input
+              type="tel"
+              value={telefono}
+              onChange={e => {
+                setTelefono(e.target.value);
+                setTelefonoError('');
+              }}
+            />
+          </Field>
+          <Field>
+            <label>Repite Teléfono</label>
+            <input
+              type="tel"
+              value={confirmTelefono}
+              onChange={e => {
+                setConfirmTelefono(e.target.value);
+                setTelefonoError('');
+              }}
+            />
+            {telefonoError && <ErrorText>{telefonoError}</ErrorText>}
           </Field>
           <Field>
             <label>Ciudad</label>
