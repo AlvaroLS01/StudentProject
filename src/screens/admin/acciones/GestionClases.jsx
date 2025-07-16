@@ -286,13 +286,14 @@ export default function GestionClases() {
     });
     await addDoc(collection(db, 'clases_union'), {
       claseId: classId,
+      offerId: offer.id,
       alumnoId,
       alumnoNombre,
       profesorId: offer.profesorId,
       profesorNombre: offer.profesorNombre,
       padreNombre: padreNombre || null,
       hijoId: hijoId || null,
-      createdAt: serverTimestamp()
+      createdAt: serverTimestamp(),
     });
     setClases(cs => cs.filter(c => c.id !== classId));
   };
