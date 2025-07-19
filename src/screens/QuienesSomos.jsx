@@ -10,10 +10,20 @@ const fadeIn = keyframes`
   to   { opacity: 1; transform: translateY(0); }
 `;
 
+const slideInLeft = keyframes`
+  from { opacity: 0; transform: translateX(-40px); }
+  to   { opacity: 1; transform: translateX(0); }
+`;
+
+const slideInRight = keyframes`
+  from { opacity: 0; transform: translateX(40px); }
+  to   { opacity: 1; transform: translateX(0); }
+`;
+
 const Hero = styled.section`
   width: 100%;
   height: 500px;
-  background: url(${heroImg}) center 20%/cover no-repeat fixed;
+  background: url(${heroImg}) center 10%/cover no-repeat fixed;
   position: relative;
   display: flex;
   align-items: center;
@@ -52,12 +62,23 @@ const HeroSubtitle = styled.h2`
 const Section = styled.section`
   padding: 3rem 1rem;
   opacity: 0;
-  transform: translateY(20px);
-  transition: all 0.8s ease-out;
+  transition: opacity 0.6s ease-out;
 
   &.visible {
     opacity: 1;
-    transform: translateY(0);
+  }
+
+  .slide-left,
+  .slide-right {
+    opacity: 0;
+  }
+
+  &.visible .slide-left {
+    animation: ${slideInLeft} 0.8s forwards;
+  }
+
+  &.visible .slide-right {
+    animation: ${slideInRight} 0.8s forwards;
   }
 `;
 
@@ -84,8 +105,10 @@ const ColImage = styled.div`
   text-align: center;
 
   img {
-    max-width: 100%;
-    border-radius: 8px;
+    width: 100%;
+    height: 280px;
+    object-fit: cover;
+    border-radius: 12px;
   }
 `;
 
@@ -108,7 +131,7 @@ const List = styled.ul`
 `;
 
 const CommunitySection = styled(Section)`
-  background-color: ${({ theme }) => theme.colors.secondary};
+  background-color: #b8e6d2;
 `;
 
 const Cards = styled.div`
@@ -157,25 +180,28 @@ export default function QuienesSomos() {
     <>
       <Hero>
         <HeroContent>
-          <HeroTitle>Somos Student Project</HeroTitle>
+          <HeroTitle>Hola, somos Student Project</HeroTitle>
           <HeroSubtitle>
-            De estudiantes para estudiantes: clases personalizadas, cercanas y flexibles de Primaria a Bachillerato.
+            Conectamos familias y jóvenes profesores para que cada estudiante brille.
           </HeroSubtitle>
         </HeroContent>
       </Hero>
 
       <Section ref={el => (sectionsRef.current[0] = el)}>
         <Grid>
-          <ColText>
-            <SectionTitle>Nuestra misión</SectionTitle>
+          <ColText className="slide-left">
+            <SectionTitle>Nuestra esencia</SectionTitle>
             <SectionText>
-              Student Project nació en Sevilla para acercar la experiencia universitaria a las aulas. Carlos y Luis comenzaron dando clase para pagarse sus estudios y hoy conectan a cientos de familias con jóvenes profesores que entienden a cada alumno.
+              Student Project nació en Sevilla cuando Carlos y Luis se dieron cuenta de lo difícil que era encontrar un profesor que encajase de verdad.
             </SectionText>
             <SectionText>
-              Creemos en una educación cercana y flexible que impulse a cada estudiante a superarse.
+              Empezamos ayudando a vecinos en 2019 y hoy más de 150 familias confían en nosotros para acompañar a sus hijos.
+            </SectionText>
+            <SectionText>
+              Creemos que el éxito académico nace de la cercanía, la flexibilidad y la motivación personal.
             </SectionText>
           </ColText>
-          <ColImage>
+          <ColImage className="slide-right">
             <img src={tutorImg} alt="Tutor" />
           </ColImage>
         </Grid>
@@ -183,16 +209,17 @@ export default function QuienesSomos() {
 
       <Section ref={el => (sectionsRef.current[1] = el)}>
         <Grid>
-          <ColImage>
+          <ColImage className="slide-left">
             <img src={workImg} alt="Padre e hijo estudiando" />
           </ColImage>
-          <ColText>
+          <ColText className="slide-right">
             <SectionTitle>Cómo trabajamos</SectionTitle>
             <List>
-              <li>Formulario rápido para necesidades y horarios.</li>
-              <li>Los profesores “pujan”; nosotros seleccionamos al mejor.</li>
-              <li>Seguimiento vía grupo de WhatsApp.</li>
-              <li>Facturación semanal: transparente y sin sorpresas.</li>
+              <li>Cuéntanos tus necesidades en un formulario breve.</li>
+              <li>Nuestros profesores se apuntan y elegimos quién encaja mejor.</li>
+              <li>Os ponemos en contacto mediante un grupo de WhatsApp.</li>
+              <li>Facturamos cada semana de forma clara.</li>
+              <li>Clases presenciales u online, como prefieras.</li>
             </List>
           </ColText>
         </Grid>
@@ -201,8 +228,7 @@ export default function QuienesSomos() {
       <CommunitySection ref={el => (sectionsRef.current[2] = el)}>
         <SectionTitle style={{ textAlign: 'center' }}>Nuestra comunidad</SectionTitle>
         <Cards>
-          <Card>+250 profesores</Card>
-          <Card>150+ familias en Sevilla</Card>
+          <Card>150+ familias</Card>
           <Card>Expansión a 10 ciudades en 2025</Card>
         </Cards>
         <div style={{ textAlign: 'center' }}>
