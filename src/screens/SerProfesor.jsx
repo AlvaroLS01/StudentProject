@@ -4,8 +4,8 @@ import profesoresImg from '../assets/profesores.png';
 import serProfeImg from '../assets/serprofe.png';
 import { useNavigate } from 'react-router-dom';
 
-const fadeIn = keyframes`
-  from { opacity: 0; transform: translateY(20px); }
+const fadeInUp = keyframes`
+  from { opacity: 0; transform: translateY(40px); }
   to   { opacity: 1; transform: translateY(0); }
 `;
 
@@ -13,7 +13,8 @@ const Section = styled.section`
   max-width: 1200px;
   margin: 3rem auto;
   padding: 0 1rem;
-  animation: ${fadeIn} 0.8s ease-out;
+  animation: ${fadeInUp} 0.8s ease-out forwards;
+  opacity: 0;
 `;
 
 const Heading = styled.h1`
@@ -21,6 +22,7 @@ const Heading = styled.h1`
   font-size: clamp(2rem, 5vw, 3rem);
   margin-bottom: 0.5rem;
   color: #000;
+  font-weight: 700;
 `;
 
 const Subtitle = styled.p`
@@ -41,6 +43,11 @@ const Card = styled.div`
   border-radius: 20px;
   padding: 2rem;
   text-align: center;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+  animation: ${fadeInUp} 0.8s ease-out forwards;
+  opacity: 0;
+  &:nth-child(2) { animation-delay: 0.1s; }
+  &:nth-child(3) { animation-delay: 0.2s; }
 `;
 
 const Number = styled.div`
@@ -54,6 +61,7 @@ const Title = styled.h2`
   font-size: 1.25rem;
   margin-bottom: 1rem;
   color: ${({ variant }) => (variant === 'dark' ? '#C8F9E6' : '#000')};
+  font-weight: 600;
 `;
 
 const Text = styled.p`
@@ -63,7 +71,7 @@ const Text = styled.p`
 `;
 
 const Button = styled.button`
-  display: inline-block;
+  display: block;
   margin: 2rem auto;
   background: #06c17b;
   color: #fff;
@@ -72,6 +80,8 @@ const Button = styled.button`
   padding: 0.75rem 1.5rem;
   font-size: 1rem;
   cursor: pointer;
+  width: fit-content;
+  transition: background 0.2s ease, transform 0.2s ease;
   &:hover { background: #04a166; }
 `;
 
@@ -82,13 +92,15 @@ const EarningsSection = styled.section`
   color: #fff;
   margin: 2rem auto 0;
   max-width: 1000px;
-  animation: ${fadeIn} 0.8s ease-out;
+  animation: ${fadeInUp} 0.8s ease-out forwards;
+  opacity: 0;
 `;
 
 const EarningsHeading = styled.h2`
   text-align: center;
   font-size: clamp(2rem, 5vw, 2.5rem);
   margin-bottom: 2rem;
+  font-weight: 700;
 `;
 
 const EarningsContent = styled.div`
@@ -118,6 +130,7 @@ const RangeLabels = styled.div`
   display: flex;
   gap: 1rem;
   margin-bottom: 1rem;
+  justify-content: center;
 `;
 
 const Range = styled.span`
@@ -125,6 +138,7 @@ const Range = styled.span`
   padding: 0.5rem 1rem;
   border-radius: 4px;
   font-weight: bold;
+  font-size: 0.95rem;
 `;
 
 const CTASection = styled.section`
@@ -132,13 +146,15 @@ const CTASection = styled.section`
   margin: 3rem auto;
   padding: 0 1rem;
   text-align: center;
-  animation: ${fadeIn} 0.8s ease-out;
+  animation: ${fadeInUp} 0.8s ease-out forwards;
+  opacity: 0;
 `;
 
 const CTAHeading = styled.h2`
   font-size: clamp(1.75rem, 4vw, 2.25rem);
   margin-bottom: 1rem;
   color: #000;
+  font-weight: 700;
 `;
 
 const CTASubtitle = styled.p`
@@ -152,7 +168,8 @@ const IncentivesSection = styled.section`
   max-width: 1000px;
   margin: 3rem auto;
   padding: 0 1rem;
-  animation: ${fadeIn} 0.8s ease-out;
+  animation: ${fadeInUp} 0.8s ease-out forwards;
+  opacity: 0;
 `;
 
 const IncentivesGrid = styled.div`
