@@ -259,7 +259,7 @@ export default function JoinTeachers() {
               <Range variant="low">Desde – 105 €</Range>
               <Range variant="high">Hasta – 230 €</Range>
             </RangeLabels>
-            <Text>
+            <Text style={{ color: '#fff' }}>
               Tienes total libertad para dar la cantidad de clases que desees. ¡Tú pones tus propios límites!
             </Text>
           </EarningsText>
