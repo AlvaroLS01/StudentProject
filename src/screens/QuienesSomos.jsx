@@ -18,10 +18,6 @@ const slideInRight = keyframes`
   from { opacity: 0; transform: translateX(40px); }
   to   { opacity: 1; transform: translateX(0); }
 `;
-const slideUp = keyframes`
-  from { opacity: 0; transform: translateY(40px); }
-  to   { opacity: 1; transform: translateY(0); }
-`;
 
 // Styled Components
 const Hero = styled.section`
@@ -60,7 +56,7 @@ const HeroSubtitle = styled.h2`
 `;
 
 const Section = styled.section`
-  padding: 2rem 1rem;
+  padding: 3rem 1rem;
   opacity: 0;
   transition: opacity 0.6s ease-out;
   &.visible { opacity: 1; }
@@ -74,31 +70,41 @@ const Section = styled.section`
   &.visible .slide-right {
     animation: ${slideInRight} 0.8s forwards;
   }
-  &.visible .slide-up {
-    animation: ${slideUp} 0.8s forwards;
+`;
+
+// Grid para "Nuestros orígenes" (2 columnas)
+const TwoColumnGrid = styled.div`
+  max-width: 1000px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  align-items: flex-start;
+
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+    text-align: center;
   }
 `;
 
-const Grid = styled.div`
+// Grid para "Cómo trabajamos" (1 columna, imagen bajo el texto)
+const OneColumnGrid = styled.div`
   max-width: 1000px;
   margin: 0 auto;
   display: flex;
+  flex-direction: column;
   gap: 1.5rem;
   align-items: flex-start;
-  flex-wrap: wrap;
+
   @media (max-width: 768px) {
-    flex-direction: column;
     align-items: center;
     text-align: center;
   }
 `;
 
-const ColText = styled.div`
-  flex: 1 1 50%;
-`;
+const ColText = styled.div``;
 
 const ColImage = styled.div`
-  flex: 1 1 50%;
   text-align: center;
   img {
     width: 100%;
@@ -109,16 +115,6 @@ const ColImage = styled.div`
     display: block;
     margin: 0 auto;
   }
-`;
-
-const Stack = styled.div`
-  max-width: 800px;
-  margin: 0 auto;
-  text-align: center;
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-  align-items: center;
 `;
 
 const SectionTitle = styled.h3`
@@ -140,8 +136,8 @@ const List = styled.ul`
 `;
 
 const CommunitySection = styled(Section)`
-  background-color: ${({ theme }) => theme.colors.secondary};
-  padding: 2rem 1rem;
+  background-color: #f5f5f5;
+  padding: 2.5rem 1rem;
 `;
 
 const Cards = styled.div`
@@ -200,7 +196,7 @@ export default function QuienesSomos() {
 
       {/* Orígenes: texto izquierda, imagen derecha */}
       <Section ref={el => (sectionsRef.current[0] = el)}>
-        <Grid>
+        <TwoColumnGrid>
           <ColText className="slide-left">
             <SectionTitle>Nuestros orígenes</SectionTitle>
             <SectionText>
@@ -210,19 +206,19 @@ export default function QuienesSomos() {
               Ambos compartían años de experiencia dando clases particulares durante la carrera de Ingeniería Civil y querían crear una plataforma que beneficiara a estudiantes universitarios y a familias por igual.
             </SectionText>
             <SectionText>
-              Hoy, contamos con más de 250 tutores y la confianza de 100 familias en Sevilla, y seguimos creciendo para expandirnos a 10 ciudades en 2025.
+              Hoy, contamos con más de 250 tutores y la confianza de 150 familias en España, y seguimos creciendo para expandirnos a 10 ciudades en 2025.
             </SectionText>
           </ColText>
           <ColImage className="slide-right">
             <img src={tutorImg} alt="Tutor" />
           </ColImage>
-        </Grid>
+        </TwoColumnGrid>
       </Section>
 
-      {/* Proceso: texto y luego imagen */}
+      {/* Proceso: texto arriba, imagen debajo */}
       <Section ref={el => (sectionsRef.current[1] = el)}>
-        <Stack>
-          <ColText className="slide-up">
+        <OneColumnGrid>
+          <ColText className="slide-left">
             <SectionTitle>Cómo trabajamos</SectionTitle>
             <List>
               <li>Rellena un breve formulario con las materias y horarios.</li>
@@ -232,10 +228,10 @@ export default function QuienesSomos() {
               <li>Clases 100% presenciales u online, con la posibilidad de reprogramar hasta 3 horas antes.</li>
             </List>
           </ColText>
-          <ColImage className="slide-up">
+          <ColImage className="slide-right">
             <img src={workImg} alt="Padre e hijo estudiando" />
           </ColImage>
-        </Stack>
+        </OneColumnGrid>
       </Section>
 
       {/* Comunidad: tarjetas + CTA integradas */}
