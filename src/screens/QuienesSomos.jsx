@@ -12,8 +12,8 @@ const fadeIn = keyframes`
 
 const Hero = styled.section`
   width: 100%;
-  height: 600px;
-  background: url(${heroImg}) center/cover no-repeat fixed;
+  height: 500px;
+  background: url(${heroImg}) center 20%/cover no-repeat fixed;
   position: relative;
   display: flex;
   align-items: center;
@@ -62,7 +62,7 @@ const Section = styled.section`
 `;
 
 const Grid = styled.div`
-  max-width: 1100px;
+  max-width: 1000px;
   margin: 0 auto;
   display: flex;
   align-items: center;
@@ -90,7 +90,7 @@ const ColImage = styled.div`
 `;
 
 const SectionTitle = styled.h3`
-  color: #0054A6;
+  color: ${({ theme }) => theme.colors.primary};
   font-size: clamp(1.5rem, 3.5vw, 2rem);
   margin-bottom: 1rem;
 `;
@@ -108,7 +108,7 @@ const List = styled.ul`
 `;
 
 const CommunitySection = styled(Section)`
-  background-color: #f0f6fc;
+  background-color: ${({ theme }) => theme.colors.secondary};
 `;
 
 const Cards = styled.div`
@@ -125,8 +125,8 @@ const Card = styled.div`
   border-radius: 8px;
   box-shadow: 0 2px 6px rgba(0,0,0,0.1);
   font-weight: 700;
-  color: #0054A6;
-  min-width: 180px;
+  color: ${({ theme }) => theme.colors.primary};
+  min-width: 160px;
   text-align: center;
 `;
 
