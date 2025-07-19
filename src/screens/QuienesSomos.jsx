@@ -18,6 +18,10 @@ const slideInRight = keyframes`
   from { opacity: 0; transform: translateX(40px); }
   to   { opacity: 1; transform: translateX(0); }
 `;
+const slideUp = keyframes`
+  from { opacity: 0; transform: translateY(40px); }
+  to   { opacity: 1; transform: translateY(0); }
+`;
 
 // Styled Components
 const Hero = styled.section`
@@ -56,7 +60,7 @@ const HeroSubtitle = styled.h2`
 `;
 
 const Section = styled.section`
-  padding: 3rem 1rem;
+  padding: 2rem 1rem;
   opacity: 0;
   transition: opacity 0.6s ease-out;
   &.visible { opacity: 1; }
@@ -69,6 +73,9 @@ const Section = styled.section`
   }
   &.visible .slide-right {
     animation: ${slideInRight} 0.8s forwards;
+  }
+  &.visible .slide-up {
+    animation: ${slideUp} 0.8s forwards;
   }
 `;
 
@@ -104,6 +111,16 @@ const ColImage = styled.div`
   }
 `;
 
+const Stack = styled.div`
+  max-width: 800px;
+  margin: 0 auto;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  align-items: center;
+`;
+
 const SectionTitle = styled.h3`
   color: ${({ theme }) => theme.colors.primary};
   font-size: clamp(1.5rem, 3.5vw, 2rem);
@@ -123,8 +140,8 @@ const List = styled.ul`
 `;
 
 const CommunitySection = styled(Section)`
-  background-color: #f5f5f5;
-  padding: 2.5rem 1rem;
+  background-color: ${({ theme }) => theme.colors.secondary};
+  padding: 2rem 1rem;
 `;
 
 const Cards = styled.div`
@@ -204,8 +221,8 @@ export default function QuienesSomos() {
 
       {/* Proceso: texto y luego imagen */}
       <Section ref={el => (sectionsRef.current[1] = el)}>
-        <Grid style={{ flexDirection: 'column', alignItems: 'flex-start' }}>
-          <ColText className="slide-left">
+        <Stack>
+          <ColText className="slide-up">
             <SectionTitle>Cómo trabajamos</SectionTitle>
             <List>
               <li>Rellena un breve formulario con las materias y horarios.</li>
@@ -215,10 +232,10 @@ export default function QuienesSomos() {
               <li>Clases 100% presenciales u online, con la posibilidad de reprogramar hasta 3 horas antes.</li>
             </List>
           </ColText>
-          <ColImage className="slide-right">
+          <ColImage className="slide-up">
             <img src={workImg} alt="Padre e hijo estudiando" />
           </ColImage>
-        </Grid>
+        </Stack>
       </Section>
 
       {/* Comunidad: tarjetas + CTA integradas */}
