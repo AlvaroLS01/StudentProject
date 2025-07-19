@@ -32,18 +32,21 @@ const Subtitle = styled.p`
   margin-bottom: 2rem;
 `;
 
-const Grid = styled.div`
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 1rem;
+const Steps = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
 `;
 
-const Card = styled.div`
-  background: ${({ variant }) => (variant === 'dark' ? '#25363D' : '#C8F9E6')};
-  border-radius: 20px;
-  padding: 2rem;
-  text-align: center;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+const Step = styled.div`
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  background: #f3faf8;
+  border-left: 6px solid #06c17b;
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.05);
   animation: ${fadeInUp} 0.8s ease-out forwards;
   opacity: 0;
   &:nth-child(2) { animation-delay: 0.1s; }
@@ -51,23 +54,30 @@ const Card = styled.div`
 `;
 
 const Number = styled.div`
-  font-size: 2.5rem;
-  font-weight: bold;
-  color: ${({ variant }) => (variant === 'dark' ? '#C8F9E6' : '#000')};
-  margin-bottom: 0.5rem;
+  background: #06c17b;
+  color: #fff;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 1.2rem;
+  flex-shrink: 0;
 `;
 
 const Title = styled.h2`
   font-size: 1.25rem;
-  margin-bottom: 1rem;
-  color: ${({ variant }) => (variant === 'dark' ? '#C8F9E6' : '#000')};
+  margin-bottom: 0.5rem;
   font-weight: 600;
+  color: #024837;
 `;
 
 const Text = styled.p`
   font-size: 1rem;
   line-height: 1.6;
-  color: ${({ variant }) => (variant === 'dark' ? '#C8F9E6' : '#000')};
+  color: #024837;
 `;
 
 const Button = styled.button`
@@ -178,6 +188,16 @@ const IncentivesGrid = styled.div`
   gap: 1rem;
 `;
 
+const IncentiveCard = styled.div`
+  background: #c8f9e6;
+  border-radius: 20px;
+  padding: 2rem;
+  text-align: center;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+  animation: ${fadeInUp} 0.8s ease-out forwards;
+  opacity: 0;
+`;
+
 export default function JoinTeachers() {
   const navigate = useNavigate();
 
@@ -189,29 +209,36 @@ export default function JoinTeachers() {
         <Subtitle>
           Con Student Project, olvídate de buscar estudiantes y simplifica la gestión. ¡Da el paso hoy mismo!
         </Subtitle>
-        <Grid>
-          <Card variant="light">
-            <Number variant="light">1</Number>
-            <Title variant="light">Rellena el formulario</Title>
-            <Text variant="light">
-              Haz clic en “Ser profesor/a” y rellena con tus datos. Nos pondremos en contacto en menos 24 horas.
-            </Text>
-          </Card>
-          <Card variant="dark">
-            <Number variant="dark">2</Number>
-            <Title variant="dark">Ofertas diarias</Title>
-            <Text variant="dark">
-              Una vez aceptado como profesor, te unirás a nuestra comunidad y recibirás ofertas diarias.
-            </Text>
-          </Card>
-          <Card variant="light">
-            <Number variant="light">3</Number>
-            <Title variant="light">Tus clases, tus horarios</Title>
-            <Text variant="light">
-              Elige la oferta que te interese y coordina las clases con el alumno.
-            </Text>
-          </Card>
-        </Grid>
+        <Steps>
+          <Step>
+            <Number>1</Number>
+            <div>
+              <Title>Regístrate</Title>
+              <Text>
+                Haz clic en “Ser profesor/a” y completa tu perfil para acceder a las ofertas disponibles.
+              </Text>
+            </div>
+          </Step>
+          <Step>
+            <Number>2</Number>
+            <div>
+              <Title>Elige tus clases</Title>
+              <Text>
+                Explora las distintas ofertas y solicita participar en las que mejor se ajusten a tu experiencia.
+              </Text>
+            </div>
+          </Step>
+          <Step>
+            <Number>3</Number>
+            <div>
+              <Title>Confirmación y contacto</Title>
+              <Text>
+                Nuestro equipo seleccionará al profesor ideal para cada oferta y
+                enviaremos una confirmación por WhatsApp tanto a ti como al alumno para poneros en contacto.
+              </Text>
+            </div>
+          </Step>
+        </Steps>
       </Section>
 
       {/* Botón Ser profesor/a */}
@@ -232,7 +259,7 @@ export default function JoinTeachers() {
               <Range variant="low">Desde – 105 €</Range>
               <Range variant="high">Hasta – 230 €</Range>
             </RangeLabels>
-            <Text variant="dark">
+            <Text>
               Tienes total libertad para dar la cantidad de clases que desees. ¡Tú pones tus propios límites!
             </Text>
           </EarningsText>
@@ -253,18 +280,18 @@ export default function JoinTeachers() {
       {/* Bloque de incentivos */}
       <IncentivesSection>
         <IncentivesGrid>
-          <Card variant="light">
-            <Title variant="light">Premiamos tu esfuerzo</Title>
-            <Text variant="light">
+          <IncentiveCard>
+            <Title>Premiamos tu esfuerzo</Title>
+            <Text>
               Si alcanzas las 20 clases mensuales, serás recompensado con un bonus económico.
             </Text>
-          </Card>
-          <Card variant="light">
-            <Title variant="light">Bonificación por recomendación</Title>
-            <Text variant="light">
+          </IncentiveCard>
+          <IncentiveCard>
+            <Title>Bonificación por recomendación</Title>
+            <Text>
               Recomend​ános y obtén bonificaciones por cada alumno que se una.
             </Text>
-          </Card>
+          </IncentiveCard>
         </IncentivesGrid>
       </IncentivesSection>
     </>
