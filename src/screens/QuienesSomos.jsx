@@ -1,8 +1,8 @@
 import React, { useEffect, useRef } from 'react';
 import styled, { keyframes } from 'styled-components';
 import heroImg from '../assets/carlosyluis.jpg';
-import tutorImg from '../assets/tutorBib.jpg';
-import workImg from '../assets/padreyhijo.jpg';
+import tutorImg from '../assets/tutorBib.png';
+import workImg from '../assets/padreyhijo.png';
 import { PrimaryLink } from '../components/FormElements';
 
 const fadeIn = keyframes`
