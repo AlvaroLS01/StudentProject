@@ -510,3 +510,42 @@ exports.studentEmailResponse = functions.https.onRequest(async (req, res) => {
     return res.status(500).send('error');
   }
 });
+
+// ----- Enviar correo de bienvenida -----
+exports.sendWelcomeEmail = functions.firestore
+  .document('usuarios/{userId}')
+  .onWrite(async (change, context) => {
+    const before = change.before.exists ? change.before.data() : {};
+    const after = change.after.exists ? change.after.data() : null;
+    if (!after || !after.email) return null;
+    if (after.welcomeEmailSent) return null;
+    if (before.email) return null;
+
+    const nameParts = [after.nombre, after.apellido].filter(Boolean);
+    const name = nameParts.join(' ');
+    const logoUrl =
+      'https://studentproject-4c33d.web.app/logo512.png';
+
+    const html = `
+      <div style="font-family: Arial, sans-serif; color:#333;">
+        <img src="${logoUrl}" alt="StudentProject" style="max-width:150px;margin-bottom:20px" />
+        <h2>Bienvenido${name ? ' ' + name : ''} a StudentProject</h2>
+        <p>Nos alegra que te hayas unido a nuestra comunidad de aprendizaje.</p>
+        <p>Con nuestra plataforma puedes conectar con profesores, gestionar tus clases y seguir tu progreso.</p>
+        <p>Si tienes alguna duda, responde a este correo y con gusto te ayudaremos.</p>
+        <p>¡Gracias por confiar en nosotros!</p>
+      </div>
+    `;
+
+    try {
+      await transporter.sendMail({
+        to: after.email,
+        subject: 'Bienvenido a StudentProject',
+        html,
+      });
+      await change.after.ref.update({ welcomeEmailSent: true });
+    } catch (err) {
+      functions.logger.error('sendWelcomeEmail error', err);
+    }
+    return null;
+  });
