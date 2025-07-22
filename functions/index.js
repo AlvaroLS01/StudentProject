@@ -387,17 +387,12 @@ exports.studentEmailResponse = functions.https.onRequest(async (req, res) => {
 });
 
 // ----- Enviar correo de bienvenida -----
-exports.sendWelcomeEmail = functions.firestore
-  .document('usuarios/{userId}')
-  .onWrite(async (change, context) => {
-    const before = change.before.exists ? change.before.data() : {};
-    const after = change.after.exists ? change.after.data() : null;
-    if (!after || !after.email) return null;
-    if (after.welcomeEmailSent) return null;
-    if (before.email) return null;
+exports.sendWelcomeEmail = functions.auth
+  .user()
+  .onCreate(async (user) => {
+    if (!user.email) return null;
 
-    const nameParts = [after.nombre, after.apellido].filter(Boolean);
-    const name = nameParts.join(' ');
+    const name = user.displayName || '';
     const logoUrl =
       'https://studentproject-4c33d.web.app/logo512.png';
 
