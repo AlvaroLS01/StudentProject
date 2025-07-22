@@ -2,6 +2,14 @@
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
+## Prerequisites
+
+This project requires [Node.js](https://nodejs.org/) with `npm` and the Firebase CLI. Install the Firebase tools globally if you don't have them:
+
+```bash
+npm install -g firebase-tools
+```
+
 ## Environment Variables
 
 Copy the sample environment file and add your own values:
@@ -11,7 +19,7 @@ cp .env.example .env
 # edit .env and set REACT_APP_SHEET_SECRET, EMAIL_USER and EMAIL_PASS
 ```
 
-The React app and local Firebase Functions read these variables from `.env`.
+The root `.env.example` lists all required variables for the React app and local Cloud Functions. Both read their configuration from `.env`.
 
 ## Available Scripts
 
@@ -139,4 +147,25 @@ EMAIL_PASS=yourPassword
 ```
 
 Remember to deploy the functions after any change with `npm run deploy` in the `functions` folder.
+
+## Firebase Emulator Suite
+
+Start the local emulators to test Firestore, Authentication and Cloud Functions:
+
+```bash
+firebase emulators:start
+```
+
+The emulators read the variables from `.env` and use the configuration in `firebase.json`.
+
+## Deploying Cloud Functions
+
+When you're ready to deploy the backend, run the following inside the `functions` directory:
+
+```bash
+npm install
+npm run deploy
+```
+
+This uploads the functions defined in `functions/index.js` to your Firebase project.
 
