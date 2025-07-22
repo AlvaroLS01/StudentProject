@@ -99,3 +99,20 @@ SHEET_NAME=SheetName    # optional
 ```
 
 Use the same secret in `.env` and deploy the web app. When a class document transitions to `aceptada`, the hook will post its details to the script and a new row will be appended to the Google Sheet.
+
+## Welcome Email
+
+New users automatically receive a welcome email when they register. This is handled by the Cloud Function defined in `functions/index.js`. The function listens for new users in Firebase Authentication and sends a message through Gmail using Nodemailer.
+
+```
+functionsV1.auth.user().onCreate(async (user) => {
+  await transporter.sendMail({
+    to: user.email,
+    subject: 'Bienvenido a Student Project',
+    html: `<p>Hola ${user.displayName || 'usuario'}, bienvenido a nuestra plataforma.</p>`,
+  });
+});
+```
+
+The transporter is configured with the account `alvaro@studentproject.es`. Remember to deploy the functions after any change with `npm run deploy` in the `functions` folder.
+
