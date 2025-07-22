@@ -200,13 +200,13 @@ export default function QuienesSomos() {
           <ColText className="slide-left">
             <SectionTitle>Nuestros orígenes</SectionTitle>
             <SectionText>
-              En marzo de 2023, en la Biblioteca de Derecho de la US, Carlos y Luis idearon Student Project tras comprobar lo difícil que era para familias encontrar tutores de confianza.
+              En marzo de 2023, en la Biblioteca de Derecho de la US, Carlos y Luis idearon Student Project tras comprobar lo difícil que era para familias encontrar profesores particulares de confianza.
             </SectionText>
             <SectionText>
               Ambos compartían años de experiencia dando clases particulares durante la carrera de Ingeniería Civil y querían crear una plataforma que beneficiara a estudiantes universitarios y a familias por igual.
             </SectionText>
             <SectionText>
-              Hoy, contamos con más de 250 tutores y la confianza de 150 familias en España, y seguimos creciendo para expandirnos a 10 ciudades en 2025.
+              Hoy, contamos con más de 250 profesores particulares y la confianza de 150 familias en España, y seguimos creciendo para expandirnos a 10 ciudades en 2025.
             </SectionText>
           </ColText>
           <ColImage className="slide-right">
@@ -224,8 +224,7 @@ export default function QuienesSomos() {
               <li>Rellena un breve formulario con las materias y horarios.</li>
               <li>Comparamos y seleccionamos al mejor tutor para las necesidades de tu hijo.</li>
               <li>Coordinamos la primera clase mediante un grupo de WhatsApp con padres, alumno, profesor y coordinador.</li>
-              <li>Facturación semanal transparente: desde 11 €/h en Primaria hasta 13 €/h en Bachillerato.</li>
-              <li>Clases 100% presenciales u online, con la posibilidad de reprogramar hasta 3 horas antes.</li>
+              <li>Clases presenciales u online.</li>
             </List>
           </ColText>
           <ColImage className="slide-right">
