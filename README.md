@@ -2,6 +2,17 @@
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
+## Environment Variables
+
+Copy the sample environment file and add your own values:
+
+```bash
+cp .env.example .env
+# edit .env and set REACT_APP_SHEET_SECRET, EMAIL_USER and EMAIL_PASS
+```
+
+The React app and local Firebase Functions read these variables from `.env`.
+
 ## Available Scripts
 
 In the project directory, you can run:
