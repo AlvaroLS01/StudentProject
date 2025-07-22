@@ -371,7 +371,7 @@ export default function ClasesProfesor() {
           <>
             <FilterContainer>
               <label htmlFor="sortProfesor">Ordenar por:</label>
-              <select
+              <select className="form-control"
                 id="sortProfesor"
                 value={sortBy}
                 onChange={e => setSortBy(e.target.value)}

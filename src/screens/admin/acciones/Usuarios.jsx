@@ -185,7 +185,7 @@ export default function Usuarios() {
 
         <FilterContainer>
           <label htmlFor="sortUsuarios">Ordenar por:</label>
-          <select
+          <select className="form-control"
             id="sortUsuarios"
             value={sortBy}
             onChange={e => setSortBy(e.target.value)}

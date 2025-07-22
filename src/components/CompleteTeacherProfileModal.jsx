@@ -156,7 +156,7 @@ export default function CompleteTeacherProfileModal({ open, onClose, userData })
         )}
         <Field>
           <label>
-            <input
+            <input className="form-control"
               type="checkbox"
               checked={finished}
               onChange={e => setFinished(e.target.checked)}
