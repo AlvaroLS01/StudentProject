@@ -19,6 +19,9 @@ auth: {
 },
 });
 
+const REGION = "us-central1";
+const BASE_URL = `https://${REGION}-${process.env.GCLOUD_PROJECT}.cloudfunctions.net`;
+
 const sendContactForm = (form) => {
   return transporter
     .sendMail({
@@ -104,38 +107,19 @@ exports.onTeacherAssigned = functions.firestore
       const asignatura = after.asignatura || (after.asignaturas || []).join(", ");
       const fecha = after.fechaInicio || "";
 
-      const studentMessage = {
-        to: [studentEmail],
-        message: {
-          subject: "Profesor asignado",
-          html:
-            `<p>Hola, ${studentName}.</p>` +
-            `<p>Para la oferta de clase que solicitaste, se ha elegido al ` +
-            `profesor ${teacherName}.</p>` +
-            `<p>Asignatura: ${asignatura}</p>` +
-            (fecha ? `<p>Fecha de inicio: ${fecha}</p>` : "") +
-            `<p>Puede ver la información en la pestaña "Mis Profesores".</p>`,
-        },
-      };
+      const acceptLink = `${BASE_URL}/teacherEmailResponse?unionId=${unionDoc.id}&decision=accept`;
+      const rejectLink = `${BASE_URL}/teacherEmailResponse?unionId=${unionDoc.id}&decision=reject`;
 
-      const teacherMessage = {
-        to: [teacherEmail],
-        message: {
-          subject: "Nueva clase asignada",
-          html:
-            `<p>Hola, ${teacherName}.</p>` +
-            `<p>Has sido seleccionado como el mejor candidato para la clase ` +
-            `solicitada por ${studentName}.</p>` +
-            `<p>Asignatura: ${asignatura}</p>` +
-            (fecha ? `<p>Fecha de inicio: ${fecha}</p>` : "") +
-            `<p>Puede consultar la información en su pestaña de "Mis Alumnos".</p>`,
-        },
-      };
-
-      await Promise.all([
-        db.collection("mail").add(studentMessage),
-        db.collection("mail").add(teacherMessage),
-      ]);
+      await transporter.sendMail({
+        to: teacherEmail,
+        subject: "Nueva clase asignada",
+        html:
+          `<p>Hola, ${teacherName}.</p>` +
+          `<p>Has sido seleccionado como el mejor candidato para la clase solicitada por ${studentName}.</p>` +
+          `<p>Asignatura: ${asignatura}</p>` +
+          (fecha ? `<p>Fecha de inicio: ${fecha}</p>` : "") +
+          `<p><a href="${acceptLink}">Aceptar clase</a> | <a href="${rejectLink}">Rechazar clase</a></p>`,
+      });
 
       // store phones and confirmation status
       await unionDoc.ref.update({
@@ -405,5 +389,124 @@ exports.twilioWebhook = functions.https.onRequest(async (req, res) => {
   } catch (err) {
     functions.logger.error("Twilio webhook error", err);
     return res.status(500).send("error");
+  }
+});
+
+// ----- Respuesta del profesor por email -----
+exports.teacherEmailResponse = functions.https.onRequest(async (req, res) => {
+  const unionId = req.query.unionId;
+  const decision = req.query.decision;
+  if (!unionId || !decision) return res.status(400).send('Missing parameters');
+
+  try {
+    const docRef = db.collection('clases_union').doc(unionId);
+    const docSnap = await docRef.get();
+    if (!docSnap.exists) return res.status(404).send('Union not found');
+    const data = docSnap.data();
+
+    if (decision === 'accept') {
+      await docRef.update({ confirmacionProfesor: 'aceptada' });
+
+      if (data.alumnoId) {
+        const studentSnap = await db.collection('usuarios').doc(data.alumnoId).get();
+        const studentEmail = studentSnap.exists ? studentSnap.data().email : null;
+        if (studentEmail) {
+          const acceptLink = `${BASE_URL}/studentEmailResponse?unionId=${unionId}&decision=accept`;
+          const rejectLink = `${BASE_URL}/studentEmailResponse?unionId=${unionId}&decision=reject`;
+          await transporter.sendMail({
+            to: studentEmail,
+            subject: 'Confirmar clase',
+            html:
+              `<p>Se ha encontrado profesor para tu clase. ¿Confirmas la solicitud?</p>` +
+              `<p><a href="${acceptLink}">Aceptar clase</a> | <a href="${rejectLink}">Rechazar clase</a></p>`
+          });
+          await docRef.update({ confirmacionAlumno: 'pendiente' });
+        }
+      }
+      return res.send('Respuesta registrada');
+    } else if (decision === 'reject') {
+      await docRef.update({ confirmacionProfesor: 'rechazada' });
+
+      if (data.claseId && data.offerId) {
+        await db.doc(`clases/${data.claseId}`).update({
+          estado: 'pendiente',
+          profesorSeleccionado: admin.firestore.FieldValue.delete(),
+        });
+        await db.doc(`clases/${data.claseId}/ofertas/${data.offerId}`).update({ estado: 'rechazada' });
+      }
+
+      return res.send('Respuesta registrada');
+    }
+
+    return res.status(400).send('Invalid decision');
+  } catch (err) {
+    functions.logger.error('teacherEmailResponse error', err);
+    return res.status(500).send('error');
+  }
+});
+
+// ----- Respuesta del alumno/padre por email -----
+exports.studentEmailResponse = functions.https.onRequest(async (req, res) => {
+  const unionId = req.query.unionId;
+  const decision = req.query.decision;
+  if (!unionId || !decision) return res.status(400).send('Missing parameters');
+
+  try {
+    const docRef = db.collection('clases_union').doc(unionId);
+    const docSnap = await docRef.get();
+    if (!docSnap.exists) return res.status(404).send('Union not found');
+    const data = docSnap.data();
+
+    const [teacherSnap, studentSnap] = await Promise.all([
+      db.collection('usuarios').doc(data.profesorId).get(),
+      db.collection('usuarios').doc(data.alumnoId).get(),
+    ]);
+    const teacherEmail = teacherSnap.exists ? teacherSnap.data().email : null;
+    const studentEmail = studentSnap.exists ? studentSnap.data().email : null;
+
+    if (decision === 'accept') {
+      await docRef.update({ confirmacionAlumno: 'aceptada', estadoUnion: 'confirmada' });
+
+      if (teacherEmail) {
+        await transporter.sendMail({
+          to: teacherEmail,
+          subject: 'Clase confirmada',
+          html: '<p>La familia ha confirmado la clase. Accede a la plataforma para más detalles.</p>'
+        });
+      }
+      if (studentEmail) {
+        await transporter.sendMail({
+          to: studentEmail,
+          subject: 'Clase confirmada',
+          html: '<p>Has confirmado la clase. Accede a la plataforma para más detalles.</p>'
+        });
+      }
+
+      return res.send('Respuesta registrada');
+    } else if (decision === 'reject') {
+      await docRef.update({ confirmacionAlumno: 'rechazada', estadoUnion: 'rechazada' });
+
+      if (teacherEmail) {
+        await transporter.sendMail({
+          to: teacherEmail,
+          subject: 'Clase rechazada',
+          html: '<p>La familia ha rechazado la clase.</p>'
+        });
+      }
+      if (studentEmail) {
+        await transporter.sendMail({
+          to: studentEmail,
+          subject: 'Clase rechazada',
+          html: '<p>Has rechazado la clase. Deberás solicitar una nueva si aún la necesitas.</p>'
+        });
+      }
+
+      return res.send('Respuesta registrada');
+    }
+
+    return res.status(400).send('Invalid decision');
+  } catch (err) {
+    functions.logger.error('studentEmailResponse error', err);
+    return res.status(500).send('error');
   }
 });
