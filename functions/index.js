@@ -30,3 +30,10 @@ setGlobalOptions({ maxInstances: 10 });
 //   logger.info("Hello logs!", {structuredData: true});
 //   response.send("Hello from Firebase!");
 // });
+const transporter = nodemailer.createTransport({
+service: "gmail",
+auth: {
+  user: "alvaro@studentproject.es",
+  pass: "ibmf zall dcqj vbuw",
+},
+});
