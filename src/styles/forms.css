@@ -1,0 +1,53 @@
+:root{
+  --green:#00A859; /* verde corporativo */
+  --bg-bubble:#E8F4FD;
+  --text:#333;
+  --radius:14px;
+  --transition:0.18s ease;
+  --label-small:0.75rem;
+  --label-normal:1rem;
+}
+
+.fl-field{
+  position:relative;
+  margin:1rem 0;
+}
+
+.fl-input{
+  width:100%;
+  padding:1.1rem 1rem 0.6rem;
+  border:1px solid transparent;
+  border-radius:var(--radius);
+  background:var(--bg-bubble);
+  font-size:1rem;
+  color:var(--text);
+  transition:border-color var(--transition), box-shadow var(--transition), background var(--transition);
+}
+
+.fl-input:focus{
+  outline:none;
+  border-color:var(--green);
+  box-shadow:0 0 0 3px color-mix(in srgb, var(--green) 20%, transparent);
+  background:#fff;
+}
+
+/* Label flotante */
+.fl-label{
+  position:absolute;
+  top:50%;
+  left:1rem;
+  transform:translateY(-50%);
+  pointer-events:none;
+  color:#6b6b6b;
+  font-size:var(--label-normal);
+  transition:transform var(--transition), font-size var(--transition), color var(--transition), top var(--transition);
+}
+
+/* cuando hay texto o foco, el label sube */
+.fl-input:focus + .fl-label,
+.fl-input:not(:placeholder-shown) + .fl-label{
+  top:0.45rem;
+  transform:none;
+  font-size:var(--label-small);
+  color:var(--green);
+}
