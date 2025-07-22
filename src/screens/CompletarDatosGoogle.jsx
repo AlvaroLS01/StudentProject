@@ -182,15 +182,15 @@ export default function CompletarDatosGoogle() {
         <Form onSubmit={handleSubmit}>
           <Field>
             <label>Nombre</label>
-            <input type="text" value={nombre} onChange={e => setNombre(e.target.value)} />
+            <input className="form-control" type="text" value={nombre} onChange={e => setNombre(e.target.value)} />
           </Field>
           <Field>
             <label>Apellidos</label>
-            <input type="text" value={apellido} onChange={e => setApellido(e.target.value)} />
+            <input className="form-control" type="text" value={apellido} onChange={e => setApellido(e.target.value)} />
           </Field>
           <Field>
             <label>Teléfono</label>
-            <input
+            <input className="form-control"
               type="tel"
               value={telefono}
               onChange={e => {
@@ -201,7 +201,7 @@ export default function CompletarDatosGoogle() {
           </Field>
           <Field>
             <label>Repite Teléfono</label>
-            <input
+            <input className="form-control"
               type="tel"
               value={confirmTelefono}
               onChange={e => {
@@ -213,7 +213,7 @@ export default function CompletarDatosGoogle() {
           </Field>
           <Field>
             <label>Ciudad</label>
-            <select value={ciudad} onChange={e => setCiudad(e.target.value)}>
+            <select className="form-control" value={ciudad} onChange={e => setCiudad(e.target.value)}>
               <option value="">Selecciona ciudad</option>
               {cities.map(c => (
                 <option key={c} value={c}>{c}</option>
@@ -223,7 +223,7 @@ export default function CompletarDatosGoogle() {
           {rol !== 'profesor' && (
             <Field>
               <label>Curso</label>
-              <select value={curso} onChange={e => setCurso(e.target.value)}>
+              <select className="form-control" value={curso} onChange={e => setCurso(e.target.value)}>
                 <option value="">Selecciona curso</option>
                 {cursosGrouped.map(({group, options}) => (
                   <optgroup key={group} label={group}>
@@ -236,18 +236,18 @@ export default function CompletarDatosGoogle() {
           {rol === 'alumno' && (
             <Field>
               <label>Fecha de nacimiento</label>
-              <input type="date" value={fechaNac} onChange={e => setFechaNac(e.target.value)} />
+              <input className="form-control" type="date" value={fechaNac} onChange={e => setFechaNac(e.target.value)} />
             </Field>
           )}
           {rol === 'padre' && (
             <>
               <Field>
                 <label>Nombre del hijo</label>
-                <input type="text" value={nombreHijo} onChange={e => setNombreHijo(e.target.value)} />
+                <input className="form-control" type="text" value={nombreHijo} onChange={e => setNombreHijo(e.target.value)} />
               </Field>
               <Field>
                 <label>Fecha nacimiento del hijo</label>
-                <input type="date" value={fechaNacHijo} onChange={e => setFechaNacHijo(e.target.value)} />
+                <input className="form-control" type="date" value={fechaNacHijo} onChange={e => setFechaNacHijo(e.target.value)} />
               </Field>
             </>
           )}

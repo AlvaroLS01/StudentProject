@@ -584,7 +584,7 @@ export default function Perfil() {
                       placeholder="Tiempo estudiando"
                     />
                     <label style={{ display: 'block', marginTop: '0.5rem' }}>
-                      <input
+                      <input className="form-control"
                         type="checkbox"
                         checked={formData.careerFinished}
                         onChange={e =>

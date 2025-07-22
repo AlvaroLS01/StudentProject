@@ -595,7 +595,7 @@ export default function NuevaClase() {
                       setErrors(prev => ({ ...prev, asignaturas: false }));
                     }}>
                       <label style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                        <input type="checkbox" checked={asignaturas.includes(a)} readOnly /> {a}
+                        <input className="form-control" type="checkbox" checked={asignaturas.includes(a)} readOnly /> {a}
                       </label>
                     </DropdownItem>
                   ))}
@@ -645,7 +645,7 @@ export default function NuevaClase() {
             </label>
             <div>
               <label>
-                <input
+                <input className="form-control"
                   type="radio"
                   name="tipoClase"
                   value="individual"
@@ -654,7 +654,7 @@ export default function NuevaClase() {
                 /> Individual
               </label>{' '}
               <label>
-                <input
+                <input className="form-control"
                   type="radio"
                   name="tipoClase"
                   value="doble"
@@ -670,7 +670,7 @@ export default function NuevaClase() {
             <label>Modalidad *</label>
             <div>
               <label>
-                <input
+                <input className="form-control"
                   type="radio"
                   name="modalidad"
                   value="online"
@@ -679,7 +679,7 @@ export default function NuevaClase() {
                 /> Online
               </label>{' '}
               <label>
-                <input
+                <input className="form-control"
                   type="radio"
                   name="modalidad"
                   value="presencial"
@@ -716,7 +716,7 @@ export default function NuevaClase() {
           {modalidad === 'presencial' && (
             <Field>
               <label>Zona / Barrio</label>
-              <input
+              <input className="form-control"
                 value={zona}
                 onChange={e => setZona(e.target.value)}
                 placeholder="Centro, Norte..."
@@ -736,19 +736,19 @@ export default function NuevaClase() {
               </InfoWrapper>
             </label>
             <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-              <input
+              <input className="form-control"
                 type="date"
                 value={startDate}
                 onChange={e => { setStartDate(e.target.value); setErrors(prev => ({ ...prev, fechas:false })); }}
               />
-              <input
+              <input className="form-control"
                 type="date"
                 value={endDate}
                 onChange={e => { setEndDate(e.target.value); setErrors(prev => ({ ...prev, fechas:false })); }}
                 disabled={noEndDate}
               />
               <label style={{ display: 'flex', alignItems: 'center', margin: 0 }}>
-                <input
+                <input className="form-control"
                   type="checkbox"
                   checked={noEndDate}
                   onChange={e => handleNoEndDateChange(e.target.checked)}
@@ -770,7 +770,7 @@ export default function NuevaClase() {
                 </Tooltip>
               </InfoWrapper>
             </label>
-            <input
+            <input className="form-control"
               type="number"
               min="1"
               step="1"
@@ -817,7 +817,7 @@ export default function NuevaClase() {
           {/* Notas adicionales */}
           <Field style={{ gridColumn: '1 / -1' }}>
             <label>Notas adicionales</label>
-            <textarea
+            <textarea className="form-control"
               value={notas}
               onChange={e => setNotas(e.target.value)}
               placeholder="Algo que deba saber el profesor..."

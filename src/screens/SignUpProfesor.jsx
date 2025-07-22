@@ -319,7 +319,7 @@ export default function SignUpProfesor() {
         <FormGrid>
           <Field>
             <label>E-mail</label>
-          <input
+          <input className="form-control"
             type="email"
             value={email}
             onChange={e => {
@@ -332,7 +332,7 @@ export default function SignUpProfesor() {
         </Field>
           <Field>
             <label>Teléfono</label>
-            <input
+            <input className="form-control"
               type="tel"
               value={telefono}
               onChange={e => {
@@ -344,7 +344,7 @@ export default function SignUpProfesor() {
           </Field>
           <Field>
             <label>Repite Teléfono</label>
-            <input
+            <input className="form-control"
               type="tel"
               value={confirmTelefono}
               onChange={e => {
@@ -357,7 +357,7 @@ export default function SignUpProfesor() {
           </Field>
           <Field>
             <label>Contraseña</label>
-            <input
+            <input className="form-control"
               type="password"
               value={password}
               onChange={e => setPassword(e.target.value)}
@@ -366,7 +366,7 @@ export default function SignUpProfesor() {
           </Field>
           <Field>
             <label>Repite Contraseña</label>
-            <input
+            <input className="form-control"
               type="password"
               value={confirmPassword}
               onChange={e => setConfirm(e.target.value)}
@@ -375,7 +375,7 @@ export default function SignUpProfesor() {
           </Field>
           <Field>
             <label>Nombre</label>
-            <input
+            <input className="form-control"
               type="text"
               value={nombre}
               onChange={e => setNombre(e.target.value)}
@@ -384,7 +384,7 @@ export default function SignUpProfesor() {
           </Field>
           <Field>
             <label>Apellidos</label>
-            <input
+            <input className="form-control"
               type="text"
               value={apellido}
               onChange={e => setApellido(e.target.value)}

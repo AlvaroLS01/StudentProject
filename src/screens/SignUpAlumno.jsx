@@ -405,7 +405,7 @@ export default function SignUpAlumno() {
         <FormGrid>
           <Field>
             <label>E-mail</label>
-          <input
+          <input className="form-control"
             type="email"
             value={email}
             onChange={e => {
@@ -418,7 +418,7 @@ export default function SignUpAlumno() {
         </Field>
           <Field>
             <label>Contraseña</label>
-            <input
+            <input className="form-control"
               type="password"
               value={password}
               onChange={e => setPassword(e.target.value)}
@@ -427,7 +427,7 @@ export default function SignUpAlumno() {
           </Field>
           <Field>
             <label>Repite Contraseña</label>
-            <input
+            <input className="form-control"
               type="password"
               value={confirmPwd}
               onChange={e => setConfirmPwd(e.target.value)}
@@ -436,7 +436,7 @@ export default function SignUpAlumno() {
           </Field>
           <Field>
             <label>Nombre</label>
-            <input
+            <input className="form-control"
               type="text"
               value={nombre}
               onChange={e => setNombre(e.target.value)}
@@ -445,7 +445,7 @@ export default function SignUpAlumno() {
           </Field>
           <Field>
             <label>Apellidos</label>
-            <input
+            <input className="form-control"
               type="text"
               value={apellido}
               onChange={e => setApellido(e.target.value)}
@@ -454,7 +454,7 @@ export default function SignUpAlumno() {
           </Field>
           <Field>
             <label>Teléfono</label>
-            <input
+            <input className="form-control"
               type="tel"
               value={telefono}
               onChange={e => {
@@ -466,7 +466,7 @@ export default function SignUpAlumno() {
           </Field>
           <Field>
             <label>Repite Teléfono</label>
-            <input
+            <input className="form-control"
               type="tel"
               value={confirmTelefono}
               onChange={e => {
@@ -528,7 +528,7 @@ export default function SignUpAlumno() {
           {rolUser === 'alumno' ? (
             <Field style={{gridColumn:'1 / -1'}}>
               <label>Fecha de Nacimiento</label>
-              <input
+              <input className="form-control"
                 type="date"
                 value={fechaNac}
                 onChange={e=>setFechaNac(e.target.value)}
@@ -538,7 +538,7 @@ export default function SignUpAlumno() {
             <>
               <Field>
                 <label>Nombre del Hijo</label>
-                <input
+                <input className="form-control"
                   type="text"
                   value={nombreHijo}
                   onChange={e=>setNombreHijo(e.target.value)}
@@ -547,7 +547,7 @@ export default function SignUpAlumno() {
               </Field>
               <Field>
                 <label>Fecha Nacimiento del Hijo</label>
-                <input
+                <input className="form-control"
                   type="date"
                   value={fechaNacHijo}
                   onChange={e=>setFechaNacHijo(e.target.value)}
