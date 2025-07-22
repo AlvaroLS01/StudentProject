@@ -114,5 +114,18 @@ functionsV1.auth.user().onCreate(async (user) => {
 });
 ```
 
-The transporter is configured with the account `alvaro@studentproject.es`. Remember to deploy the functions after any change with `npm run deploy` in the `functions` folder.
+The transporter now reads its credentials from the environment variables `EMAIL_USER` and `EMAIL_PASS`. Set these using `firebase functions:config:set` before deploying:
+
+```
+firebase functions:config:set email.user="yourEmail" email.pass="yourPassword"
+```
+
+For local development with the Emulator Suite, create a `.env` file inside the `functions` directory containing the same variables:
+
+```
+EMAIL_USER=yourEmail
+EMAIL_PASS=yourPassword
+```
+
+Remember to deploy the functions after any change with `npm run deploy` in the `functions` folder.
 
