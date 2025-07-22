@@ -1,4 +1,5 @@
 const functions = require('firebase-functions');
+const functionsV1 = require('firebase-functions/v1');
 const logger = require('firebase-functions/logger');
 const nodemailer = require('nodemailer');
 
@@ -12,7 +13,7 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-exports.sendWelcomeEmail = functions.auth.user().onCreate(async (user) => {
+exports.sendWelcomeEmail = functionsV1.auth.user().onCreate(async (user) => {
   const { email, displayName } = user;
   const mailOptions = {
     to: email,
