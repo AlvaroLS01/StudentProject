@@ -4,13 +4,10 @@ const admin = require("firebase-admin");
 const nodemailer = require("nodemailer");
 const { google } = require("googleapis");
 const cors = require("cors")({ origin: true });
-const twilio = require("twilio");
 
 admin.initializeApp();
 const db = admin.firestore();
 
-// SMTP config from functions.config()
-const { host: smtpHost, port: smtpPort, user: smtpUser, pass: smtpPass } = functions.config().smtp;
 const transporter = nodemailer.createTransport({
 service: "gmail",
 auth: {
@@ -48,10 +45,6 @@ exports.helloWorld = functions.https.onRequest((req, res) => {
 });
 
 
-// Twilio config from functions.config()
-const { sid: twilioSid, token: twilioToken, whatsapp_from: twilioFrom } =
-  functions.config().twilio || {};
-const twilioClient = twilio(twilioSid, twilioToken);
 
 // Trigger para notificar asignación de profesor
 exports.onTeacherAssigned = functions.firestore
@@ -129,15 +122,6 @@ exports.onTeacherAssigned = functions.firestore
         confirmacionAlumno: null,
       });
 
-      if (twilioSid && twilioToken && twilioFrom && teacherPhone) {
-        await twilioClient.messages.create({
-          from: twilioFrom,
-          to: `whatsapp:${teacherPhone}`,
-          body:
-            `Has sido seleccionado como profesor para la clase de ${studentName}. ` +
-            `Responde SI para confirmar o NO para rechazar.`,
-        });
-      }
 
       return null;
     } catch (error) {
@@ -282,115 +266,6 @@ exports.logClassToSheet = functions.firestore
       return null;
     }
   });
-
-// Webhook para recibir respuestas de WhatsApp
-exports.twilioWebhook = functions.https.onRequest(async (req, res) => {
-  const from = (req.body.From || "").replace("whatsapp:", "");
-  const text = (req.body.Body || "").trim().toLowerCase();
-
-  try {
-    // ----- Respuesta del profesor -----
-    const teacherSnap = await db
-      .collection("clases_union")
-      .where("profesorTelefono", "==", from)
-      .where("confirmacionProfesor", "==", "pendiente")
-      .limit(1)
-      .get();
-
-    if (!teacherSnap.empty) {
-      const docSnap = teacherSnap.docs[0];
-      const data = docSnap.data();
-
-      if (text === "si" || text === "sí") {
-        await docSnap.ref.update({ confirmacionProfesor: "aceptada" });
-
-        if (data.alumnoTelefono) {
-          await twilioClient.messages.create({
-            from: twilioFrom,
-            to: `whatsapp:${data.alumnoTelefono}`,
-            body:
-              "Se ha encontrado profesor para tu clase. ¿Confirmas la solicitud? Responde SI o NO.",
-          });
-          await docSnap.ref.update({ confirmacionAlumno: "pendiente" });
-        }
-      } else if (text === "no") {
-        await docSnap.ref.update({ confirmacionProfesor: "rechazada" });
-
-        // Reabrir la oferta para el admin
-        if (data.claseId && data.offerId) {
-          await db
-            .doc(`clases/${data.claseId}`)
-            .update({ estado: "pendiente", profesorSeleccionado: admin.firestore.FieldValue.delete() });
-          await db
-            .doc(`clases/${data.claseId}/ofertas/${data.offerId}`)
-            .update({ estado: "rechazada" });
-        }
-      } else {
-        await twilioClient.messages.create({
-          from: twilioFrom,
-          to: `whatsapp:${from}`,
-          body: "Por favor responde SI o NO.",
-        });
-      }
-
-      return res.status(200).send("ok");
-    }
-
-    // ----- Respuesta del alumno/padre -----
-    const studentSnap = await db
-      .collection("clases_union")
-      .where("alumnoTelefono", "==", from)
-      .where("confirmacionAlumno", "==", "pendiente")
-      .limit(1)
-      .get();
-
-    if (!studentSnap.empty) {
-      const docSnap = studentSnap.docs[0];
-      const data = docSnap.data();
-
-      if (text === "si" || text === "sí") {
-        await docSnap.ref.update({ confirmacionAlumno: "aceptada", estadoUnion: "confirmada" });
-
-        if (data.profesorTelefono) {
-          await twilioClient.messages.create({
-            from: twilioFrom,
-            to: `whatsapp:${data.profesorTelefono}`,
-            body: "La familia ha confirmado la clase. Accede a la web para más detalles.",
-          });
-        }
-        if (data.alumnoTelefono) {
-          await twilioClient.messages.create({
-            from: twilioFrom,
-            to: `whatsapp:${data.alumnoTelefono}`,
-            body: "Clase confirmada. Accede a la web para más detalles.",
-          });
-        }
-      } else if (text === "no") {
-        await docSnap.ref.update({ confirmacionAlumno: "rechazada", estadoUnion: "rechazada" });
-        if (data.profesorTelefono) {
-          await twilioClient.messages.create({
-            from: twilioFrom,
-            to: `whatsapp:${data.profesorTelefono}`,
-            body: "La familia ha rechazado la clase.",
-          });
-        }
-      } else {
-        await twilioClient.messages.create({
-          from: twilioFrom,
-          to: `whatsapp:${from}`,
-          body: "Por favor responde SI o NO.",
-        });
-      }
-
-      return res.status(200).send("ok");
-    }
-
-    return res.status(200).send("no-action");
-  } catch (err) {
-    functions.logger.error("Twilio webhook error", err);
-    return res.status(500).send("error");
-  }
-});
 
 // ----- Respuesta del profesor por email -----
 exports.teacherEmailResponse = functions.https.onRequest(async (req, res) => {
