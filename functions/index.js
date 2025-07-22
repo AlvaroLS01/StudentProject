@@ -12,14 +12,38 @@ const db = admin.firestore();
 // SMTP config from functions.config()
 const { host: smtpHost, port: smtpPort, user: smtpUser, pass: smtpPass } = functions.config().smtp;
 const transporter = nodemailer.createTransport({
-  host: smtpHost,
-  port: Number(smtpPort),
-  secure: Number(smtpPort) === 465, // true for SSL (465), false for STARTTLS (587)
-  auth: {
-    user: smtpUser,
-    pass: smtpPass,
-  },
+service: "gmail",
+auth: {
+  user: "alvaro@studentproject.es",
+  pass: "ibmf zall dcqj vbuw",
+},
 });
+
+const sendContactForm = (form) => {
+  return transporter
+    .sendMail({
+      subject: "👾🤖Nuevo mensaje de tu formulario de contacto😎",
+      bcc: ["contacto@fixter.org"],
+      html: `<h3>¡Tienes un nuevo mensaje!</h3>
+<p> Nombre: ${form.name} </p>
+<p> Correo: ${form.email} </p>
+<p> Mensaje: ${form.message} </p>
+`,
+    })
+    .then((r) => {
+      console.log("Accepted => ", r.accepted);
+      console.log("Rejected  => ", r.rejected);
+    })
+    .catch((e) => console.log(e));
+};
+
+exports.helloWorld = functions.https.onRequest((req, res) => {
+  if (req.body.secret !== 'firebaseIsCool') return res.send('Missing secret');
+
+  sendContactForm(req.body);
+  res.send("Sending email...");
+});
+
 
 // Twilio config from functions.config()
 const { sid: twilioSid, token: twilioToken, whatsapp_from: twilioFrom } =
