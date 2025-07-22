@@ -404,77 +404,98 @@ export default function SignUpAlumno() {
 
         <FormGrid>
           <Field>
-            <label>E-mail</label>
-          <input className="form-control"
-            type="email"
-            value={email}
-            onChange={e => {
-              setEmail(e.target.value);
-              setEmailError('');
-            }}
-            placeholder="tucorreo@ejemplo.com"
-          />
-          {emailError && <ErrorText>{emailError}</ErrorText>}
-        </Field>
-          <Field>
-            <label>Contraseña</label>
-            <input className="form-control"
-              type="password"
-              value={password}
-              onChange={e => setPassword(e.target.value)}
-              placeholder="Contraseña"
-            />
+            <div className="fl-field">
+              <input
+                className="form-control fl-input"
+                type="email"
+                value={email}
+                onChange={e => {
+                  setEmail(e.target.value);
+                  setEmailError('');
+                }}
+                placeholder=" "
+              />
+              <label className="fl-label">E-mail</label>
+            </div>
+            {emailError && <ErrorText>{emailError}</ErrorText>}
           </Field>
           <Field>
-            <label>Repite Contraseña</label>
-            <input className="form-control"
-              type="password"
-              value={confirmPwd}
-              onChange={e => setConfirmPwd(e.target.value)}
-              placeholder="Repite contraseña"
-            />
+            <div className="fl-field">
+              <input
+                className="form-control fl-input"
+                type="password"
+                value={password}
+                onChange={e => setPassword(e.target.value)}
+                placeholder=" "
+              />
+              <label className="fl-label">Contraseña</label>
+            </div>
           </Field>
           <Field>
-            <label>Nombre</label>
-            <input className="form-control"
-              type="text"
-              value={nombre}
-              onChange={e => setNombre(e.target.value)}
-              placeholder="Tu nombre"
-            />
+            <div className="fl-field">
+              <input
+                className="form-control fl-input"
+                type="password"
+                value={confirmPwd}
+                onChange={e => setConfirmPwd(e.target.value)}
+                placeholder=" "
+              />
+              <label className="fl-label">Repite Contraseña</label>
+            </div>
           </Field>
           <Field>
-            <label>Apellidos</label>
-            <input className="form-control"
-              type="text"
-              value={apellido}
-              onChange={e => setApellido(e.target.value)}
-              placeholder="Tus apellidos"
-            />
+            <div className="fl-field">
+              <input
+                className="form-control fl-input"
+                type="text"
+                value={nombre}
+                onChange={e => setNombre(e.target.value)}
+                placeholder=" "
+              />
+              <label className="fl-label">Nombre</label>
+            </div>
           </Field>
           <Field>
-            <label>Teléfono</label>
-            <input className="form-control"
-              type="tel"
-              value={telefono}
-              onChange={e => {
-                setTelefono(e.target.value);
-                setTelefonoError('');
-              }}
-              placeholder="Ej. +34 600 123 456"
-            />
+            <div className="fl-field">
+              <input
+                className="form-control fl-input"
+                type="text"
+                value={apellido}
+                onChange={e => setApellido(e.target.value)}
+                placeholder=" "
+              />
+              <label className="fl-label">Apellidos</label>
+            </div>
           </Field>
           <Field>
-            <label>Repite Teléfono</label>
-            <input className="form-control"
-              type="tel"
-              value={confirmTelefono}
-              onChange={e => {
-                setConfirmTelefono(e.target.value);
-                setTelefonoError('');
-              }}
-              placeholder="Confirma teléfono"
-            />
+            <div className="fl-field">
+              <input
+                className="form-control fl-input"
+                type="tel"
+                value={telefono}
+                onChange={e => {
+                  setTelefono(e.target.value);
+                  setTelefonoError('');
+                }}
+                placeholder=" "
+              />
+              <label className="fl-label">Teléfono</label>
+            </div>
+          </Field>
+          <Field>
+            <div className="fl-field">
+              <input
+                className="form-control fl-input"
+                type="tel"
+                value={confirmTelefono}
+                onChange={e => {
+                  setConfirmTelefono(e.target.value);
+                  setTelefonoError('');
+                }}
+                placeholder=" "
+              />
+              <label className="fl-label">Repite Teléfono</label>
+            </div>
             {telefonoError && <ErrorText>{telefonoError}</ErrorText>}
           </Field>
 
@@ -527,31 +548,42 @@ export default function SignUpAlumno() {
 
           {rolUser === 'alumno' ? (
             <Field style={{gridColumn:'1 / -1'}}>
-              <label>Fecha de Nacimiento</label>
-              <input className="form-control"
-                type="date"
-                value={fechaNac}
-                onChange={e=>setFechaNac(e.target.value)}
-              />
+              <div className="fl-field">
+                <input
+                  className="form-control fl-input"
+                  type="date"
+                  value={fechaNac}
+                  onChange={e=>setFechaNac(e.target.value)}
+                  placeholder=" "
+                />
+                <label className="fl-label">Fecha de Nacimiento</label>
+              </div>
             </Field>
           ) : (
             <>
               <Field>
-                <label>Nombre del Hijo</label>
-                <input className="form-control"
-                  type="text"
-                  value={nombreHijo}
-                  onChange={e=>setNombreHijo(e.target.value)}
-                  placeholder="Nombre completo"
-                />
+                <div className="fl-field">
+                  <input
+                    className="form-control fl-input"
+                    type="text"
+                    value={nombreHijo}
+                    onChange={e=>setNombreHijo(e.target.value)}
+                    placeholder=" "
+                  />
+                  <label className="fl-label">Nombre del Hijo</label>
+                </div>
               </Field>
               <Field>
-                <label>Fecha Nacimiento del Hijo</label>
-                <input className="form-control"
-                  type="date"
-                  value={fechaNacHijo}
-                  onChange={e=>setFechaNacHijo(e.target.value)}
-                />
+                <div className="fl-field">
+                  <input
+                    className="form-control fl-input"
+                    type="date"
+                    value={fechaNacHijo}
+                    onChange={e=>setFechaNacHijo(e.target.value)}
+                    placeholder=" "
+                  />
+                  <label className="fl-label">Fecha Nacimiento del Hijo</label>
+                </div>
               </Field>
               <p style={{gridColumn: '1 / -1', fontSize:'0.85rem', color:'#555'}}>
                 Podrás añadir más hijos desde la pestaña "Mi cuenta".

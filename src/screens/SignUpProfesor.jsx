@@ -318,78 +318,99 @@ export default function SignUpProfesor() {
         <Subtitle>¡Empieza hoy a compartir tu pasión por el conocimiento y transforma vidas!</Subtitle>
         <FormGrid>
           <Field>
-            <label>E-mail</label>
-          <input className="form-control"
-            type="email"
-            value={email}
-            onChange={e => {
-              setEmail(e.target.value);
-              setEmailError('');
-            }}
-            placeholder="tucorreo@ejemplo.com"
-          />
-          {emailError && <ErrorText>{emailError}</ErrorText>}
-        </Field>
-          <Field>
-            <label>Teléfono</label>
-            <input className="form-control"
-              type="tel"
-              value={telefono}
-              onChange={e => {
-                setTelefono(e.target.value);
-                setTelefonoError('');
-              }}
-              placeholder="Ej. +34 600 123 456"
-            />
+            <div className="fl-field">
+              <input
+                className="form-control fl-input"
+                type="email"
+                value={email}
+                onChange={e => {
+                  setEmail(e.target.value);
+                  setEmailError('');
+                }}
+                placeholder=" "
+              />
+              <label className="fl-label">E-mail</label>
+            </div>
+            {emailError && <ErrorText>{emailError}</ErrorText>}
           </Field>
           <Field>
-            <label>Repite Teléfono</label>
-            <input className="form-control"
-              type="tel"
-              value={confirmTelefono}
-              onChange={e => {
-                setConfirmTelefono(e.target.value);
-                setTelefonoError('');
-              }}
-              placeholder="Confirma teléfono"
-            />
+            <div className="fl-field">
+              <input
+                className="form-control fl-input"
+                type="tel"
+                value={telefono}
+                onChange={e => {
+                  setTelefono(e.target.value);
+                  setTelefonoError('');
+                }}
+                placeholder=" "
+              />
+              <label className="fl-label">Teléfono</label>
+            </div>
+          </Field>
+          <Field>
+            <div className="fl-field">
+              <input
+                className="form-control fl-input"
+                type="tel"
+                value={confirmTelefono}
+                onChange={e => {
+                  setConfirmTelefono(e.target.value);
+                  setTelefonoError('');
+                }}
+                placeholder=" "
+              />
+              <label className="fl-label">Repite Teléfono</label>
+            </div>
             {telefonoError && <ErrorText>{telefonoError}</ErrorText>}
           </Field>
           <Field>
-            <label>Contraseña</label>
-            <input className="form-control"
-              type="password"
-              value={password}
-              onChange={e => setPassword(e.target.value)}
-              placeholder="Contraseña"
-            />
+            <div className="fl-field">
+              <input
+                className="form-control fl-input"
+                type="password"
+                value={password}
+                onChange={e => setPassword(e.target.value)}
+                placeholder=" "
+              />
+              <label className="fl-label">Contraseña</label>
+            </div>
           </Field>
           <Field>
-            <label>Repite Contraseña</label>
-            <input className="form-control"
-              type="password"
-              value={confirmPassword}
-              onChange={e => setConfirm(e.target.value)}
-              placeholder="Repite la contraseña"
-            />
+            <div className="fl-field">
+              <input
+                className="form-control fl-input"
+                type="password"
+                value={confirmPassword}
+                onChange={e => setConfirm(e.target.value)}
+                placeholder=" "
+              />
+              <label className="fl-label">Repite Contraseña</label>
+            </div>
           </Field>
           <Field>
-            <label>Nombre</label>
-            <input className="form-control"
-              type="text"
-              value={nombre}
-              onChange={e => setNombre(e.target.value)}
-              placeholder="Tu nombre"
-            />
+            <div className="fl-field">
+              <input
+                className="form-control fl-input"
+                type="text"
+                value={nombre}
+                onChange={e => setNombre(e.target.value)}
+                placeholder=" "
+              />
+              <label className="fl-label">Nombre</label>
+            </div>
           </Field>
           <Field>
-            <label>Apellidos</label>
-            <input className="form-control"
-              type="text"
-              value={apellido}
-              onChange={e => setApellido(e.target.value)}
-              placeholder="Tus apellidos"
-            />
+            <div className="fl-field">
+              <input
+                className="form-control fl-input"
+                type="text"
+                value={apellido}
+                onChange={e => setApellido(e.target.value)}
+                placeholder=" "
+              />
+              <label className="fl-label">Apellidos</label>
+            </div>
           </Field>
           <Field style={{ gridColumn: '1 / -1' }} ref={ref}>
             <label>Ciudad</label>
