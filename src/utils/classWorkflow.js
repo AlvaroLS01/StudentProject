@@ -12,14 +12,14 @@ export async function registerPendingClass({ classId, offer, alumnoId, alumnoNom
     profesorNombre: offer.profesorNombre,
     padreNombre: padreNombre || null,
     hijoId: hijoId || null,
-    estado: 'pendiente_profesor',
+    estado: 'espera_profesor',
     createdAt: serverTimestamp(),
   });
 }
 
 export async function acceptClassByTeacher(recordId, studentEmail, studentName) {
   const ref = doc(db, 'registro_clases', recordId);
-  await updateDoc(ref, { estado: 'pendiente_alumno', acceptedByTeacher: serverTimestamp() });
+  await updateDoc(ref, { estado: 'espera_alumno', acceptedByTeacher: serverTimestamp() });
   await sendAssignmentEmails({
     studentEmail,
     studentName,
@@ -39,6 +39,7 @@ export async function acceptClassByStudent(recordId, data) {
     profesorNombre: data.profesorNombre,
     padreNombre: data.padreNombre || null,
     hijoId: data.hijoId || null,
+    estado: 'clase_formada',
     createdAt: serverTimestamp(),
   });
 }

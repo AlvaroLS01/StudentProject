@@ -70,7 +70,7 @@ export default function SolicitudesAsignacion() {
     setProcessing(prev => new Set(prev).add(rec.id));
     try {
       await acceptClassByTeacher(rec.id, rec.studentEmail, rec.alumnoNombre);
-      setRecords(rs => rs.map(r => r.id === rec.id ? { ...r, estado: 'pendiente_alumno' } : r));
+      setRecords(rs => rs.map(r => r.id === rec.id ? { ...r, estado: 'espera_alumno' } : r));
     } finally {
       setProcessing(prev => { const s = new Set(prev); s.delete(rec.id); return s; });
     }
@@ -99,9 +99,9 @@ export default function SolicitudesAsignacion() {
             <InfoGrid>
               <div><strong>Alumno:</strong> {r.alumnoNombre}</div>
               <div><strong>Asignaturas:</strong> {r.classInfo?.asignaturas ? r.classInfo.asignaturas.join(', ') : r.classInfo?.asignatura}</div>
-              <div><strong>Estado:</strong> {r.estado === 'pendiente_profesor' ? 'Pendiente tu aceptación' : 'Esperando al alumno'}</div>
+              <div><strong>Estado:</strong> {r.estado === 'espera_profesor' ? 'Pendiente tu aceptación' : 'Esperando al alumno'}</div>
             </InfoGrid>
-            {r.estado === 'pendiente_profesor' && (
+            {r.estado === 'espera_profesor' && (
               <div>
                 <Button onClick={() => handleAccept(r)} disabled={processing.has(r.id)}>Aceptar</Button>{' '}
                 <CancelButton onClick={() => handleCancel(r)} disabled={processing.has(r.id)}>Cancelar</CancelButton>
