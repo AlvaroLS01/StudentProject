@@ -147,6 +147,28 @@ EMAIL_PASS=yourPassword
 ```
 
 Remember to deploy the functions after any change with `npm run deploy` in the `functions` folder.
+### Sending the welcome email with `node-server`
+
+Another option is to send the welcome message through the standalone server inside the `node-server` folder. After creating a user on the website, make a request to this server so the email is delivered automatically.
+
+1. Start the server:
+   ```bash
+   cd node-server
+   npm install
+   cp .env-example .env       # fill EMAIL_USER and EMAIL_PASS
+   npm start
+   ```
+   By default it listens on port `3001`.
+
+2. Once the Firebase user account has been created, call the `/send-email` endpoint:
+   ```javascript
+   await fetch('http://localhost:3001/send-email', {
+     method: 'POST',
+     headers: { 'Content-Type': 'application/json' },
+     body: JSON.stringify({ email: user.email, name: user.displayName })
+   });
+   ```
+   The server uses Nodemailer with the credentials from `.env` to send the welcome email.
 
 ## Firebase Emulator Suite
 
