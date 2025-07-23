@@ -354,7 +354,8 @@ export default function Clases() {
     if (processingIds.has(rec.id)) return;
     setProcessingIds(prev => new Set(prev).add(rec.id));
     try {
-      await acceptClassByStudent(rec.id, rec);
+      const emailUser = auth.currentUser ? auth.currentUser.email : '';
+      await acceptClassByStudent(rec.id, { ...rec, studentEmail: emailUser });
       setPendingAssignments(pa => pa.filter(r => r.id !== rec.id));
     } finally {
       setProcessingIds(prev => { const s = new Set(prev); s.delete(rec.id); return s; });
