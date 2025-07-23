@@ -42,6 +42,12 @@ export async function acceptClassByStudent(recordId, data) {
     estado: 'clase_formada',
     createdAt: serverTimestamp(),
   });
+  await sendAssignmentEmails({
+    studentEmail: data.studentEmail,
+    studentName: data.alumnoNombre,
+    teacherName: data.profesorNombre,
+    recipient: 'both',
+  });
 }
 
 export async function rejectPendingClass(recordId) {

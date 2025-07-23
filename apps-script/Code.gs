@@ -1,6 +1,7 @@
 const SHEET_NAME = 'CLASES';
 const TEACHERS_SHEET = 'PROFESORES';
 const STUDENTS_SHEET = 'ALUMNOS';
+const REGISTRY_SHEET = 'REGISTRO CLASES';
 
 function onOpen() {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
@@ -9,6 +10,7 @@ function onOpen() {
 
 function update() {
   fetchClasses();
+  fetchRegistroClases();
   fetchTeachers();
   fetchAlumnos();
   enviarCorreosPendientes();
@@ -35,8 +37,25 @@ function fetchClasses() {
     'TIPO DE CLASE',
     'PRECIO TOTAL PADRES',
     'PRECIO TOTAL PROFESOR',
-    'BENEFICIO'
+    'BENEFICIO',
+    'ESTADO'
   ];
+
+  var existingStatus = {};
+  var lastCol = sheet.getLastColumn();
+  if (lastCol > 0) {
+    var oldHeaders = sheet.getRange(1, 1, 1, lastCol).getValues()[0];
+    var idxId = oldHeaders.indexOf('ID DE ASIGNACIÓN');
+    var idxStatus = oldHeaders.indexOf('ESTADO');
+    if (idxId !== -1 && idxStatus !== -1) {
+      var oldRows = sheet.getRange(2, 1, sheet.getLastRow() - 1, lastCol).getValues();
+      for (var i = 0; i < oldRows.length; i++) {
+        var oldId = oldRows[i][idxId];
+        var oldSt = oldRows[i][idxStatus];
+        if (oldId) existingStatus[oldId] = oldSt;
+      }
+    }
+  }
 
   sheet.clear();
   setHeaders(sheet, headers);
@@ -93,6 +112,9 @@ function fetchClasses() {
       var precioProfesor = getNumber(af.precioTotalProfesor);
       var beneficio = precioPadres - precioProfesor;
 
+      var estadoReal = getString(f.estado) || getString(af.estado);
+      var savedStatus = existingStatus[a.name.split('/').pop()] || '';
+      var status = estadoReal;
       var row = [
         a.name.split('/').pop(),
         teacherName,
@@ -110,6 +132,19 @@ function fetchClasses() {
         precioProfesor,
         beneficio
       ];
+
+      if (estadoReal === 'clase_formada') {
+        if (savedStatus !== 'CLASE_FORMADA') {
+          if (studentEmail.indexOf('@') !== -1) {
+            GmailApp.sendEmail(studentEmail, 'Clase confirmada', 'Ya puedes ver tu clase en el panel de Mis Clases');
+          }
+          status = 'CLASE_FORMADA';
+        } else {
+          status = savedStatus;
+        }
+      }
+
+      row.push(status);
       rows.push(row);
     }
   }
@@ -362,6 +397,108 @@ function fetchAlumnos() {
     } else {
       rows.push([id, fullName, email, city, getString(d.curso), 'A', existingStatus[id] || 'PENDIENTE']);
     }
+  }
+
+  if (rows.length) {
+    sheet.getRange(2, 1, rows.length, headers.length).setValues(rows);
+  }
+}
+
+function fetchRegistroClases() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sheet = ss.getSheetByName(REGISTRY_SHEET) || ss.insertSheet(REGISTRY_SHEET);
+  var headers = [
+    'ID REGISTRO',
+    'NOMBRE PROFESOR',
+    'CORREO PROFESOR',
+    'NOMBRE ALUMNO',
+    'CORREO ALUMNO',
+    'ESTADO'
+  ];
+
+  var existingStatus = {};
+  var lastCol = sheet.getLastColumn();
+  if (lastCol > 0) {
+    var oldHeaders = sheet.getRange(1, 1, 1, lastCol).getValues()[0];
+    var idxId = oldHeaders.indexOf('ID REGISTRO');
+    var idxStatus = oldHeaders.indexOf('ESTADO');
+    if (idxId !== -1 && idxStatus !== -1) {
+      var oldRows = sheet.getRange(2, 1, sheet.getLastRow() - 1, lastCol).getValues();
+      for (var i = 0; i < oldRows.length; i++) {
+        var oldId = oldRows[i][idxId];
+        var oldSt = oldRows[i][idxStatus];
+        if (oldId) existingStatus[oldId] = oldSt;
+      }
+    }
+  }
+
+  sheet.clear();
+  setHeaders(sheet, headers);
+
+  var records = firestore.getDocuments('registro_clases');
+  var teacherCache = {};
+  var studentCache = {};
+  var rows = [];
+
+  for (var i = 0; i < records.length; i++) {
+    var r = records[i];
+    var id = r.name.split('/').pop();
+    var f = r.fields || {};
+
+    var teacherId = getString(f.profesorId);
+    if (teacherId && !teacherCache[teacherId]) {
+      var tdoc = getDocumentSafe('usuarios/' + teacherId);
+      teacherCache[teacherId] = tdoc ? tdoc.fields : {};
+    }
+    var teacher = teacherCache[teacherId] || {};
+    var teacherEmail = getString(teacher.email);
+    var teacherName = getString(f.profesorNombre) || (getString(teacher.nombre) + ' ' + getString(teacher.apellidos)).trim();
+
+    var studentId = getString(f.alumnoId);
+    if (studentId && !studentCache[studentId]) {
+      var sdoc = getDocumentSafe('usuarios/' + studentId);
+      studentCache[studentId] = sdoc ? sdoc.fields : {};
+    }
+    var student = studentCache[studentId] || {};
+    var studentEmail = getString(student.email);
+    var studentName = getString(f.alumnoNombre) || (getString(student.nombre) + ' ' + getString(student.apellidos)).trim();
+
+    var estado = getString(f.estado);
+    var status = estado;
+
+    var prev = existingStatus[id];
+    if (estado === 'espera_profesor') {
+      if (prev !== 'ENVIADO_A_PROFESOR') {
+        if (teacherEmail.indexOf('@') !== -1) {
+          GmailApp.sendEmail(teacherEmail, 'Nueva solicitud de clase', 'Tienes una nueva solicitud de ' + studentName);
+        }
+        status = 'ENVIADO_A_PROFESOR';
+      } else {
+        status = prev;
+      }
+    } else if (estado === 'espera_alumno') {
+      if (prev !== 'ENVIADO_A_ALUMNO') {
+        if (studentEmail.indexOf('@') !== -1) {
+          GmailApp.sendEmail(studentEmail, 'Tu profesor ha aceptado la clase', 'Confirma tu clase con ' + teacherName);
+        }
+        status = 'ENVIADO_A_ALUMNO';
+      } else {
+        status = prev;
+      }
+    } else if (estado === 'clase_formada') {
+      if (prev !== 'CLASE_FORMADA') {
+        var destinatarios = [];
+        if (studentEmail.indexOf('@') !== -1) destinatarios.push(studentEmail);
+        if (destinatarios.length) {
+          GmailApp.sendEmail(destinatarios.join(','), 'Clase confirmada', 'Ya puedes ver tu clase en el panel de Mis Clases');
+        }
+        status = 'CLASE_FORMADA';
+      } else {
+        status = prev;
+      }
+    }
+
+    rows.push([id, teacherName, teacherEmail, studentName, studentEmail, status]);
   }
 
   if (rows.length) {
