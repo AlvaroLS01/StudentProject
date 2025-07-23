@@ -244,10 +244,25 @@ function ensureSheet(ss, name, headers) {
 
 function ensureOnlySheets(ss, names) {
   var sheets = ss.getSheets();
+  var keepFound = false;
   for (var i = 0; i < sheets.length; i++) {
-    var name = sheets[i].getName();
-    if (names.indexOf(name) === -1) {
-      ss.deleteSheet(sheets[i]);
+    if (names.indexOf(sheets[i].getName()) !== -1) {
+      keepFound = true;
+      break;
+    }
+  }
+
+  if (!keepFound && sheets.length > 0) {
+    // Rename the first sheet so at least one allowed sheet exists
+    sheets[0].setName(names[0]);
+  }
+
+  sheets = ss.getSheets();
+  for (var i = 0; i < sheets.length; i++) {
+    var sheet = sheets[i];
+    var name = sheet.getName();
+    if (names.indexOf(name) === -1 && ss.getSheets().length > 1) {
+      ss.deleteSheet(sheet);
     }
   }
 }
