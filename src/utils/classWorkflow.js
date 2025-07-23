@@ -42,3 +42,8 @@ export async function acceptClassByStudent(recordId, data) {
     createdAt: serverTimestamp(),
   });
 }
+
+export async function rejectPendingClass(recordId) {
+  const ref = doc(db, 'registro_clases', recordId);
+  await deleteDoc(ref);
+}

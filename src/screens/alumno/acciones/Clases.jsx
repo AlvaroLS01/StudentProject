@@ -20,6 +20,7 @@ import {
   doc,
   onSnapshot
 } from 'firebase/firestore';
+import { acceptClassByStudent, rejectPendingClass } from '../../../utils/classWorkflow';
 
 const fadeIn = keyframes`
   from { opacity: 0; transform: translateY(-10px); }
@@ -140,6 +141,7 @@ export default function Clases() {
 
   const [clases, setClases] = useState([]);
   const [solicitudes, setSolicitudes] = useState([]);
+  const [pendingAssignments, setPendingAssignments] = useState([]);
   const [sortBy, setSortBy] = useState('fecha');
   const [loading, setLoading] = useState(true);
   const [loadingReqs, setLoadingReqs] = useState(true);
@@ -215,6 +217,16 @@ export default function Clases() {
         data.push({ id: d.id, offers: offers.size, ...d.data() });
       }
       setSolicitudes(data);
+      // Load pending assignments awaiting student confirmation
+      let q2 = query(collection(db, 'registro_clases'), where('alumnoId', '==', u.uid), where('estado', '==', 'pendiente_alumno'));
+      if (selectedChild) {
+        q2 = query(collection(db, 'registro_clases'),
+                  where('alumnoId', '==', u.uid),
+                  where('hijoId', '==', selectedChild.id),
+                  where('estado', '==', 'pendiente_alumno'));
+      }
+      const snap2 = await getDocs(q2);
+      setPendingAssignments(snap2.docs.map(d => ({ id: d.id, ...d.data() })));
       setLoadingReqs(false);
     })();
   }, [selectedChild]);
@@ -338,6 +350,28 @@ export default function Clases() {
     }
   };
 
+  const acceptAssignment = async rec => {
+    if (processingIds.has(rec.id)) return;
+    setProcessingIds(prev => new Set(prev).add(rec.id));
+    try {
+      await acceptClassByStudent(rec.id, rec);
+      setPendingAssignments(pa => pa.filter(r => r.id !== rec.id));
+    } finally {
+      setProcessingIds(prev => { const s = new Set(prev); s.delete(rec.id); return s; });
+    }
+  };
+
+  const rejectAssignment = async rec => {
+    if (processingIds.has(rec.id)) return;
+    setProcessingIds(prev => new Set(prev).add(rec.id));
+    try {
+      await rejectPendingClass(rec.id);
+      setPendingAssignments(pa => pa.filter(r => r.id !== rec.id));
+    } finally {
+      setProcessingIds(prev => { const s = new Set(prev); s.delete(rec.id); return s; });
+    }
+  };
+
   const sortedClases = React.useMemo(() => {
     const arr = [...clases];
     arr.sort((a, b) => {
@@ -451,10 +485,27 @@ export default function Clases() {
             )}
           </>
         ) : (
-          solicitudes.length === 0 ? (
+          pendingAssignments.length === 0 && solicitudes.length === 0 ? (
             <p style={{ textAlign: 'center', color: '#666' }}>No tienes solicitudes.</p>
           ) : (
-            solicitudes.map(s => {
+            <>
+            {pendingAssignments.map(p => (
+              <Card key={p.id}>
+                <InfoGrid>
+                  <div>
+                    <Label>Profesor:</Label> <Value>{p.profesorNombre}</Value>
+                  </div>
+                  <div>
+                    <Label>Estado:</Label> <Value>Profesor aceptado</Value>
+                  </div>
+                </InfoGrid>
+                <div>
+                  <AcceptButton onClick={() => acceptAssignment(p)} disabled={processingIds.has(p.id)}>Aceptar</AcceptButton>{' '}
+                  <RejectButton onClick={() => rejectAssignment(p)} disabled={processingIds.has(p.id)}>Cancelar</RejectButton>
+                </div>
+              </Card>
+            ))
+            {solicitudes.map(s => {
               const estado = s.estado === 'pendiente'
                 ? (s.offers === 0 ? 'En búsqueda de profesor' : 'En selección de profesor')
                 : 'Profesor asignado';
@@ -483,6 +534,7 @@ export default function Clases() {
                 </Card>
               );
             })
+            </>
           )
         )}
       </Container>

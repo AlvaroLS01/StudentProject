@@ -7,6 +7,7 @@ import Ofertas                from './acciones/Ofertas';
 import ClasesProfesor         from './acciones/Clases';
 import CalendarioProfesor     from './acciones/Calendario';
 import MisAlumnos             from './acciones/MisAlumnos';
+import SolicitudesAsignacion  from './acciones/SolicitudesAsignacion';
 
 const Container = styled.div`
   display: flex;
@@ -87,6 +88,8 @@ export default function PanelProfesor() {
         return <Ofertas />;
       case 'clases':
         return <ClasesProfesor />;
+      case 'solicitudes':
+        return <SolicitudesAsignacion />;
       case 'calendario':
         return <CalendarioProfesor />;
       case 'misAlumnos':
@@ -115,6 +118,14 @@ export default function PanelProfesor() {
               onClick={() => setView('clases')}
             >
               Mis clases & Ofertas
+            </Button>
+          </MenuItem>
+          <MenuItem>
+            <Button
+              active={view === 'solicitudes'}
+              onClick={() => setView('solicitudes')}
+            >
+              Solicitudes
             </Button>
           </MenuItem>
           <MenuItem>
