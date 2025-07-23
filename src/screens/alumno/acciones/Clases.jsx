@@ -1,7 +1,7 @@
 // src/screens/alumno/acciones/Clases.jsx
 import React, { useEffect, useState } from 'react';
 import styled, { keyframes } from 'styled-components';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, Link } from 'react-router-dom';
 import { useChild } from '../../../ChildContext';
 import LoadingScreen from '../../../components/LoadingScreen';
 import Card from '../../../components/CommonCard';
@@ -492,17 +492,14 @@ export default function Clases() {
             <>
             {pendingAssignments.map(p => (
               <Card key={p.id}>
-                <InfoGrid>
-                  <div>
-                    <Label>Profesor:</Label> <Value>{p.profesorNombre}</Value>
-                  </div>
-                  <div>
-                    <Label>Estado:</Label> <Value>Profesor aceptado</Value>
-                  </div>
-                </InfoGrid>
+                <p>
+                  ¿Quieres aceptar la clase con{' '}
+                  <Link to={`/perfil/${p.profesorId}`}>{p.profesorNombre}</Link>
+                  ?
+                </p>
                 <div>
-                  <AcceptButton onClick={() => acceptAssignment(p)} disabled={processingIds.has(p.id)}>Aceptar</AcceptButton>{' '}
-                  <RejectButton onClick={() => rejectAssignment(p)} disabled={processingIds.has(p.id)}>Cancelar</RejectButton>
+                  <AcceptButton onClick={() => acceptAssignment(p)} disabled={processingIds.has(p.id)}>Confirmar</AcceptButton>{' '}
+                  <RejectButton onClick={() => rejectAssignment(p)} disabled={processingIds.has(p.id)}>Rechazar</RejectButton>
                 </div>
               </Card>
             ))}
