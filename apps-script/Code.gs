@@ -46,45 +46,121 @@ function update() {
   }
 
   var rowsToAppend = [];
-  var docs = firestore.query('clases_asignadas').where('estado', '==', 'aceptada').execute();
-  for (var j = 0; j < docs.length; j++) {
-    var d = docs[j];
-    var data = d.fields || d;
-    var assignId = d.name || d.id;
-    var unionId = d.path.split('/')[1];
 
-    var union = firestore.getDocument('clases_union/' + unionId);
-    var teacher = firestore.getDocument('usuarios/' + union.profesorId);
-    var student = firestore.getDocument('usuarios/' + union.alumnoId);
-    var classData = firestore.getDocument('clases/' + union.claseId);
+  var unions = firestore.getDocuments('clases_union');
+  var teacherCache = {};
+  var studentCache = {};
+  var classCache = {};
 
-    var row = [
-      assignId,
-      (union.profesorNombre || (teacher.nombre || '') + ' ' + (teacher.apellidos || '')).trim(),
-      teacher.email || '',
-      (union.padreNombre || union.alumnoNombre || ((student.nombre || '') + ' ' + (student.apellidos || '')).trim()),
-      student.email || '',
-      classData.curso || '',
-      data.asignatura || classData.asignatura || (classData.asignaturas || []).join(', '),
-      data.fecha || '',
-      data.duracion || '',
-      data.modalidad || '',
-      classData.ciudad || '',
-      classData.tipoClase || '',
-      data.precioTotalPadres || 0,
-      data.precioTotalProfesor || 0,
-      (data.precioTotalPadres || 0) - (data.precioTotalProfesor || 0)
-    ];
+  for (var i = 0; i < unions.length; i++) {
+    var u = unions[i];
+    var unionId = u.name.split('/').pop();
+    var uf = u.fields || {};
 
-    if (existingMap[assignId]) {
-      sheet.getRange(existingMap[assignId], 1, 1, row.length).setValues([row]);
-    } else {
-      rowsToAppend.push(row);
+    var teacherId = getString(uf.profesorId);
+    if (teacherId && !teacherCache[teacherId]) {
+      var tdoc = getDocumentSafe('usuarios/' + teacherId);
+      teacherCache[teacherId] = tdoc ? tdoc.fields : {};
+    }
+    var teacher = teacherCache[teacherId] || {};
+    var teacherName = getString(uf.profesorNombre) || (getString(teacher.nombre) + ' ' + getString(teacher.apellidos)).trim();
+    var teacherEmail = getString(teacher.email);
+
+    var studentId = getString(uf.alumnoId);
+    if (studentId && !studentCache[studentId]) {
+      var sdoc = getDocumentSafe('usuarios/' + studentId);
+      studentCache[studentId] = sdoc ? sdoc.fields : {};
+    }
+    var student = studentCache[studentId] || {};
+    var studentName = getString(uf.padreNombre) || getString(uf.alumnoNombre) || (getString(student.nombre) + ' ' + getString(student.apellidos)).trim();
+    var studentEmail = getString(student.email);
+
+    var classId = getString(uf.claseId);
+    if (classId && !classCache[classId]) {
+      var cdoc = getDocumentSafe('clases/' + classId);
+      classCache[classId] = cdoc ? cdoc.fields : {};
+    }
+    var classData = classCache[classId] || {};
+    var curso = getString(classData.curso);
+    var asignaturaDefault = getString(classData.asignatura) || (classData.asignaturas ? getArray(classData.asignaturas).join(', ') : '');
+    var tipoClase = getString(classData.tipoClase);
+    var ciudad = getString(classData.ciudad);
+
+    var assignments = firestore.getDocuments('clases_union/' + unionId + '/clases_asignadas');
+    for (var j = 0; j < assignments.length; j++) {
+      var a = assignments[j];
+      var af = a.fields || {};
+      if (getString(af.estado) !== 'aceptada') continue;
+
+      var asignatura = getString(af.asignatura) || asignaturaDefault;
+      var fecha = getString(af.fecha);
+      var duracion = getString(af.duracion);
+      var modalidad = getString(af.modalidad);
+      var localizacion = getString(af.localizacion) || ciudad;
+      var precioPadres = getNumber(af.precioTotalPadres);
+      var precioProfesor = getNumber(af.precioTotalProfesor);
+      var beneficio = precioPadres - precioProfesor;
+      var assignId = a.name.split('/').pop();
+
+      var row = [
+        assignId,
+        teacherName,
+        teacherEmail,
+        studentName,
+        studentEmail,
+        curso,
+        asignatura,
+        fecha,
+        duracion,
+        modalidad,
+        localizacion,
+        tipoClase,
+        precioPadres,
+        precioProfesor,
+        beneficio
+      ];
+
+      if (existingMap[assignId]) {
+        sheet.getRange(existingMap[assignId], 1, 1, row.length).setValues([row]);
+      } else {
+        rowsToAppend.push(row);
+      }
     }
   }
 
   if (rowsToAppend.length > 0) {
     sheet.getRange(sheet.getLastRow() + 1, 1, rowsToAppend.length, headers.length)
-         .setValues(rowsToAppend);
+      .setValues(rowsToAppend);
+  }
+}
+
+function getString(obj) {
+  if (!obj) return '';
+  if (obj.stringValue !== undefined) return obj.stringValue;
+  if (obj.integerValue !== undefined) return String(obj.integerValue);
+  if (obj.doubleValue !== undefined) return String(obj.doubleValue);
+  return '';
+}
+
+function getNumber(obj) {
+  if (!obj) return 0;
+  if (obj.integerValue !== undefined) return Number(obj.integerValue);
+  if (obj.doubleValue !== undefined) return Number(obj.doubleValue);
+  if (obj.stringValue !== undefined) return Number(obj.stringValue);
+  return 0;
+}
+
+function getArray(obj) {
+  if (!obj || !obj.arrayValue) return [];
+  var vals = obj.arrayValue.values || [];
+  return vals.map(function(v) { return getString(v); });
+}
+
+function getDocumentSafe(path) {
+  try {
+    return firestore.getDocument(path);
+  } catch (e) {
+    Logger.log('No se encontró el documento ' + path);
+    return null;
   }
 }
