@@ -1,32 +1,40 @@
-require("dotenv").config();
+require('dotenv').config();
 
-const express = require("express");
+const express = require('express');
+const nodemailer = require('nodemailer');
+
 const app = express();
+app.use(express.json());
 
-const methodOverride = require("method-override");
-app.use(methodOverride("_method"));
+const transporter = nodemailer.createTransport({
+  service: 'gmail',
+  auth: {
+    user: process.env.EMAIL_USER || 'alvaro@studentproject.es',
+    pass: process.env.EMAIL_PASS || 'zvet uxtn ocfd wvpj',
+  },
+});
 
-const layouts = require("express-ejs-layouts");
+app.post('/send-email', async (req, res) => {
+  const { email, name } = req.body;
 
-const path = require("path");
+  if (!email) {
+    return res.status(400).json({ error: 'Email requerido' });
+  }
 
-app.use(express.urlencoded({ extended: false }));
+  try {
+    await transporter.sendMail({
+      from: `"Student Project" <${process.env.EMAIL_USER || 'alvaro@studentproject.es'}>`,
+      to: email,
+      subject: 'Bienvenido a Student Project',
+      html: `<p>Hola ${name || 'usuario'}, bienvenido a nuestra plataforma.</p>`,
+    });
 
-app.use(express.static(path.join(__dirname, "public")));
-
-app.set("view engine", "ejs");
-app.set("views", path.join(__dirname, "src/views"));
-
-app.use(layouts);
-app.set("layout", "layouts/layout");
-
-const mainRouter = require("./src/routes/main.router");
-app.use(mainRouter);
-
-app.use("/categorias", require("./src/routes/categorias.router"));
-app.use("/productos", require("./src/routes/productos.router"));
-app.use("/contacto", require("./src/routes/contacto.router"));
+    res.json({ message: 'Correo enviado' });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Error enviando correo' });
+  }
+});
 
 const PORT = process.env.PORT || 3001;
-
-app.listen(PORT, () => console.log(`http://localhost:${PORT}`));
+app.listen(PORT, () => console.log(`Servidor escuchando en http://localhost:${PORT}`));
