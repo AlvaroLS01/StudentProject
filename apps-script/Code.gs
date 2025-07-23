@@ -5,8 +5,17 @@ function onOpen() {
 
 function update() {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
-  var sheetName = 'REGISTRO DE CLASES';
-  var sheet = ss.getSheetByName(sheetName);
+
+  // Mantener únicamente estas 3 hojas
+  ensureOnlySheets(ss, ['clases', 'profesores', 'alumnos']);
+
+  updateClassesSheet(ss);
+  updateTeachersSheet(ss);
+  updateStudentsSheet(ss);
+}
+
+function updateClassesSheet(ss) {
+  var sheetName = 'clases';
   var headers = [
     'ID DE ASIGNACIÓN',
     'NOMBRE PROFESOR',
@@ -24,28 +33,9 @@ function update() {
     'PRECIO TOTAL PROFESOR',
     'BENEFICIO'
   ];
+  var sheet = ensureSheet(ss, sheetName, headers);
 
-  if (!sheet) {
-    sheet = ss.insertSheet(sheetName);
-    sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
-    sheet.getRange(1, 1, 1, 12).setBackground('#bdbdbd');
-    sheet.getRange(1, 13, 1, 3).setBackground('#5b95f9');
-  } else if (sheet.getLastRow() === 0) {
-    sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
-    sheet.getRange(1, 1, 1, 12).setBackground('#bdbdbd');
-    sheet.getRange(1, 13, 1, 3).setBackground('#5b95f9');
-  }
-
-  var existingMap = {};
-  var lastRow = sheet.getLastRow();
-  if (lastRow > 1) {
-    var ids = sheet.getRange(2, 1, lastRow - 1, 1).getValues();
-    for (var i = 0; i < ids.length; i++) {
-      existingMap[ids[i][0]] = i + 2; // row number
-    }
-  }
-
-  var rowsToAppend = [];
+  var rows = [];
 
   var unions = firestore.getDocuments('clases_union');
   var teacherCache = {};
@@ -102,7 +92,7 @@ function update() {
       var beneficio = precioPadres - precioProfesor;
       var assignId = a.name.split('/').pop();
 
-      var row = [
+      rows.push([
         assignId,
         teacherName,
         teacherEmail,
@@ -118,19 +108,147 @@ function update() {
         precioPadres,
         precioProfesor,
         beneficio
-      ];
-
-      if (existingMap[assignId]) {
-        sheet.getRange(existingMap[assignId], 1, 1, row.length).setValues([row]);
-      } else {
-        rowsToAppend.push(row);
-      }
+      ]);
     }
   }
 
-  if (rowsToAppend.length > 0) {
-    sheet.getRange(sheet.getLastRow() + 1, 1, rowsToAppend.length, headers.length)
-      .setValues(rowsToAppend);
+  // Ordenar por fecha descendente (más reciente arriba)
+  rows.sort(function(a, b) {
+    return new Date(b[7]) - new Date(a[7]);
+  });
+
+  if (rows.length > 0) {
+    sheet.getRange(2, 1, rows.length, headers.length).setValues(rows);
+  }
+}
+
+function updateTeachersSheet(ss) {
+  var sheetName = 'profesores';
+  var headers = [
+    'ID', 'NOMBRE', 'APELLIDOS', 'EMAIL', 'TELEFONO', 'CIUDAD',
+    'TIPO DOC', 'NUM DOC', 'SITUACION', 'ESTUDIOS', 'TIEMPO ESTUDIO',
+    'TRABAJO', 'IBAN'
+  ];
+  var sheet = ensureSheet(ss, sheetName, headers);
+
+  var docs = firestore.getDocuments('usuarios');
+  var rows = [];
+  for (var i = 0; i < docs.length; i++) {
+    var f = docs[i].fields || {};
+    if (getString(f.rol) !== 'profesor') continue;
+    rows.push([
+      docs[i].name.split('/').pop(),
+      getString(f.nombre),
+      getString(f.apellidos) || getString(f.apellido),
+      getString(f.email),
+      getString(f.telefono),
+      getString(f.ciudad),
+      getString(f.docType),
+      getString(f.docNumber),
+      getString(f.status),
+      getString(f.studies),
+      getString(f.studyTime),
+      getString(f.job),
+      getString(f.iban)
+    ]);
+  }
+
+  if (rows.length > 0) {
+    sheet.getRange(2, 1, rows.length, headers.length).setValues(rows);
+  }
+}
+
+function updateStudentsSheet(ss) {
+  var sheetName = 'alumnos';
+  var headers = [
+    'ID', 'TIPO', 'NOMBRE', 'APELLIDOS', 'EMAIL',
+    'TELEFONO', 'CIUDAD', 'CURSO', 'FECHA NAC.'
+  ];
+  var sheet = ensureSheet(ss, sheetName, headers);
+
+  var docs = firestore.getDocuments('usuarios');
+  var rows = [];
+  var parents = [];
+  var students = [];
+  for (var i = 0; i < docs.length; i++) {
+    var f = docs[i].fields || {};
+    var rol = getString(f.rol);
+    if (rol === 'padre') parents.push(docs[i]);
+    if (rol === 'alumno') students.push(docs[i]);
+  }
+
+  for (var i = 0; i < parents.length; i++) {
+    var p = parents[i];
+    var pf = p.fields || {};
+    var parentRow = [
+      p.name.split('/').pop(),
+      'P',
+      getString(pf.nombre),
+      getString(pf.apellidos) || getString(pf.apellido),
+      getString(pf.email),
+      getString(pf.telefono),
+      getString(pf.ciudad),
+      getString(pf.curso),
+      ''
+    ];
+    rows.push(parentRow);
+
+    var hijos = (pf.hijos && pf.hijos.arrayValue) ? pf.hijos.arrayValue.values : [];
+    for (var j = 0; j < hijos.length; j++) {
+      var hf = hijos[j].mapValue ? hijos[j].mapValue.fields : {};
+      rows.push([
+        '',
+        'H',
+        getString(hf.nombre),
+        '',
+        '',
+        '',
+        getString(pf.ciudad),
+        getString(hf.curso),
+        getString(hf.fechaNacimiento)
+      ]);
+    }
+  }
+
+  for (var i = 0; i < students.length; i++) {
+    var s = students[i];
+    var sf = s.fields || {};
+    rows.push([
+      s.name.split('/').pop(),
+      'A',
+      getString(sf.nombre),
+      getString(sf.apellidos) || getString(sf.apellido),
+      getString(sf.email),
+      getString(sf.telefono),
+      getString(sf.ciudad),
+      getString(sf.curso),
+      getString(sf.fechaNacimiento)
+    ]);
+  }
+
+  if (rows.length > 0) {
+    sheet.getRange(2, 1, rows.length, headers.length).setValues(rows);
+  }
+}
+
+function ensureSheet(ss, name, headers) {
+  var sheet = ss.getSheetByName(name);
+  if (!sheet) {
+    sheet = ss.insertSheet(name);
+  } else {
+    sheet.clear();
+  }
+  sheet.getRange(1, 1, 1, headers.length).setValues([headers]).setBackground('#bdbdbd');
+  return sheet;
+}
+
+function ensureOnlySheets(ss, names) {
+  var sheets = ss.getSheets();
+  for (var i = 0; i < sheets.length; i++) {
+    var name = sheets[i].getName();
+    if (names.indexOf(name) === -1) {
+      ss.deleteSheet(sheets[i]);
+    }
   }
 }
 
