@@ -218,12 +218,12 @@ export default function Clases() {
       }
       setSolicitudes(data);
       // Load pending assignments awaiting student confirmation
-      let q2 = query(collection(db, 'registro_clases'), where('alumnoId', '==', u.uid), where('estado', '==', 'pendiente_alumno'));
+      let q2 = query(collection(db, 'registro_clases'), where('alumnoId', '==', u.uid), where('estado', '==', 'espera_alumno'));
       if (selectedChild) {
         q2 = query(collection(db, 'registro_clases'),
                   where('alumnoId', '==', u.uid),
                   where('hijoId', '==', selectedChild.id),
-                  where('estado', '==', 'pendiente_alumno'));
+                  where('estado', '==', 'espera_alumno'));
       }
       const snap2 = await getDocs(q2);
       setPendingAssignments(snap2.docs.map(d => ({ id: d.id, ...d.data() })));
