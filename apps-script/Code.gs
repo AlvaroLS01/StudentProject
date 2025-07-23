@@ -11,6 +11,16 @@ function update() {
   fetchClasses();
   fetchTeachers();
   fetchAlumnos();
+  enviarCorreosPendientes();
+}
+
+function safeGetDocument(path) {
+  try {
+    return firestore.getDocument(path);
+  } catch (e) {
+    Logger.log('No se encontró el documento ' + path);
+    return null;
+  }
 }
 
 function fetchClasses() {
@@ -51,7 +61,7 @@ function fetchClasses() {
 
     var teacherId = getString(f.profesorId);
     if (teacherId && !teacherCache[teacherId]) {
-      var t = firestore.getDocument('usuarios/' + teacherId);
+      var t = safeGetDocument('usuarios/' + teacherId);
       teacherCache[teacherId] = t ? t.fields : {};
     }
     var teacher = teacherCache[teacherId] || {};
@@ -60,7 +70,7 @@ function fetchClasses() {
 
     var studentId = getString(f.alumnoId);
     if (studentId && !studentCache[studentId]) {
-      var s = firestore.getDocument('usuarios/' + studentId);
+      var s = safeGetDocument('usuarios/' + studentId);
       studentCache[studentId] = s ? s.fields : {};
     }
     var student = studentCache[studentId] || {};
@@ -69,7 +79,7 @@ function fetchClasses() {
 
     var classId = getString(f.claseId);
     if (classId && !classCache[classId]) {
-      var c = firestore.getDocument('clases/' + classId);
+      var c = safeGetDocument('clases/' + classId);
       classCache[classId] = c ? c.fields : {};
     }
     var classData = classCache[classId] || {};
@@ -117,6 +127,36 @@ function fetchClasses() {
   });
   if (rows.length) {
     sheet.getRange(2, 1, rows.length, headers.length).setValues(rows);
+  }
+}
+
+function enviarCorreosPendientes() {
+  var hoja = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Hoja 1');
+  if (!hoja) {
+    Logger.log("No se encontró la hoja 'Hoja 1'");
+    return;
+  }
+
+  var lastRow = hoja.getLastRow();
+  if (lastRow <= 1) return;
+
+  var data = hoja.getRange(2, 1, lastRow - 1, 6).getValues();
+  for (var i = 0; i < data.length; i++) {
+    var fila = data[i];
+    var estado = (fila[5] || '').toString().toUpperCase();
+    if (estado === 'PENDIENTE') {
+      var nombre = fila[0];
+      var email = fila[3];
+      if (email.indexOf('@') !== -1) {
+        var asunto = 'Bienvenido a Student Project, ' + nombre;
+        var mensaje = 'Gracias por confiar en nosotros. Estás en manos de los mejores profesionales.';
+        GmailApp.sendEmail(email, asunto, mensaje);
+        hoja.getRange(i + 2, 6).setValue('ENVIADO');
+        Logger.log('Correo enviado a ' + email + ' desde fila ' + (i + 2));
+      } else {
+        Logger.log('Correo inválido en fila ' + (i + 2));
+      }
+    }
   }
 }
 
@@ -189,7 +229,7 @@ function fetchTeachers() {
   var teachers = [];
   var allKeys = {};
   for (var id in ids) {
-    var doc = firestore.getDocument('usuarios/' + id);
+    var doc = safeGetDocument('usuarios/' + id);
     var d = doc ? doc.fields : {};
     var data = {};
     for (var k in d) {
@@ -236,7 +276,7 @@ function fetchAlumnos() {
 
   var rows = [];
   for (var id in ids) {
-    var doc = firestore.getDocument('usuarios/' + id);
+    var doc = safeGetDocument('usuarios/' + id);
     var d = doc ? doc.fields : {};
     var fullName = (getString(d.nombre) + ' ' + getString(d.apellidos)).trim();
     var email = getString(d.email);

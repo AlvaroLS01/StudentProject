@@ -1,5 +1,5 @@
-export async function sendAssignmentEmails({ teacherEmail, teacherName, studentEmail, studentName, schedule }) {
-  const payload = { teacherEmail, teacherName, studentEmail, studentName, schedule };
+export async function sendAssignmentEmails({ teacherEmail, teacherName, studentEmail, studentName, schedule, recipient = 'both' }) {
+  const payload = { teacherEmail, teacherName, studentEmail, studentName, schedule, recipient };
   try {
     await fetch(process.env.REACT_APP_EMAIL_API || '/api/send-assignment-email', {
       method: 'POST',

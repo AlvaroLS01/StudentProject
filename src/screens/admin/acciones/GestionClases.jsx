@@ -18,6 +18,7 @@ import {
   serverTimestamp
 } from 'firebase/firestore';
 import { sendAssignmentEmails } from '../../../utils/email';
+import { registerPendingClass } from '../../../utils/classWorkflow';
 
 // Animación suave al cargar
 const fadeDown = keyframes`
@@ -273,27 +274,24 @@ export default function GestionClases() {
     })();
   }, []);
 
-  const assignOffer = async (classId, offer, alumnoId, alumnoNombre, padreNombre, hijoId) => {
+  const markOfferPending = async (classId, offer, alumnoId, alumnoNombre, padreNombre, hijoId) => {
     await updateDoc(doc(db, 'clases', classId, 'ofertas', offer.id), {
-      estado: 'aceptada',
+      estado: 'en_proceso',
       updatedAt: serverTimestamp()
     });
     await updateDoc(doc(db, 'clases', classId), {
-      estado: 'aceptada',
+      estado: 'en_proceso',
       profesorSeleccionado: offer.profesorNombre,
       precioSeleccionado: offer.precio,
       updatedAt: serverTimestamp()
     });
-    await addDoc(collection(db, 'clases_union'), {
-      claseId: classId,
-      offerId: offer.id,
+    await registerPendingClass({
+      classId,
+      offer,
       alumnoId,
       alumnoNombre,
-      profesorId: offer.profesorId,
-      profesorNombre: offer.profesorNombre,
-      padreNombre: padreNombre || null,
-      hijoId: hijoId || null,
-      createdAt: serverTimestamp(),
+      padreNombre,
+      hijoId
     });
     setClases(cs => cs.filter(c => c.id !== classId));
   };
@@ -302,18 +300,17 @@ export default function GestionClases() {
     if (!offerToConfirm || !classToConfirm) return;
     const c = classToConfirm;
     const o = offerToConfirm;
-    await assignOffer(c.id, o, c.alumnoId, c.alumnoNombre, c.padreNombre, c.hijoId);
+    await markOfferPending(c.id, o, c.alumnoId, c.alumnoNombre, c.padreNombre, c.hijoId);
     try {
       const profSnap = await getDoc(doc(db, 'usuarios', o.profesorId));
-      const alumSnap = await getDoc(doc(db, 'usuarios', c.alumnoId));
       const teacherEmail = profSnap.exists() ? profSnap.data().email : '';
-      const studentEmail = alumSnap.exists() ? alumSnap.data().email : '';
       await sendAssignmentEmails({
         teacherEmail,
         teacherName: o.profesorNombre,
-        studentEmail,
-        studentName: `${c.alumnoNombre} ${c.alumnoApellidos || ''}`.trim(),
-        schedule: c.schedule || []
+        studentEmail: '',
+        studentName: '',
+        schedule: c.schedule || [],
+        recipient: 'teacher'
       });
     } catch (err) {
       console.error(err);
