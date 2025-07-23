@@ -12,6 +12,8 @@ function update() {
   fetchTeachers();
   fetchAlumnos();
   enviarCorreosPendientes();
+  revisarYEnviarSoloNuevas(TEACHERS_SHEET);
+  revisarYEnviarSoloNuevas(STUDENTS_SHEET);
 }
 
 function fetchClasses() {
@@ -52,7 +54,7 @@ function fetchClasses() {
 
     var teacherId = getString(f.profesorId);
     if (teacherId && !teacherCache[teacherId]) {
-      var t = firestore.getDocument('usuarios/' + teacherId);
+      var t = getDocumentSafe('usuarios/' + teacherId);
       teacherCache[teacherId] = t ? t.fields : {};
     }
     var teacher = teacherCache[teacherId] || {};
@@ -61,7 +63,7 @@ function fetchClasses() {
 
     var studentId = getString(f.alumnoId);
     if (studentId && !studentCache[studentId]) {
-      var s = firestore.getDocument('usuarios/' + studentId);
+      var s = getDocumentSafe('usuarios/' + studentId);
       studentCache[studentId] = s ? s.fields : {};
     }
     var student = studentCache[studentId] || {};
@@ -70,7 +72,7 @@ function fetchClasses() {
 
     var classId = getString(f.claseId);
     if (classId && !classCache[classId]) {
-      var c = firestore.getDocument('clases/' + classId);
+      var c = getDocumentSafe('clases/' + classId);
       classCache[classId] = c ? c.fields : {};
     }
     var classData = classCache[classId] || {};
@@ -122,33 +124,59 @@ function fetchClasses() {
 }
 
 function enviarCorreosPendientes() {
-  var hoja = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Hoja 1');
+  revisarYEnviarSoloNuevas('Hoja 1');
+}
+
+function revisarYEnviarSoloNuevas(sheetName) {
+  var hoja = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(sheetName);
   if (!hoja) {
-    Logger.log("No se encontró la hoja 'Hoja 1'");
+    Logger.log("No se encontró la hoja '" + sheetName + "'");
     return;
   }
 
-  var lastRow = hoja.getLastRow();
-  if (lastRow <= 1) return;
+  var props = PropertiesService.getScriptProperties();
+  var key = 'ultimaFilaProcesada_' + sheetName;
+  var ultimaFilaProcesada = parseInt(props.getProperty(key) || '1');
+  var ultimaFilaActual = hoja.getLastRow();
+  if (ultimaFilaProcesada >= ultimaFilaActual) {
+    Logger.log('No hay filas nuevas para procesar en ' + sheetName);
+    return;
+  }
 
-  var data = hoja.getRange(2, 1, lastRow - 1, 6).getValues();
-  for (var i = 0; i < data.length; i++) {
-    var fila = data[i];
-    var estado = (fila[5] || '').toString().toUpperCase();
-    if (estado === 'PENDIENTE') {
-      var nombre = fila[0];
-      var email = fila[3];
+  var headers = hoja.getRange(1, 1, 1, hoja.getLastColumn()).getValues()[0];
+  var idxEstado = headers.indexOf('ESTADO');
+  var idxNombre = headers.indexOf('NOMBRE');
+  if (idxNombre === -1) idxNombre = headers.indexOf('NOMBRE PROFESOR');
+  var idxEmail = headers.indexOf('CORREO');
+  if (idxEmail === -1) idxEmail = headers.indexOf('CORREO PROFESOR');
+  if (idxEstado === -1 || idxEmail === -1 || idxNombre === -1) {
+    Logger.log('No se encontraron columnas necesarias en ' + sheetName);
+    return;
+  }
+
+  var nuevasFilas = hoja.getRange(ultimaFilaProcesada + 1, 1, ultimaFilaActual - ultimaFilaProcesada, hoja.getLastColumn()).getValues();
+  for (var i = 0; i < nuevasFilas.length; i++) {
+    var fila = nuevasFilas[i];
+    var yaEnviado = (fila[idxEstado] || '').toString().toUpperCase() === 'ENVIADO';
+    var numFilaHoja = ultimaFilaProcesada + 1 + i;
+    var filaCompleta = fila.slice(0, idxEstado).every(function(c) { return c !== ''; });
+    if (filaCompleta && !yaEnviado) {
+      var nombre = fila[idxNombre];
+      var email = fila[idxEmail];
       if (email.indexOf('@') !== -1) {
         var asunto = 'Bienvenido a Student Project, ' + nombre;
-        var mensaje = 'Gracias por confiar en nosotros. Estás en manos de los mejores profesionales.';
+        var mensaje = 'Gracias por confiar en nosotros. Est\u00e1s en manos de los mejores profesionales.';
         GmailApp.sendEmail(email, asunto, mensaje);
-        hoja.getRange(i + 2, 6).setValue('ENVIADO');
-        Logger.log('Correo enviado a ' + email + ' desde fila ' + (i + 2));
+        hoja.getRange(numFilaHoja, idxEstado + 1).setValue('ENVIADO');
+        Logger.log('Correo enviado a ' + email + ' desde fila ' + numFilaHoja + ' en ' + sheetName);
       } else {
-        Logger.log('Correo inválido en fila ' + (i + 2));
+        Logger.log('Correo inv\u00e1lido en fila ' + numFilaHoja + ' en ' + sheetName);
       }
+    } else {
+      Logger.log('Fila ' + numFilaHoja + ' incompleta o ya enviada en ' + sheetName);
     }
   }
+  props.setProperty(key, ultimaFilaActual);
 }
 
 function getString(obj) {
@@ -177,6 +205,15 @@ function getMapArray(obj) {
   if (!obj || !obj.arrayValue) return [];
   var vals = obj.arrayValue.values || [];
   return vals.map(function(v) { return v.mapValue ? v.mapValue.fields : {}; });
+}
+
+function getDocumentSafe(path) {
+  try {
+    return firestore.getDocument(path);
+  } catch (e) {
+    Logger.log('No se encontró el documento ' + path);
+    return null;
+  }
 }
 
 function getValue(obj) {
@@ -220,7 +257,7 @@ function fetchTeachers() {
   var teachers = [];
   var allKeys = {};
   for (var id in ids) {
-    var doc = firestore.getDocument('usuarios/' + id);
+    var doc = getDocumentSafe('usuarios/' + id);
     var d = doc ? doc.fields : {};
     var data = {};
     for (var k in d) {
@@ -231,7 +268,23 @@ function fetchTeachers() {
   }
 
   var keys = Object.keys(allKeys).sort();
-  var headers = ['ID PROFESOR'].concat(keys);
+  var headers = ['ID PROFESOR'].concat(keys).concat(['ESTADO']);
+
+  var existingStatus = {};
+  var lastCol = sheet.getLastColumn();
+  if (lastCol > 0) {
+    var oldHeaders = sheet.getRange(1, 1, 1, lastCol).getValues()[0];
+    var idxId = oldHeaders.indexOf('ID PROFESOR');
+    var idxStatus = oldHeaders.indexOf('ESTADO');
+    if (idxId !== -1 && idxStatus !== -1) {
+      var oldRows = sheet.getRange(2, 1, sheet.getLastRow() - 1, lastCol).getValues();
+      for (var i = 0; i < oldRows.length; i++) {
+        var oldId = oldRows[i][idxId];
+        var oldSt = oldRows[i][idxStatus];
+        if (oldId) existingStatus[oldId] = oldSt;
+      }
+    }
+  }
 
   sheet.clear();
   setHeaders(sheet, headers);
@@ -242,6 +295,7 @@ function fetchTeachers() {
       var val = t.data[keys[i]];
       row.push(val === undefined ? '' : val);
     }
+    row.push(existingStatus[t.id] || 'PENDIENTE');
     return row;
   });
 
@@ -253,7 +307,24 @@ function fetchTeachers() {
 function fetchAlumnos() {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
   var sheet = ss.getSheetByName(STUDENTS_SHEET) || ss.insertSheet(STUDENTS_SHEET);
-  var headers = ['ID', 'NOMBRE', 'CORREO', 'CIUDAD', 'CURSO', 'TIPO'];
+  var headers = ['ID', 'NOMBRE', 'CORREO', 'CIUDAD', 'CURSO', 'TIPO', 'ESTADO'];
+
+  var existingStatus = {};
+  var lastCol = sheet.getLastColumn();
+  if (lastCol > 0) {
+    var oldHeaders = sheet.getRange(1, 1, 1, lastCol).getValues()[0];
+    var idxId = oldHeaders.indexOf('ID');
+    var idxStatus = oldHeaders.indexOf('ESTADO');
+    if (idxId !== -1 && idxStatus !== -1) {
+      var oldRows = sheet.getRange(2, 1, sheet.getLastRow() - 1, lastCol).getValues();
+      for (var i = 0; i < oldRows.length; i++) {
+        var oldId = oldRows[i][idxId];
+        var oldSt = oldRows[i][idxStatus];
+        if (oldId) existingStatus[oldId] = oldSt;
+      }
+    }
+  }
+
   sheet.clear();
   setHeaders(sheet, headers);
 
@@ -267,27 +338,29 @@ function fetchAlumnos() {
 
   var rows = [];
   for (var id in ids) {
-    var doc = firestore.getDocument('usuarios/' + id);
+    var doc = getDocumentSafe('usuarios/' + id);
     var d = doc ? doc.fields : {};
     var fullName = (getString(d.nombre) + ' ' + getString(d.apellidos)).trim();
     var email = getString(d.email);
     var city = getString(d.ciudad);
     var hijos = getMapArray(d.hijos);
     if (hijos.length) {
-      rows.push([id, fullName, email, city, '', 'P']);
+      rows.push([id, fullName, email, city, '', 'P', existingStatus[id] || 'PENDIENTE']);
       for (var j = 0; j < hijos.length; j++) {
         var h = hijos[j];
+        var hid = getString(h.id);
         rows.push([
-          getString(h.id),
+          hid,
           getString(h.nombre),
           '',
           city,
           getString(h.curso),
           'H',
+          existingStatus[hid] || 'PENDIENTE'
         ]);
       }
     } else {
-      rows.push([id, fullName, email, city, getString(d.curso), 'A']);
+      rows.push([id, fullName, email, city, getString(d.curso), 'A', existingStatus[id] || 'PENDIENTE']);
     }
   }
 
