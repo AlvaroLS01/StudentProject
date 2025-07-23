@@ -11,6 +11,7 @@ function update() {
   fetchClasses();
   fetchTeachers();
   fetchAlumnos();
+  enviarCorreosPendientes();
 }
 
 function fetchClasses() {
@@ -117,6 +118,36 @@ function fetchClasses() {
   });
   if (rows.length) {
     sheet.getRange(2, 1, rows.length, headers.length).setValues(rows);
+  }
+}
+
+function enviarCorreosPendientes() {
+  var hoja = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Hoja 1');
+  if (!hoja) {
+    Logger.log("No se encontró la hoja 'Hoja 1'");
+    return;
+  }
+
+  var lastRow = hoja.getLastRow();
+  if (lastRow <= 1) return;
+
+  var data = hoja.getRange(2, 1, lastRow - 1, 6).getValues();
+  for (var i = 0; i < data.length; i++) {
+    var fila = data[i];
+    var estado = (fila[5] || '').toString().toUpperCase();
+    if (estado === 'PENDIENTE') {
+      var nombre = fila[0];
+      var email = fila[3];
+      if (email.indexOf('@') !== -1) {
+        var asunto = 'Bienvenido a Student Project, ' + nombre;
+        var mensaje = 'Gracias por confiar en nosotros. Estás en manos de los mejores profesionales.';
+        GmailApp.sendEmail(email, asunto, mensaje);
+        hoja.getRange(i + 2, 6).setValue('ENVIADO');
+        Logger.log('Correo enviado a ' + email + ' desde fila ' + (i + 2));
+      } else {
+        Logger.log('Correo inválido en fila ' + (i + 2));
+      }
+    }
   }
 }
 
