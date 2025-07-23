@@ -504,7 +504,7 @@ export default function Clases() {
                   <RejectButton onClick={() => rejectAssignment(p)} disabled={processingIds.has(p.id)}>Cancelar</RejectButton>
                 </div>
               </Card>
-            ))
+            ))}
             {solicitudes.map(s => {
               const estado = s.estado === 'pendiente'
                 ? (s.offers === 0 ? 'En búsqueda de profesor' : 'En selección de profesor')
