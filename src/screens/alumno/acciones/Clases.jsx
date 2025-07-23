@@ -534,10 +534,10 @@ export default function Clases() {
                   </InfoGrid>
                 </Card>
               );
-            })
-            </>
-          )
-        )}
+              })}
+              </>
+            )
+          )}
       </Container>
     </Page>
   );
