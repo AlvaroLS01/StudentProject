@@ -169,33 +169,30 @@ function revisarYEnviarSoloNuevas(sheetName) {
     return;
   }
 
-  var props = PropertiesService.getScriptProperties();
-  var key = 'ultimaFilaProcesada_' + sheetName;
-  var ultimaFilaProcesada = parseInt(props.getProperty(key) || '1');
-  var ultimaFilaActual = hoja.getLastRow();
-  if (ultimaFilaProcesada >= ultimaFilaActual) {
-    Logger.log('No hay filas nuevas para procesar en ' + sheetName);
-    return;
-  }
-
   var headers = hoja.getRange(1, 1, 1, hoja.getLastColumn()).getValues()[0];
   var idxEstado = headers.indexOf('ESTADO');
   var idxNombre = headers.indexOf('NOMBRE');
   if (idxNombre === -1) idxNombre = headers.indexOf('NOMBRE PROFESOR');
   var idxEmail = headers.indexOf('CORREO');
   if (idxEmail === -1) idxEmail = headers.indexOf('CORREO PROFESOR');
-  if (idxEstado === -1 || idxEmail === -1 || idxNombre === -1) {
+  var idxId = headers.indexOf('ID');
+  if (idxId === -1) idxId = headers.indexOf('ID PROFESOR');
+  if (idxEstado === -1 || idxEmail === -1 || idxNombre === -1 || idxId === -1) {
     Logger.log('No se encontraron columnas necesarias en ' + sheetName);
     return;
   }
 
-  var nuevasFilas = hoja.getRange(ultimaFilaProcesada + 1, 1, ultimaFilaActual - ultimaFilaProcesada, hoja.getLastColumn()).getValues();
-  for (var i = 0; i < nuevasFilas.length; i++) {
-    var fila = nuevasFilas[i];
-    var yaEnviado = (fila[idxEstado] || '').toString().toUpperCase() === 'ENVIADO';
-    var numFilaHoja = ultimaFilaProcesada + 1 + i;
+  var totalFilas = hoja.getLastRow() - 1;
+  if (totalFilas <= 0) return;
+  var datos = hoja.getRange(2, 1, totalFilas, hoja.getLastColumn()).getValues();
+
+  for (var i = 0; i < datos.length; i++) {
+    var fila = datos[i];
+    var estadoActual = (fila[idxEstado] || '').toString().toUpperCase();
     var filaCompleta = fila.slice(0, idxEstado).every(function(c) { return c !== ''; });
-    if (filaCompleta && !yaEnviado) {
+    var numFilaHoja = i + 2;
+
+    if (filaCompleta && estadoActual !== 'ENVIADO') {
       var nombre = fila[idxNombre];
       var email = fila[idxEmail];
       if (email.indexOf('@') !== -1) {
@@ -203,15 +200,14 @@ function revisarYEnviarSoloNuevas(sheetName) {
         var mensaje = 'Gracias por confiar en nosotros. Est\u00e1s en manos de los mejores profesionales.';
         GmailApp.sendEmail(email, asunto, mensaje);
         hoja.getRange(numFilaHoja, idxEstado + 1).setValue('ENVIADO');
+        var id = fila[idxId];
+        if (id) updateFirestoreStatus('usuarios', id, 'ENVIADO');
         Logger.log('Correo enviado a ' + email + ' desde fila ' + numFilaHoja + ' en ' + sheetName);
       } else {
         Logger.log('Correo inv\u00e1lido en fila ' + numFilaHoja + ' en ' + sheetName);
       }
-    } else {
-      Logger.log('Fila ' + numFilaHoja + ' incompleta o ya enviada en ' + sheetName);
     }
   }
-  props.setProperty(key, ultimaFilaActual);
 }
 
 function getString(obj) {
@@ -274,6 +270,14 @@ function formatClassHeaders(sheet) {
   var lastColumn = sheet.getLastColumn();
   if (lastColumn > 0) {
     sheet.getRange(1, 1, 1, lastColumn).setBackground('#bdbdbd');
+  }
+}
+
+function updateFirestoreStatus(collection, id, status) {
+  try {
+    firestore.updateDocument(collection + '/' + id, { estado: status });
+  } catch (e) {
+    Logger.log('Error actualizando Firestore para ' + id + ': ' + e);
   }
 }
 
