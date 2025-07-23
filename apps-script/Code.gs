@@ -1,4 +1,3 @@
-const SHEET_NAME = 'CLASES';
 const TEACHERS_SHEET = 'PROFESORES';
 const STUDENTS_SHEET = 'ALUMNOS';
 const REGISTRY_SHEET = 'REGISTRO CLASES';
@@ -9,153 +8,12 @@ function onOpen() {
 }
 
 function update() {
-  fetchClasses();
   fetchRegistroClases();
   fetchTeachers();
   fetchAlumnos();
   enviarCorreosPendientes();
   revisarYEnviarSoloNuevas(TEACHERS_SHEET);
   revisarYEnviarSoloNuevas(STUDENTS_SHEET);
-}
-
-function fetchClasses() {
-  var ss = SpreadsheetApp.getActiveSpreadsheet();
-  var sheet = ss.getSheetByName(SHEET_NAME) || ss.insertSheet(SHEET_NAME);
-
-  var headers = [
-    'ID DE ASIGNACIÓN',
-    'NOMBRE PROFESOR',
-    'CORREO PROFESOR',
-    'NOMBRE ALUMNO',
-    'CORREO ALUMNO',
-    'CURSO',
-    'ASIGNATURA',
-    'FECHA',
-    'DURACIÓN',
-    'MODALIDAD',
-    'LOCALIZACION',
-    'TIPO DE CLASE',
-    'PRECIO TOTAL PADRES',
-    'PRECIO TOTAL PROFESOR',
-    'BENEFICIO',
-    'ESTADO'
-  ];
-
-  var existingStatus = {};
-  var lastCol = sheet.getLastColumn();
-  if (lastCol > 0) {
-    var oldHeaders = sheet.getRange(1, 1, 1, lastCol).getValues()[0];
-    var idxId = oldHeaders.indexOf('ID DE ASIGNACIÓN');
-    var idxStatus = oldHeaders.indexOf('ESTADO');
-    if (idxId !== -1 && idxStatus !== -1) {
-      var oldRows = sheet.getRange(2, 1, sheet.getLastRow() - 1, lastCol).getValues();
-      for (var i = 0; i < oldRows.length; i++) {
-        var oldId = oldRows[i][idxId];
-        var oldSt = oldRows[i][idxStatus];
-        if (oldId) existingStatus[oldId] = oldSt;
-      }
-    }
-  }
-
-  sheet.clear();
-  setHeaders(sheet, headers);
-  formatClassHeaders(sheet);
-  var unions = firestore.getDocuments('clases_union');
-  var teacherCache = {};
-  var studentCache = {};
-  var classCache = {};
-  var rows = [];
-
-  for (var i = 0; i < unions.length; i++) {
-    var u = unions[i];
-    var unionId = u.name.split('/').pop();
-    var f = u.fields || {};
-
-    var teacherId = getString(f.profesorId);
-    if (teacherId && !teacherCache[teacherId]) {
-      var t = getDocumentSafe('usuarios/' + teacherId);
-      teacherCache[teacherId] = t ? t.fields : {};
-    }
-    var teacher = teacherCache[teacherId] || {};
-    var teacherEmail = getString(teacher.email);
-    var teacherName = getString(f.profesorNombre) || (getString(teacher.nombre) + ' ' + getString(teacher.apellidos)).trim();
-
-    var studentId = getString(f.alumnoId);
-    if (studentId && !studentCache[studentId]) {
-      var s = getDocumentSafe('usuarios/' + studentId);
-      studentCache[studentId] = s ? s.fields : {};
-    }
-    var student = studentCache[studentId] || {};
-    var studentEmail = getString(student.email);
-    var studentName = getString(f.padreNombre) || getString(f.alumnoNombre) || (getString(student.nombre) + ' ' + getString(student.apellidos)).trim();
-
-    var classId = getString(f.claseId);
-    if (classId && !classCache[classId]) {
-      var c = getDocumentSafe('clases/' + classId);
-      classCache[classId] = c ? c.fields : {};
-    }
-    var classData = classCache[classId] || {};
-    var curso = getString(classData.curso);
-    var asignaturaDefault = getString(classData.asignatura) || (classData.asignaturas ? getArray(classData.asignaturas).join(', ') : '');
-    var tipoClase = getString(classData.tipoClase);
-
-    var assignments = firestore.getDocuments('clases_union/' + unionId + '/clases_asignadas');
-    for (var j = 0; j < assignments.length; j++) {
-      var a = assignments[j];
-      var af = a.fields || {};
-      var asignatura = getString(af.asignatura) || asignaturaDefault;
-      var fecha = getString(af.fecha);
-      var duracion = getString(af.duracion);
-      var modalidad = getString(af.modalidad);
-      var localizacion = getString(af.localizacion) || getString(classData.ciudad);
-      var precioPadres = getNumber(af.precioTotalPadres);
-      var precioProfesor = getNumber(af.precioTotalProfesor);
-      var beneficio = precioPadres - precioProfesor;
-
-      var estadoReal = getString(f.estado) || getString(af.estado);
-      var savedStatus = existingStatus[a.name.split('/').pop()] || '';
-      var status = estadoReal;
-      var row = [
-        a.name.split('/').pop(),
-        teacherName,
-        teacherEmail,
-        studentName,
-        studentEmail,
-        curso,
-        asignatura,
-        fecha,
-        duracion,
-        modalidad,
-        localizacion,
-        tipoClase,
-        precioPadres,
-        precioProfesor,
-        beneficio
-      ];
-
-      if (estadoReal === 'clase_formada') {
-        if (savedStatus !== 'CLASE_FORMADA') {
-          if (studentEmail.indexOf('@') !== -1) {
-            GmailApp.sendEmail(studentEmail, 'Clase confirmada', 'Ya puedes ver tu clase en el panel de Mis Clases');
-          }
-          status = 'CLASE_FORMADA';
-        } else {
-          status = savedStatus;
-        }
-      }
-
-      row.push(status);
-      rows.push(row);
-    }
-  }
-  rows.sort(function(a, b) {
-    var da = new Date(a[7]);
-    var db = new Date(b[7]);
-    return db - da;
-  });
-  if (rows.length) {
-    sheet.getRange(2, 1, rows.length, headers.length).setValues(rows);
-  }
 }
 
 function enviarCorreosPendientes() {
