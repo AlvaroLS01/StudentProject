@@ -34,6 +34,7 @@ import LoadingScreen   from './components/LoadingScreen';
 import NotificationBell from './components/NotificationBell';
 import SeleccionRol    from './screens/SeleccionRol';
 import CompletarDatosGoogle from './screens/CompletarDatosGoogle';
+import ResetPassword from './screens/ResetPassword';
 import { useSyncClassToSheet } from './hooks/useSyncClassToSheet';
 
 const AppContainer = styled.div`
@@ -78,6 +79,7 @@ function AppContent() {
           <Route path="/inicio"        element={<InicioSesion />} />
           <Route path="/seleccion-rol" element={<SeleccionRol />} />
           <Route path="/google-datos" element={<CompletarDatosGoogle />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
 
           {/* Con Navbar/Footer */}
           <Route element={<Layout />}>

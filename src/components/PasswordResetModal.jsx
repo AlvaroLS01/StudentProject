@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
-import { sendPasswordResetEmail } from 'firebase/auth';
-import { auth } from '../firebase/firebaseConfig';
+import { requestPasswordReset } from '../utils/password';
 
 import logo from '../assets/logonavbar.png';
 
@@ -95,7 +94,7 @@ export default function PasswordResetModal({ open, onClose }) {
     setSuccess('');
     setSending(true);
     try {
-      await sendPasswordResetEmail(auth, email);
+      await requestPasswordReset(email);
       setSuccess('Hemos enviado un correo para restablecer tu contraseña.');
       setEmail('');
     } catch (err) {

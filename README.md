@@ -17,6 +17,8 @@ Copy the sample environment file and add your own values:
 ```bash
 cp .env.example .env
 # edit .env and set REACT_APP_SHEET_SECRET, EMAIL_USER and EMAIL_PASS
+# define REACT_APP_PASSWORD_RESET_API and REACT_APP_CHANGE_PASSWORD_API if
+# the Node server runs on a different URL
 ```
 
 The root `.env.example` lists all required variables for the React app. Both the client and the Node server read their configuration from `.env`.
@@ -142,7 +144,11 @@ The welcome message is sent through the standalone server inside the `node-serve
      body: JSON.stringify({ email: user.email, name: user.displayName })
    });
    ```
-   The server uses Nodemailer with the credentials from `.env` to send the welcome email.
+The server uses Nodemailer with the credentials from `.env` to send the welcome email.
+
+It also exposes endpoints for password resets:
+`/request-password-reset` and `/reset-password`. The client URLs are configured
+via `REACT_APP_PASSWORD_RESET_API` and `REACT_APP_CHANGE_PASSWORD_API` in `.env`.
 
 ## Running React with the Node server
 
