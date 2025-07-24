@@ -10,3 +10,15 @@ export async function sendAssignmentEmails({ teacherEmail, teacherName, studentE
     console.error('Failed to send emails', err);
   }
 }
+
+export async function sendWelcomeEmail({ email, name }) {
+  try {
+    await fetch(process.env.REACT_APP_WELCOME_API || 'http://localhost:3001/send-email', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, name })
+    });
+  } catch (err) {
+    console.error('Failed to send welcome email', err);
+  }
+}

@@ -23,6 +23,7 @@ npm start
 ```
 
 El servidor se inicia por defecto en el puerto `3001`. Puedes cambiarlo definiendo la variable `PORT` en el archivo `.env`.
+El middleware de **CORS** viene activado para aceptar peticiones del cliente de React (por defecto en `http://localhost:3000`).
 
 ## Uso del endpoint
 

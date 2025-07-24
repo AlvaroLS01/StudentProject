@@ -4,6 +4,7 @@ import styled, { keyframes } from 'styled-components';
 import { useNavigate } from 'react-router-dom';
 import { useNotification } from "../NotificationContext";
 import { isValidEmail } from '../utils/validateEmail';
+import { sendWelcomeEmail } from '../utils/email';
 
 // Firebase (inicializado en firebaseConfig.js)
 import { auth, db } from '../firebase/firebaseConfig';
@@ -376,6 +377,7 @@ export default function SignUpAlumno() {
         ];
       }
       await setDoc(doc(db, 'usuarios', user.uid), data);
+      await sendWelcomeEmail({ email, name: nombre });
       show('Alumno registrado con éxito', 'success');
       navigate('/');
     } catch (err) {

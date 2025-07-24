@@ -170,6 +170,23 @@ Another option is to send the welcome message through the standalone server insi
    ```
    The server uses Nodemailer with the credentials from `.env` to send the welcome email.
 
+## Running React with the Node server
+
+To work locally with both the frontend and the `node-server` you can run each one in its own terminal:
+
+1. **Start the API server**
+   ```bash
+   cd node-server
+   npm start
+   ```
+
+2. **Start the React app** from the project root:
+   ```bash
+   npm start
+   ```
+
+The client reads the `REACT_APP_WELCOME_API` variable from `.env` (default `http://localhost:3001/send-email`) and sends a request after a user signs up. With CORS enabled on the server both applications work together without extra configuration.
+
 ## Firebase Emulator Suite
 
 Start the local emulators to test Firestore, Authentication and Cloud Functions:
