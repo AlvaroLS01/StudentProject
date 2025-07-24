@@ -19,7 +19,7 @@ cp .env.example .env
 # edit .env and set REACT_APP_SHEET_SECRET, EMAIL_USER and EMAIL_PASS
 ```
 
-The root `.env.example` lists all required variables for the React app and local Cloud Functions. Both read their configuration from `.env`.
+The root `.env.example` lists all required variables for the React app. Both the client and the Node server read their configuration from `.env`.
 
 ## Available Scripts
 
@@ -121,35 +121,9 @@ Use the same secret in `.env` and deploy the web app. When a class document tran
 
 ## Welcome Email
 
-New users automatically receive a welcome email when they register. This is handled by the Cloud Function defined in `functions/index.js`. The function listens for new users in Firebase Authentication and sends a message through Gmail using Nodemailer.
+The welcome message is sent through the standalone server inside the `node-server` folder. After a user signs up, the React app sends a request to this server so the email is delivered automatically.
 
-```
-functionsV1.auth.user().onCreate(async (user) => {
-  await transporter.sendMail({
-    to: user.email,
-    subject: 'Bienvenido a Student Project',
-    html: `<p>Hola ${user.displayName || 'usuario'}, bienvenido a nuestra plataforma.</p>`,
-  });
-});
-```
-
-The transporter now reads its credentials from the environment variables `EMAIL_USER` and `EMAIL_PASS`. Set these using `firebase functions:config:set` before deploying:
-
-```
-firebase functions:config:set email.user="yourEmail" email.pass="yourPassword"
-```
-
-For local development with the Emulator Suite, create a `.env` file inside the `functions` directory containing the same variables:
-
-```
-EMAIL_USER=yourEmail
-EMAIL_PASS=yourPassword
-```
-
-Remember to deploy the functions after any change with `npm run deploy` in the `functions` folder.
-### Sending the welcome email with `node-server`
-
-Another option is to send the welcome message through the standalone server inside the `node-server` folder. After creating a user on the website, make a request to this server so the email is delivered automatically.
+### Using `node-server`
 
 1. Start the server:
    ```bash
@@ -187,24 +161,4 @@ To work locally with both the frontend and the `node-server` you can run each on
 
 The client reads the `REACT_APP_WELCOME_API` variable from `.env` (default `http://localhost:3001/send-email`) and sends a request after a user signs up. With CORS enabled on the server both applications work together without extra configuration.
 
-## Firebase Emulator Suite
-
-Start the local emulators to test Firestore, Authentication and Cloud Functions:
-
-```bash
-firebase emulators:start
-```
-
-The emulators read the variables from `.env` and use the configuration in `firebase.json`.
-
-## Deploying Cloud Functions
-
-When you're ready to deploy the backend, run the following inside the `functions` directory:
-
-```bash
-npm install
-npm run deploy
-```
-
-This uploads the functions defined in `functions/index.js` to your Firebase project.
 
