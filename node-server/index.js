@@ -10,9 +10,17 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-admin.initializeApp({
-  credential: admin.credential.applicationDefault(),
-});
+// Allow setting a service account key via env. Otherwise use application default
+const credsPath = process.env.GOOGLE_APPLICATION_CREDENTIALS;
+if (credsPath) {
+  admin.initializeApp({
+    credential: admin.credential.cert(require(credsPath)),
+  });
+} else {
+  admin.initializeApp({
+    credential: admin.credential.applicationDefault(),
+  });
+}
 
 const transporter = nodemailer.createTransport({
   service: 'gmail',
