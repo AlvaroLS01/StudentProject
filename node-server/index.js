@@ -5,6 +5,7 @@ const nodemailer = require('nodemailer');
 const cors = require('cors');
 const admin = require('firebase-admin');
 const jwt = require('jsonwebtoken');
+const { google } = require('googleapis');
 
 const app = express();
 app.use(cors());
@@ -30,6 +31,25 @@ const transporter = nodemailer.createTransport({
   },
 });
 
+// Google Sheets client
+const sheetsAuth = new google.auth.GoogleAuth({
+  scopes: ['https://www.googleapis.com/auth/spreadsheets'],
+  keyFile: process.env.GOOGLE_SHEETS_CREDENTIALS || 'credentials.json',
+});
+const sheets = google.sheets({ version: 'v4', auth: sheetsAuth });
+const SPREADSHEET_ID = process.env.SPREADSHEET_ID;
+
+async function appendRow(sheetName, values) {
+  if (!SPREADSHEET_ID) throw new Error('SPREADSHEET_ID not configured');
+  await sheets.spreadsheets.values.append({
+    spreadsheetId: SPREADSHEET_ID,
+    range: `${sheetName}!A1`,
+    valueInputOption: 'USER_ENTERED',
+    insertDataOption: 'INSERT_ROWS',
+    requestBody: { values: [values] },
+  });
+}
+
 app.post('/send-email', async (req, res) => {
   const { email, name } = req.body;
 
@@ -49,6 +69,77 @@ app.post('/send-email', async (req, res) => {
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: 'Error enviando correo' });
+  }
+});
+
+// Append user data to Google Sheets
+app.post('/sheet/user', async (req, res) => {
+  const d = req.body || {};
+  if (!d.id || !d.rol) return res.status(400).json({ error: 'Datos incompletos' });
+
+  try {
+    if (d.rol === 'profesor') {
+      await appendRow('profesores', [
+        d.id,
+        d.nombre,
+        d.apellidos,
+        d.email,
+        d.telefono,
+        d.ciudad,
+        d.docType,
+        d.docNumber,
+        d.status,
+        d.studies,
+        d.studyTime,
+        d.job,
+        d.iban,
+      ]);
+    } else {
+      await appendRow('alumnos', [
+        d.id,
+        d.rol === 'padre' ? 'P' : 'A',
+        d.nombre,
+        d.apellidos,
+        d.email,
+        d.telefono,
+        d.ciudad,
+        d.curso,
+        d.fechaNacimiento,
+      ]);
+    }
+    res.json({ message: 'Registrado en hoja' });
+  } catch (err) {
+    console.error('Sheet error', err);
+    res.status(500).json({ error: 'Error escribiendo en la hoja' });
+  }
+});
+
+// Append class data to Google Sheets
+app.post('/sheet/class', async (req, res) => {
+  const d = req.body || {};
+  if (!d.idAsignacion) return res.status(400).json({ error: 'ID de asignación requerido' });
+  try {
+    await appendRow('clases', [
+      d.idAsignacion,
+      d.nombreProfesor,
+      d.correoProfesor,
+      d.nombreAlumno,
+      d.correoAlumno,
+      d.curso,
+      d.asignatura,
+      d.fecha,
+      d.duracion,
+      d.modalidad,
+      d.localizacion,
+      d.tipoClase,
+      d.precioTotalPadres,
+      d.precioTotalProfesor,
+      d.beneficio,
+    ]);
+    res.json({ message: 'Clase registrada' });
+  } catch (err) {
+    console.error('Sheet error', err);
+    res.status(500).json({ error: 'Error escribiendo en la hoja' });
   }
 });
 

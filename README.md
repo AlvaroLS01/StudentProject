@@ -152,6 +152,11 @@ It also exposes endpoints for password resets:
 via `REACT_APP_PASSWORD_RESET_API` and `REACT_APP_CHANGE_PASSWORD_API` in `.env`.
 There is a third endpoint `/send-assignment-email` used to avisar a profesores y alumnos cuando se forma una clase. Configure `REACT_APP_EMAIL_API` with its URL if necessary.
 
+Adicionalmente el servidor permite escribir datos en Google Sheets mediante los
+endpoints `/sheet/user` y `/sheet/class`. Debes indicar `SPREADSHEET_ID` y la
+ruta al archivo de credenciales en `GOOGLE_SHEETS_CREDENTIALS` dentro de
+`node-server/.env`.
+
 ## Running React with the Node server
 
 To work locally with both the frontend and the `node-server` you can run each one in its own terminal:
