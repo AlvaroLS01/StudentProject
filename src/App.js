@@ -79,7 +79,6 @@ function AppContent() {
           <Route path="/inicio"        element={<InicioSesion />} />
           <Route path="/seleccion-rol" element={<SeleccionRol />} />
           <Route path="/google-datos" element={<CompletarDatosGoogle />} />
-          <Route path="/reset-password" element={<ResetPassword />} />
 
           {/* Con Navbar/Footer */}
           <Route element={<Layout />}>
@@ -113,6 +112,8 @@ function AppContent() {
               <Route path="/profesor/mis-clases"  element={<ClasesProfesor />} />
               <Route path="/profesor/mis-alumnos" element={<MisAlumnos />} />
             </Route>
+
+            <Route path="/reset-password" element={<ResetPassword />} />
 
               {/* Rutas públicas */}
               <Route path="/contacto"             element={<Contacto />} />
