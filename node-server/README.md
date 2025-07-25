@@ -87,3 +87,60 @@ Envía un `POST` a `http://localhost:3001/send-assignment-email` con un cuerpo c
 
 El campo `recipient` puede ser `teacher`, `student` o `both` para indicar a quién se envía la notificación.
 Se utilizará para avisar al profesor cuando la administración lo seleccione y al alumno cuando el profesor acepte la solicitud.
+
+### Sincronización con Google Sheets
+
+Para registrar usuarios y clases en una hoja de cálculo debes especificar
+`SPREADSHEET_ID` y `GOOGLE_SHEETS_CREDENTIALS` en el archivo `.env`. El JSON de
+credenciales (por ejemplo `credentials.json`) **no se incluye en el repositorio**
+y debes colocarlo manualmente en la carpeta `node-server`.
+
+* **Registrar usuario**
+
+  ```bash
+  POST http://localhost:3001/sheet/user
+  {
+    "id": "uidFirebase",
+    "rol": "profesor" | "alumno" | "padre",
+    "nombre": "Nombre",
+    "apellidos": "Apellidos",
+    "email": "correo@ejemplo.com",
+    "telefono": "",
+    "ciudad": "",
+    "docType": "",
+    "docNumber": "",
+    "status": "",
+    "studies": "",
+    "studyTime": "",
+    "job": "",
+    "iban": "",
+    "curso": "",
+    "fechaNacimiento": ""
+  }
+  ```
+
+* **Registrar clase aceptada**
+
+  ```bash
+  POST http://localhost:3001/sheet/class
+  {
+    "idAsignacion": "id",
+    "nombreProfesor": "",
+    "correoProfesor": "",
+    "nombreAlumno": "",
+    "correoAlumno": "",
+    "curso": "",
+    "asignatura": "",
+    "fecha": "2024-01-01",
+    "duracion": "1h",
+    "modalidad": "",
+    "localizacion": "",
+    "tipoClase": "",
+    "precioTotalPadres": 0,
+    "precioTotalProfesor": 0,
+    "beneficio": 0
+  }
+  ```
+
+Los datos se añaden en las hojas **profesores**, **alumnos** y **clases** del
+documento indicado.
