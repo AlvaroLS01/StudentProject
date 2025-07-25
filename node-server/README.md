@@ -10,15 +10,19 @@ Este servidor Node.js expone diferentes endpoints para enviar correos desde la p
    ```
 2. Copia el archivo de ejemplo `.env-example` a `.env` y edítalo:
    ```bash
-   cp .env-example .env
-   # Modifica EMAIL_USER y EMAIL_PASS si cambian las credenciales
-   # Establece JWT_SECRET y RESET_BASE_URL para los correos de restablecimiento
-   # y proporciona las credenciales de Firebase para `firebase-admin`.
-  ```
+    cp .env-example .env
+    # Modifica EMAIL_USER y EMAIL_PASS si cambian las credenciales
+    # Establece JWT_SECRET y RESET_BASE_URL para los correos de restablecimiento
+    # Especifica la ruta del JSON de la cuenta de servicio con
+    # GOOGLE_APPLICATION_CREDENTIALS
+    ```
 
-   * `JWT_SECRET` puede ser cualquier cadena aleatoria que solo tú conozcas. El
-     servidor la utiliza para firmar los tokens de restablecimiento. Cuanto más
-     larga y compleja sea, mejor.
+  * `JWT_SECRET` puede ser cualquier cadena aleatoria que solo tú conozcas. El
+    servidor la utiliza para firmar los tokens de restablecimiento. Cuanto más
+    larga y compleja sea, mejor.
+  * `GOOGLE_APPLICATION_CREDENTIALS` debe apuntar al archivo JSON de la cuenta
+    de servicio de Firebase. Este archivo se obtiene desde la consola de
+    Firebase y permite que el servidor utilice la API de administración.
 
 ## Ejecutar el servidor
 
