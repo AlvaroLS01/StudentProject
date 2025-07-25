@@ -52,6 +52,81 @@ app.post('/send-email', async (req, res) => {
   }
 });
 
+app.post('/send-assignment-email', async (req, res) => {
+  const {
+    teacherEmail,
+    teacherName,
+    studentEmail,
+    studentName,
+    schedule = [],
+    recipient = 'both',
+  } = req.body;
+
+  if (!teacherEmail && !studentEmail) {
+    return res.status(400).json({ error: 'Falta correo destinatario' });
+  }
+
+  const scheduleText = Array.isArray(schedule)
+    ? (() => {
+        const byDay = {};
+        schedule.forEach(slot => {
+          const [day, h] = slot.split('-');
+          byDay[day] = byDay[day] || [];
+          const start = parseInt(h, 10);
+          if (!isNaN(start)) {
+            byDay[day].push(`${start}.00–${start + 1}.00`);
+          }
+        });
+        return Object.keys(byDay)
+          .map(d => `${d}: ${byDay[d].join(', ')}`)
+          .join('<br>');
+      })()
+    : '';
+
+  const from = `"Student Project" <${process.env.EMAIL_USER || 'alvaro@studentproject.es'}>`;
+
+  const emails = [];
+
+  if (['teacher', 'both'].includes(recipient) && teacherEmail) {
+    const html = `
+      <p>Hola ${teacherName || 'profesor'}, has sido seleccionado para impartir la clase del alumno ${studentName || ''}.</p>
+      ${scheduleText ? `<p>Horario propuesto:</p><p>${scheduleText}</p>` : ''}
+      <p>Debes aceptar la solicitud en <strong>Mis clases</strong> &gt; <strong>Ofertas</strong>.</p>
+    `;
+    emails.push(
+      transporter.sendMail({
+        from,
+        to: teacherEmail,
+        subject: 'Solicitud de clase',
+        html,
+      })
+    );
+  }
+
+  if (['student', 'both'].includes(recipient) && studentEmail) {
+    const html = `
+      <p>Hola ${studentName || 'alumno'}, el profesor ${teacherName || ''} ha aceptado impartir tu clase.</p>
+      <p>Debes aceptarlo en la sección <strong>Mis clases</strong>. Una vez aceptado podréis coordinar la clase.</p>
+    `;
+    emails.push(
+      transporter.sendMail({
+        from,
+        to: studentEmail,
+        subject: 'Profesor asignado',
+        html,
+      })
+    );
+  }
+
+  try {
+    await Promise.all(emails);
+    res.json({ message: 'Correos enviados' });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Error enviando correo' });
+  }
+});
+
 app.post('/request-password-reset', async (req, res) => {
   const { email } = req.body;
   if (!email) return res.status(400).json({ error: 'Email requerido' });

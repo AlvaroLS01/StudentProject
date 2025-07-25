@@ -1,6 +1,6 @@
 # Servidor de correo
 
-Este servidor Node.js expone diferentes endpoints para enviar correos desde la plataforma: uno de bienvenida y otro para restablecer la contraseña.
+Este servidor Node.js expone diferentes endpoints para enviar correos desde la plataforma: uno de bienvenida, otro para restablecer la contraseña y uno adicional para notificar la asignación de clases.
 
 ## Configuración
 
@@ -69,3 +69,21 @@ Se enviará un correo de bienvenida a la dirección especificada.
    ```
 
    Si el token es válido, la contraseña del usuario se actualizará en Firebase.
+
+### Asignación de clases
+
+Envía un `POST` a `http://localhost:3001/send-assignment-email` con un cuerpo como:
+
+```json
+{
+  "teacherEmail": "profesor@ejemplo.com",
+  "teacherName": "Nombre Profesor",
+  "studentEmail": "alumno@ejemplo.com",
+  "studentName": "Nombre Alumno",
+  "schedule": ["Lunes-17", "Martes-18"],
+  "recipient": "teacher"
+}
+```
+
+El campo `recipient` puede ser `teacher`, `student` o `both` para indicar a quién se envía la notificación.
+Se utilizará para avisar al profesor cuando la administración lo seleccione y al alumno cuando el profesor acepte la solicitud.
