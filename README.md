@@ -19,6 +19,7 @@ cp .env.example .env
 # edit .env and set REACT_APP_SHEET_SECRET, EMAIL_USER and EMAIL_PASS
 # define REACT_APP_PASSWORD_RESET_API and REACT_APP_CHANGE_PASSWORD_API if
 # the Node server runs on a different URL
+# set REACT_APP_EMAIL_API if /send-assignment-email is hosted elsewhere
 ```
 
 The root `.env.example` lists all required variables for the React app. Both the client and the Node server read their configuration from `.env`.
@@ -149,6 +150,7 @@ The server uses Nodemailer with the credentials from `.env` to send the welcome 
 It also exposes endpoints for password resets:
 `/request-password-reset` and `/reset-password`. The client URLs are configured
 via `REACT_APP_PASSWORD_RESET_API` and `REACT_APP_CHANGE_PASSWORD_API` in `.env`.
+There is a third endpoint `/send-assignment-email` used to avisar a profesores y alumnos cuando se forma una clase. Configure `REACT_APP_EMAIL_API` with its URL if necessary.
 
 ## Running React with the Node server
 
