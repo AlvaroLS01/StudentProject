@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import PhoneInput from 'react-phone-input-2';
+import 'react-phone-input-2/lib/style.css';
 import styled from 'styled-components';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../AuthContext';
@@ -85,6 +87,8 @@ export default function CompletarDatosGoogle() {
   const [ciudad, setCiudad] = useState('');
   const [curso, setCurso] = useState('');
   const [nombreHijo, setNombreHijo] = useState('');
+  const [apellidoHijo, setApellidoHijo] = useState('');
+  const [generoHijo, setGeneroHijo] = useState('Masculino');
   const [fechaNacHijo, setFechaNacHijo] = useState('');
   const [cities, setCities] = useState([]);
 
@@ -124,7 +128,10 @@ export default function CompletarDatosGoogle() {
       setTelefonoError('Los números no coinciden');
       return;
     }
-    if (rol === 'padre' && (!nombreHijo || !fechaNacHijo)) {
+    if (
+      rol === 'padre' &&
+      (!nombreHijo || !apellidoHijo || !fechaNacHijo || !generoHijo)
+    ) {
       show('Completa datos del hijo', 'error');
       return;
     }
@@ -151,13 +158,17 @@ export default function CompletarDatosGoogle() {
       } else {
         data.curso = curso;
         if (rol === 'padre') {
-          data.hijos = [{
-            id: Date.now().toString(),
-            nombre: nombreHijo,
-            fechaNacimiento: fechaNacHijo,
-            curso,
-            photoURL: user.photoURL || ''
-          }];
+          data.hijos = [
+            {
+              id: Date.now().toString(),
+              nombre: nombreHijo,
+              apellidos: apellidoHijo,
+              genero: generoHijo,
+              fechaNacimiento: fechaNacHijo,
+              curso,
+              photoURL: user.photoURL || ''
+            }
+          ];
         }
       }
       await setDoc(doc(db, 'usuarios', user.uid), data);
@@ -183,24 +194,26 @@ export default function CompletarDatosGoogle() {
           </Field>
           <Field>
             <label>Teléfono</label>
-            <input className="form-control"
-              type="tel"
+            <PhoneInput
+              country={'es'}
               value={telefono}
-              onChange={e => {
-                setTelefono(e.target.value);
+              onChange={value => {
+                setTelefono(value);
                 setTelefonoError('');
               }}
+              inputStyle={{ width: '100%' }}
             />
           </Field>
           <Field>
             <label>Repite Teléfono</label>
-            <input className="form-control"
-              type="tel"
+            <PhoneInput
+              country={'es'}
               value={confirmTelefono}
-              onChange={e => {
-                setConfirmTelefono(e.target.value);
+              onChange={value => {
+                setConfirmTelefono(value);
                 setTelefonoError('');
               }}
+              inputStyle={{ width: '100%' }}
             />
             {telefonoError && <ErrorText>{telefonoError}</ErrorText>}
           </Field>
@@ -230,11 +243,41 @@ export default function CompletarDatosGoogle() {
             <>
               <Field>
                 <label>Nombre del hijo</label>
-                <input className="form-control" type="text" value={nombreHijo} onChange={e => setNombreHijo(e.target.value)} />
+                <input
+                  className="form-control"
+                  type="text"
+                  value={nombreHijo}
+                  onChange={e => setNombreHijo(e.target.value)}
+                />
+              </Field>
+              <Field>
+                <label>Apellidos del hijo</label>
+                <input
+                  className="form-control"
+                  type="text"
+                  value={apellidoHijo}
+                  onChange={e => setApellidoHijo(e.target.value)}
+                />
+              </Field>
+              <Field>
+                <label>Género</label>
+                <select
+                  className="form-control"
+                  value={generoHijo}
+                  onChange={e => setGeneroHijo(e.target.value)}
+                >
+                  <option value="Masculino">Masculino</option>
+                  <option value="Femenino">Femenino</option>
+                </select>
               </Field>
               <Field>
                 <label>Fecha nacimiento del hijo</label>
-                <input className="form-control" type="date" value={fechaNacHijo} onChange={e => setFechaNacHijo(e.target.value)} />
+                <input
+                  className="form-control"
+                  type="date"
+                  value={fechaNacHijo}
+                  onChange={e => setFechaNacHijo(e.target.value)}
+                />
               </Field>
             </>
           )}
