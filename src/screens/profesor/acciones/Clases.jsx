@@ -5,7 +5,7 @@ import { useSearchParams } from 'react-router-dom';
 import LoadingScreen from '../../../components/LoadingScreen';
 import Card from '../../../components/CommonCard';
 import InfoGrid from '../../../components/InfoGrid';
-import ToggleSwitch from "../../../components/ToggleSwitch";
+import Tabs from "../../../components/Tabs";
 import { auth, db } from '../../../firebase/firebaseConfig';
 import { useNotification } from '../../../NotificationContext';
 import {
@@ -365,7 +365,14 @@ export default function ClasesProfesor() {
     <Page>
       <Container>
         <Title>Mis Clases & Ofertas</Title>
-        <ToggleSwitch leftLabel="Mis clases" rightLabel="Mis ofertas" value={view === "clases" ? "left" : "right"} onChange={(val) => setView(val === "left" ? "clases" : "ofertas")}/>
+        <Tabs
+          tabs={[
+            { label: 'Mis clases', value: 'clases' },
+            { label: 'Mis ofertas', value: 'ofertas' },
+          ]}
+          active={view}
+          onChange={setView}
+        />
 
         {view === 'clases' ? (
           <>
