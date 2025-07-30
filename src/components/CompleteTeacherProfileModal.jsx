@@ -5,6 +5,16 @@ import { auth, db } from '../firebase/firebaseConfig';
 import { doc, updateDoc } from 'firebase/firestore';
 import { useAuth } from '../AuthContext';
 
+const DNI_LETTERS = 'TRWAGMYFPDXBNJZSQVHLCKE';
+
+function validateDNI(value) {
+  const match = /^([0-9]{8})([A-Za-z])$/.exec(value.toUpperCase());
+  if (!match) return false;
+  const num = parseInt(match[1], 10);
+  const letter = match[2];
+  return DNI_LETTERS[num % 23] === letter;
+}
+
 const Overlay = styled.div`
   position: fixed;
   top: 0;
@@ -47,9 +57,20 @@ const Field = styled.div`
   margin-bottom: 1rem;
 `;
 
+const ErrorText = styled.p`
+  color: #ff6b6b;
+  font-size: 0.9rem;
+  margin-top: 0.25rem;
+`;
+
 export default function CompleteTeacherProfileModal({ open, onClose, userData }) {
   const { refreshUserData } = useAuth();
-  const [docType, setDocType] = useState(userData?.docType || '');
+  const [docSelect, setDocSelect] = useState(
+    userData?.docType === 'DNI' ? 'DNI' : 'Otro'
+  );
+  const [docTypeOther, setDocTypeOther] = useState(
+    userData?.docType && userData?.docType !== 'DNI' ? userData.docType : ''
+  );
   const [docNumber, setDocNumber] = useState(userData?.docNumber || '');
   const [studies, setStudies] = useState(userData?.studies || '');
   const [studyTime, setStudyTime] = useState(userData?.studyTime || '');
@@ -58,6 +79,7 @@ export default function CompleteTeacherProfileModal({ open, onClose, userData })
   const [status, setStatus] = useState(userData?.status || '');
   const [iban, setIban] = useState(userData?.iban || '');
   const [saving, setSaving] = useState(false);
+  const [dniError, setDniError] = useState('');
 
   useEffect(() => {
     if (status === 'trabaja') {
@@ -65,14 +87,30 @@ export default function CompleteTeacherProfileModal({ open, onClose, userData })
     }
   }, [status]);
 
+  useEffect(() => {
+    if (docSelect === 'DNI') {
+      setDniError(docNumber ? (validateDNI(docNumber) ? '' : 'DNI no válido') : '');
+    } else {
+      setDniError('');
+    }
+  }, [docNumber, docSelect]);
+
+  useEffect(() => {
+    if (docSelect === 'DNI') {
+      setDocTypeOther('');
+    }
+  }, [docSelect]);
+
   if (!open) return null;
 
   const save = async () => {
-    if (!docType || !docNumber || !studies || !status || !iban) return;
+    const finalDocType = docSelect === 'DNI' ? 'DNI' : docTypeOther.trim();
+    if (!finalDocType || !docNumber || !studies || !status || !iban) return;
+    if (docSelect === 'DNI' && dniError) return;
     if (saving) return;
     setSaving(true);
     await updateDoc(doc(db, 'usuarios', auth.currentUser.uid), {
-      docType,
+      docType: finalDocType,
       docNumber,
       studies,
       studyTime: status === 'trabaja' ? 'Finalizado en tiempo' : studyTime,
@@ -94,16 +132,23 @@ export default function CompleteTeacherProfileModal({ open, onClose, userData })
         <Field>
           <label>Tipo de documento</label>
           <SelectInput
-            value={docType}
-            onChange={e => setDocType(e.target.value)}
+            value={docSelect}
+            onChange={e => setDocSelect(e.target.value)}
             disabled={!!userData?.docNumber}
           >
-            <option value="">Selecciona</option>
             <option value="DNI">DNI</option>
-            <option value="NIE">NIE</option>
-            <option value="NIF">NIF</option>
-            <option value="Pasaporte">Pasaporte</option>
+            <option value="Otro">Otro</option>
           </SelectInput>
+          {docSelect === 'Otro' && (
+            <TextInput
+              type="text"
+              placeholder="NIF, NIE, Pasaporte"
+              value={docTypeOther}
+              onChange={e => setDocTypeOther(e.target.value)}
+              disabled={!!userData?.docNumber}
+              style={{ marginTop: '0.5rem' }}
+            />
+          )}
         </Field>
         <Field>
           <label>Número</label>
@@ -113,6 +158,7 @@ export default function CompleteTeacherProfileModal({ open, onClose, userData })
             onChange={e => setDocNumber(e.target.value)}
             disabled={!!userData?.docNumber}
           />
+          {dniError && <ErrorText>{dniError}</ErrorText>}
         </Field>
         <Field>
           <label>¿Estudias o trabajas?</label>
