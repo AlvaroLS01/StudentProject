@@ -3,7 +3,6 @@ import React, { useEffect, useState } from 'react';
 import styled, { keyframes } from 'styled-components';
 import { useSearchParams, Link } from 'react-router-dom';
 import { useChild } from '../../../ChildContext';
-import LoadingScreen from '../../../components/LoadingScreen';
 import Card from '../../../components/CommonCard';
 import InfoGrid from '../../../components/InfoGrid';
 import Tabs from "../../../components/Tabs";
@@ -143,14 +142,13 @@ export default function Clases() {
   const [solicitudes, setSolicitudes] = useState([]);
   const [pendingAssignments, setPendingAssignments] = useState([]);
   const [sortBy, setSortBy] = useState('fecha');
-  const [loading, setLoading] = useState(true);
-  const [loadingReqs, setLoadingReqs] = useState(true);
+  /* placeholder states for potential loading indicators */
   const [processingIds, setProcessingIds] = useState(new Set());
 
   useEffect(() => {
-    setLoading(true);
+    /* loading indicator placeholder */
     const u = auth.currentUser;
-    if (!u) { setLoading(false); return; }
+    if (!u) { return; }
     let q = query(collection(db, 'clases_union'), where('alumnoId', '==', u.uid));
     if (selectedChild) {
       q = query(
@@ -194,16 +192,15 @@ export default function Clases() {
       });
       const results = await Promise.all(promises);
       setClases(results.flat());
-      setLoading(false);
+      /* loading indicator placeholder */
     });
     return () => unsub();
   }, [selectedChild]);
 
   useEffect(() => {
     (async () => {
-      setLoadingReqs(true);
       const u = auth.currentUser;
-      if (!u) { setLoadingReqs(false); return; }
+      if (!u) { return; }
       let q = query(collection(db, 'clases'), where('alumnoId', '==', u.uid));
       if (selectedChild) {
         q = query(collection(db, 'clases'),
@@ -227,7 +224,6 @@ export default function Clases() {
       }
       const snap2 = await getDocs(q2);
       setPendingAssignments(snap2.docs.map(d => ({ id: d.id, ...d.data() })));
-      setLoadingReqs(false);
     })();
   }, [selectedChild]);
 
