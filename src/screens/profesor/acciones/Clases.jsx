@@ -186,7 +186,6 @@ export default function ClasesProfesor() {
   const initialView = searchParams.get('view') || 'clases';
   const [view, setView] = useState(initialView);
   const [clases, setClases] = useState([]);
-  const [offers, setOffers] = useState([]);
   const [sortBy, setSortBy] = useState('fecha');
   const [editing, setEditing] = useState(null);
   const [newDate, setNewDate] = useState('');
@@ -250,33 +249,6 @@ export default function ClasesProfesor() {
     setSearchParams({ view });
   }, [view, setSearchParams]);
 
-  useEffect(() => {
-    (async () => {
-      const u = auth.currentUser;
-      if (!u) return;
-      const snap = await getDocs(collection(db, 'usuarios', u.uid, 'ofertas'));
-      const data = [];
-      for (const d of snap.docs) {
-        const { classId } = d.data();
-        let classData = {};
-        let offerData = {};
-        try {
-          const offSnap = await getDoc(doc(db, 'clases', classId, 'ofertas', d.id));
-          if (offSnap.exists()) offerData = offSnap.data();
-        } catch (err) {
-          console.error(err);
-        }
-        try {
-          const cs = await getDoc(doc(db, 'clases', classId));
-          if (cs.exists()) classData = { classEstado: cs.data().estado, alumnoNombre: cs.data().alumnoNombre };
-        } catch (err) {
-          console.error(err);
-        }
-        data.push({ id: d.id, classId, ...classData, ...offerData });
-      }
-      setOffers(data);
-    })();
-  }, []);
 
   const sortedClases = useMemo(() => {
     const arr = [...clases];

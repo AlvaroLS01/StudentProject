@@ -90,7 +90,6 @@ export default function CompleteTeacherProfileModal({ open, onClose, userData })
   const [studies, setStudies] = useState(userData?.studies || '');
   const [studyTime, setStudyTime] = useState(userData?.studyTime || '');
   const [finished, setFinished] = useState(userData?.careerFinished || false);
-  const [status] = useState('estudia');
   const [iban, setIban] = useState(userData?.iban || '');
   const [saving, setSaving] = useState(false);
   const [dniError, setDniError] = useState('');

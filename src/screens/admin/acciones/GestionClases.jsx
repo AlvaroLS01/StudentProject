@@ -14,7 +14,6 @@ import {
   getDoc,
   updateDoc,
   doc,
-  addDoc,
   serverTimestamp
 } from 'firebase/firestore';
 import { sendAssignmentEmails } from '../../../utils/email';
