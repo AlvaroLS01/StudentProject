@@ -10,7 +10,7 @@ import 'react-phone-input-2/lib/style.css';
 
 // Firebase (inicializado en firebaseConfig.js)
 import { auth, db } from '../firebase/firebaseConfig';
-import { createUserWithEmailAndPassword } from 'firebase/auth';
+import { createUserWithEmailAndPassword, sendEmailVerification } from 'firebase/auth';
 import { collection, getDocs, doc, setDoc, query, where } from 'firebase/firestore';
 
 // Animación de entrada
@@ -336,6 +336,9 @@ export default function SignUpProfesor() {
         createdAt: new Date()
       });
       await sendWelcomeEmail({ email, name: nombre });
+      if (auth.currentUser) {
+        await sendEmailVerification(auth.currentUser);
+      }
       show('Profesor registrado con éxito', 'success');
       navigate('/');
     } catch (err) {
