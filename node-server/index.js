@@ -72,6 +72,25 @@ app.post('/send-email', async (req, res) => {
   }
 });
 
+app.post('/send-verification-code', async (req, res) => {
+  const { email, code } = req.body;
+  if (!email || !code) {
+    return res.status(400).json({ error: 'Datos incompletos' });
+  }
+  try {
+    await transporter.sendMail({
+      from: `"Student Project" <${process.env.EMAIL_USER || 'alvaro@studentproject.es'}>`,
+      to: email,
+      subject: 'Código de verificación',
+      html: `<p>Tu código de verificación es: <strong>${code}</strong></p>`
+    });
+    res.json({ message: 'Código enviado' });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Error enviando código' });
+  }
+});
+
 // Append user data to Google Sheets
 app.post('/sheet/user', async (req, res) => {
   const d = req.body || {};
