@@ -84,7 +84,6 @@ export default function CompletarDatosGoogle() {
   const [telefonoError, setTelefonoError] = useState('');
   const [ciudad, setCiudad] = useState('');
   const [curso, setCurso] = useState('');
-  const [fechaNac, setFechaNac] = useState('');
   const [nombreHijo, setNombreHijo] = useState('');
   const [fechaNacHijo, setFechaNacHijo] = useState('');
   const [cities, setCities] = useState([]);
@@ -125,10 +124,6 @@ export default function CompletarDatosGoogle() {
       setTelefonoError('Los números no coinciden');
       return;
     }
-    if (rol === 'alumno' && !fechaNac) {
-      show('Añade tu fecha de nacimiento', 'error');
-      return;
-    }
     if (rol === 'padre' && (!nombreHijo || !fechaNacHijo)) {
       show('Completa datos del hijo', 'error');
       return;
@@ -155,9 +150,7 @@ export default function CompletarDatosGoogle() {
         // nothing extra
       } else {
         data.curso = curso;
-        if (rol === 'alumno') {
-          data.fechaNacimiento = fechaNac;
-        } else {
+        if (rol === 'padre') {
           data.hijos = [{
             id: Date.now().toString(),
             nombre: nombreHijo,
@@ -231,12 +224,6 @@ export default function CompletarDatosGoogle() {
                   </optgroup>
                 ))}
               </select>
-            </Field>
-          )}
-          {rol === 'alumno' && (
-            <Field>
-              <label>Fecha de nacimiento</label>
-              <input className="form-control" type="date" value={fechaNac} onChange={e => setFechaNac(e.target.value)} />
             </Field>
           )}
           {rol === 'padre' && (

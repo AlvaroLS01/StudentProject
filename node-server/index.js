@@ -94,10 +94,10 @@ app.post('/sheet/user', async (req, res) => {
         d.job,
         d.iban,
       ]);
-    } else {
+    } else if (d.rol === 'padre') {
       await appendRow('alumnos', [
         d.id,
-        d.rol === 'padre' ? 'P' : 'A',
+        'P',
         d.nombre,
         d.apellidos,
         d.email,
@@ -106,6 +106,8 @@ app.post('/sheet/user', async (req, res) => {
         d.curso,
         d.fechaNacimiento,
       ]);
+    } else {
+      return res.status(400).json({ error: 'Rol no válido' });
     }
     res.json({ message: 'Registrado en hoja' });
   } catch (err) {

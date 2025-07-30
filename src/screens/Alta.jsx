@@ -108,15 +108,15 @@ const Alta = () => (
     <CardsContainer>
       <Card>
         <ImageWrapper>
-          <CardImage src={alumnosImg} alt="Alumno en clase particular" />
+          <CardImage src={alumnosImg} alt="Padres e hijos aprendiendo" />
         </ImageWrapper>
         <CardContent>
-          <CardTitle>Explora clases a tu medida</CardTitle>
+          <CardTitle>Registra a tu hijo para empezar</CardTitle>
           <CardDesc>
-            Cuéntanos tus objetivos y recibe una sesión de demostración gratis. Nuestro equipo te ayudará a diseñar un plan de estudios único para ti.
+            Crea tu cuenta de tutor y te ayudaremos a encontrar al profesor ideal para tu hijo.
           </CardDesc>
-          <CardButton to="/alta-alumno">
-            Quiero una clase
+          <CardButton to="/alta-padre">
+            Soy tutor
           </CardButton>
         </CardContent>
       </Card>
