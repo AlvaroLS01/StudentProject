@@ -184,6 +184,11 @@ export default function CompletarDatosGoogle() {
       <Card>
         <Title>Completa tu perfil</Title>
         <Form onSubmit={handleSubmit}>
+          {rol === 'padre' && (
+            <h3 style={{ gridColumn: '1 / -1', marginBottom: '0.5rem', color: '#034640' }}>
+              Datos del tutor legal
+            </h3>
+          )}
           <Field>
             <label>Nombre</label>
             <input className="form-control" type="text" value={nombre} onChange={e => setNombre(e.target.value)} />
@@ -241,6 +246,9 @@ export default function CompletarDatosGoogle() {
           )}
           {rol === 'padre' && (
             <>
+              <h3 style={{ gridColumn: '1 / -1', marginTop: '1rem', marginBottom: '0.5rem', color: '#034640' }}>
+                Datos del alumno
+              </h3>
               <Field>
                 <label>Nombre del hijo</label>
                 <input
@@ -279,6 +287,9 @@ export default function CompletarDatosGoogle() {
                   onChange={e => setFechaNacHijo(e.target.value)}
                 />
               </Field>
+              <p style={{ gridColumn: '1 / -1', fontSize: '0.85rem', color: '#555' }}>
+                Podrás añadir más hijos desde la pestaña "Mi cuenta".
+              </p>
             </>
           )}
           <Button type="submit">Guardar</Button>
