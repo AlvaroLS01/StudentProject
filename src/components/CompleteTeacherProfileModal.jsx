@@ -15,6 +15,21 @@ function validateDNI(value) {
   return DNI_LETTERS[num % 23] === letter;
 }
 
+function validateIBAN(value) {
+  const iban = value.replace(/\s+/g, '').toUpperCase();
+  if (!/^[A-Z]{2}\d{22}$/.test(iban)) return false;
+  const rearranged = iban.slice(4) + iban.slice(0, 4);
+  const converted = rearranged
+    .split('')
+    .map(ch => (/[A-Z]/.test(ch) ? ch.charCodeAt(0) - 55 : ch))
+    .join('');
+  let remainder = 0;
+  for (let i = 0; i < converted.length; i++) {
+    remainder = (remainder * 10 + parseInt(converted[i], 10)) % 97;
+  }
+  return remainder === 1;
+}
+
 const Overlay = styled.div`
   position: fixed;
   top: 0;
@@ -75,17 +90,11 @@ export default function CompleteTeacherProfileModal({ open, onClose, userData })
   const [studies, setStudies] = useState(userData?.studies || '');
   const [studyTime, setStudyTime] = useState(userData?.studyTime || '');
   const [finished, setFinished] = useState(userData?.careerFinished || false);
-  const [job, setJob] = useState(userData?.job || '');
-  const [status, setStatus] = useState(userData?.status || '');
+  const [status] = useState('estudia');
   const [iban, setIban] = useState(userData?.iban || '');
   const [saving, setSaving] = useState(false);
   const [dniError, setDniError] = useState('');
-
-  useEffect(() => {
-    if (status === 'trabaja') {
-      setStudyTime('Finalizado en tiempo');
-    }
-  }, [status]);
+  const [ibanError, setIbanError] = useState('');
 
   useEffect(() => {
     if (docSelect === 'DNI') {
@@ -101,22 +110,30 @@ export default function CompleteTeacherProfileModal({ open, onClose, userData })
     }
   }, [docSelect]);
 
+  useEffect(() => {
+    if (!iban) {
+      setIbanError('');
+    } else {
+      setIbanError(validateIBAN(iban) ? '' : 'IBAN no válido');
+    }
+  }, [iban]);
+
   if (!open) return null;
 
   const save = async () => {
     const finalDocType = docSelect === 'DNI' ? 'DNI' : docTypeOther.trim();
-    if (!finalDocType || !docNumber || !studies || !status || !iban) return;
+    if (!finalDocType || !docNumber || !studies || !iban) return;
     if (docSelect === 'DNI' && dniError) return;
+    if (ibanError) return;
     if (saving) return;
     setSaving(true);
     await updateDoc(doc(db, 'usuarios', auth.currentUser.uid), {
       docType: finalDocType,
       docNumber,
       studies,
-      studyTime: status === 'trabaja' ? 'Finalizado en tiempo' : studyTime,
+      studyTime,
       careerFinished: finished,
-      job,
-      status,
+      status: 'estudia',
       iban,
     });
     await refreshUserData();
@@ -161,44 +178,22 @@ export default function CompleteTeacherProfileModal({ open, onClose, userData })
           {dniError && <ErrorText>{dniError}</ErrorText>}
         </Field>
         <Field>
-          <label>¿Estudias o trabajas?</label>
-          <SelectInput value={status} onChange={e => setStatus(e.target.value)}>
-            <option value="">Selecciona</option>
-            <option value="estudia">Estudio</option>
-            <option value="trabaja">Trabajo</option>
-          </SelectInput>
+          <label>¿Qué estudias o has estudiado?</label>
+          <TextInput
+            type="text"
+            value={studies}
+            onChange={e => setStudies(e.target.value)}
+          />
         </Field>
-        {status === 'trabaja' && (
-          <>
-            <Field>
-              <label>¿Qué has estudiado?</label>
-              <TextInput
-                type="text"
-                value={studies}
-                onChange={e => setStudies(e.target.value)}
-              />
-            </Field>
-          </>
-        )}
-        {status === 'estudia' && (
-          <>
-            <Field>
-              <label>¿Qué estudias?</label>
-              <TextInput
-                type="text"
-                value={studies}
-                onChange={e => setStudies(e.target.value)}
-              />
-            </Field>
-            <Field>
-              <label>¿En qué año estás?</label>
-              <TextInput
-                type="text"
-                value={studyTime}
-                onChange={e => setStudyTime(e.target.value)}
-              />
-            </Field>
-          </>
+        {!finished && (
+          <Field>
+            <label>¿En qué año estás?</label>
+            <TextInput
+              type="text"
+              value={studyTime}
+              onChange={e => setStudyTime(e.target.value)}
+            />
+          </Field>
         )}
         <Field>
           <label>
@@ -209,16 +204,6 @@ export default function CompleteTeacherProfileModal({ open, onClose, userData })
             />{' '}Carrera finalizada
           </label>
         </Field>
-        {status === 'trabaja' && (
-          <Field>
-            <label>¿En qué trabajas?</label>
-            <TextInput
-              type="text"
-              value={job}
-              onChange={e => setJob(e.target.value)}
-            />
-          </Field>
-        )}
         <Field>
           <label>IBAN o número de cuenta</label>
           <TextInput
@@ -226,6 +211,7 @@ export default function CompleteTeacherProfileModal({ open, onClose, userData })
             value={iban}
             onChange={e => setIban(e.target.value)}
           />
+          {ibanError && <ErrorText>{ibanError}</ErrorText>}
         </Field>
         <PrimaryButton onClick={save} disabled={saving}>
           {saving ? 'Guardando...' : 'Guardar'}
