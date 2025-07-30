@@ -396,8 +396,6 @@ export default function SignUpProfesor() {
             />
             {telefonoError && <ErrorText>{telefonoError}</ErrorText>}
           </Field>
-            {telefonoError && <ErrorText>{telefonoError}</ErrorText>}
-          </Field>
           <Field>
             <div className="fl-field">
               <input
