@@ -61,7 +61,6 @@ export default function SeleccionRol() {
       <Card>
         <Title>Selecciona tu rol</Title>
         <ButtonGroup>
-          <Button onClick={() => handleSelect('alumno')}>Alumno</Button>
           <Button onClick={() => handleSelect('padre')}>Padre</Button>
           <Button onClick={() => handleSelect('profesor')}>Profesor</Button>
         </ButtonGroup>

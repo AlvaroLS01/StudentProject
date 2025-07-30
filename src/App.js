@@ -22,7 +22,7 @@ import QuienesSomos    from './screens/QuienesSomos';
 import Contacto        from './screens/Contacto';
 import InicioSesion    from './screens/InicioSesion';
 import SignUpProfesor  from './screens/SignUpProfesor';
-import SignUpAlumno    from './screens/SignUpAlumno';
+import SignUpPadre     from './screens/SignUpPadre';
 import PanelProfesor   from './screens/profesor/PanelProfesor';
 import PanelAlumno     from './screens/alumno/PanelAlumno';
 import PanelAdmin      from './screens/admin/PanelAdmin';
@@ -75,7 +75,7 @@ function AppContent() {
       <Routes>
           {/* Sin Navbar/Footer */}
           <Route path="/alta-profesor" element={<SignUpProfesor />} />
-          <Route path="/alta-alumno"   element={<SignUpAlumno />} />
+          <Route path="/alta-padre"    element={<SignUpPadre />} />
           <Route path="/inicio"        element={<InicioSesion />} />
           <Route path="/seleccion-rol" element={<SeleccionRol />} />
           <Route path="/google-datos" element={<CompletarDatosGoogle />} />
@@ -92,7 +92,7 @@ function AppContent() {
             {/* Ruta de perfil con parámetro userId */}
             <Route path="/perfil/:userId"       element={<Perfil />} />
 
-            <Route element={<RequireAuth allowedRoles={['alumno','padre','admin']} />}>
+            <Route element={<RequireAuth allowedRoles={['padre','admin']} />}>
               <Route path="/alumno"               element={<PanelAlumno />} />
               <Route path="/alumno/nueva-clase"   element={<NuevaClase />} />
               <Route path="/alumno/clases"        element={<Clases />} />

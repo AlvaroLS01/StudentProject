@@ -1,4 +1,4 @@
-// src/screens/SignUpAlumno.jsx
+// src/screens/SignUpPadre.jsx
 import React, { useState, useEffect, useRef } from 'react';
 import styled, { keyframes } from 'styled-components';
 import { useNavigate } from 'react-router-dom';
@@ -106,25 +106,6 @@ const Field = styled.div`
     border-color: #046654;
     box-shadow: 0 0 0 4px rgba(4,102,84,0.15);
   }
-`;
-
-// Toggle de rol
-const ToggleGroup = styled.div`
-  display: flex;
-  justify-content: center;
-  gap: 1rem;
-  margin-bottom: 1.5rem;
-`;
-const ToggleOption = styled.button`
-  padding: 0.6rem 1.2rem;
-  border: none;
-  border-radius: 20px;
-  cursor: pointer;
-  font-size: 1rem;
-  font-weight: 500;
-  background: ${p => (p.active ? '#034640' : '#eee')};
-  color: ${p => (p.active ? '#fff' : '#333')};
-  transition: background 0.3s;
 `;
 
 // Dropdown
@@ -263,7 +244,7 @@ const cursosGrouped = [
   }
 ];
 
-export default function SignUpAlumno() {
+export default function SignUpPadre() {
   const [email, setEmail]           = useState('');
   const [emailError, setEmailError] = useState('');
   const [password, setPassword]     = useState('');
@@ -275,11 +256,9 @@ export default function SignUpAlumno() {
   const [telefonoError, setTelefonoError] = useState('');
   const [ciudad, setCiudad]         = useState('');
   const [cities, setCities]         = useState([]);
-  const [rolUser, setRolUser]       = useState('alumno');
   const [curso, setCurso]           = useState('');
   const [cityOpen, setCityOpen]     = useState(false);
   const [courseOpen, setCourseOpen] = useState(false);
-  const [fechaNac, setFechaNac]     = useState('');
   const [nombreHijo, setNombreHijo] = useState('');
   const [fechaNacHijo, setFechaNacHijo] = useState('');
   const [modalOpen, setModalOpen]   = useState(false);
@@ -337,9 +316,7 @@ export default function SignUpAlumno() {
     }
     if (password !== confirmPwd)
       return show('Las contraseñas no coinciden', 'error');
-    if (rolUser === 'alumno' && !fechaNac)
-      return show('Añade tu fecha de nacimiento', 'error');
-    if (rolUser === 'padre' && (!nombreHijo || !fechaNacHijo))
+    if (!nombreHijo || !fechaNacHijo)
       return show('Completa datos del hijo', 'error');
 
     setTelefonoError('');
@@ -359,14 +336,10 @@ export default function SignUpAlumno() {
         apellido,
         telefono,
         ciudad,
-        rol: rolUser,
+        rol: 'padre',
         curso,
-        createdAt: new Date()
-      };
-      if (rolUser === 'alumno') {
-        data.fechaNacimiento = fechaNac;
-      } else {
-        data.hijos = [
+        createdAt: new Date(),
+        hijos: [
           {
             id: Date.now().toString(),
             nombre: nombreHijo,
@@ -374,11 +347,11 @@ export default function SignUpAlumno() {
             curso,
             photoURL: user.photoURL || ''
           },
-        ];
-      }
+        ]
+      };
       await setDoc(doc(db, 'usuarios', user.uid), data);
       await sendWelcomeEmail({ email, name: nombre });
-      show('Alumno registrado con éxito', 'success');
+      show('Tutor registrado con éxito', 'success');
       navigate('/');
     } catch (err) {
       console.error(err);
@@ -392,17 +365,8 @@ export default function SignUpAlumno() {
     <Page>
       <Card>
         <CloseBtn onClick={() => setModalOpen(true)}>×</CloseBtn>
-        <Title>Registro Alumno/Tutor</Title>
-        <Subtitle>¡Únete y comienza tu aprendizaje hoy!</Subtitle>
-
-        <ToggleGroup>
-          <ToggleOption active={rolUser === 'alumno'} onClick={() => setRolUser('alumno')}>
-            Soy Alumno
-          </ToggleOption>
-          <ToggleOption active={rolUser === 'padre'} onClick={() => setRolUser('padre')}>
-            Soy Tutor Legal
-          </ToggleOption>
-        </ToggleGroup>
+        <Title>Registro de Tutor</Title>
+        <Subtitle>¡Únete y ayuda a tu hijo a aprender!</Subtitle>
 
         <FormGrid>
           <Field>
@@ -520,7 +484,7 @@ export default function SignUpAlumno() {
             </DropdownContainer>
           </Field>
           <Field ref={courseRef}>
-            <label>{rolUser === 'padre' ? 'Curso del hijo' : 'Curso'}</label>
+            <label>Curso del hijo</label>
             <DropdownContainer>
               <DropdownHeader onClick={() => setCourseOpen(o => !o)}>
                 {curso || 'Selecciona curso'} <Arrow open={courseOpen} />
@@ -548,50 +512,33 @@ export default function SignUpAlumno() {
             </DropdownContainer>
           </Field>
 
-          {rolUser === 'alumno' ? (
-            <Field style={{gridColumn:'1 / -1'}}>
-              <div className="fl-field">
-                <input
-                  className="form-control fl-input"
-                  type="date"
-                  value={fechaNac}
-                  onChange={e=>setFechaNac(e.target.value)}
-                  placeholder=" "
-                />
-                <label className="fl-label">Fecha de Nacimiento</label>
-              </div>
-            </Field>
-          ) : (
-            <>
-              <Field>
-                <div className="fl-field">
-                  <input
-                    className="form-control fl-input"
-                    type="text"
-                    value={nombreHijo}
-                    onChange={e=>setNombreHijo(e.target.value)}
-                    placeholder=" "
-                  />
-                  <label className="fl-label">Nombre del Hijo</label>
-                </div>
-              </Field>
-              <Field>
-                <div className="fl-field">
-                  <input
-                    className="form-control fl-input"
-                    type="date"
-                    value={fechaNacHijo}
-                    onChange={e=>setFechaNacHijo(e.target.value)}
-                    placeholder=" "
-                  />
-                  <label className="fl-label">Fecha Nacimiento del Hijo</label>
-                </div>
-              </Field>
-              <p style={{gridColumn: '1 / -1', fontSize:'0.85rem', color:'#555'}}>
-                Podrás añadir más hijos desde la pestaña "Mi cuenta".
-              </p>
-            </>
-          )}
+          <Field>
+            <div className="fl-field">
+              <input
+                className="form-control fl-input"
+                type="text"
+                value={nombreHijo}
+                onChange={e=>setNombreHijo(e.target.value)}
+                placeholder=" "
+              />
+              <label className="fl-label">Nombre del Hijo</label>
+            </div>
+          </Field>
+          <Field>
+            <div className="fl-field">
+              <input
+                className="form-control fl-input"
+                type="date"
+                value={fechaNacHijo}
+                onChange={e=>setFechaNacHijo(e.target.value)}
+                placeholder=" "
+              />
+              <label className="fl-label">Fecha Nacimiento del Hijo</label>
+            </div>
+          </Field>
+          <p style={{gridColumn: '1 / -1', fontSize:'0.85rem', color:'#555'}}>
+            Podrás añadir más hijos desde la pestaña "Mi cuenta".
+          </p>
         </FormGrid>
 
         <Button onClick={handleSubmit} disabled={submitting}>Crear cuenta</Button>

@@ -262,7 +262,7 @@ const ReservaClase = () => (
         </Card>
       </CardsWrapper>
 
-      <ReserveButton to="/alta-alumno">Reservar clase</ReserveButton>
+      <ReserveButton to="/alta-padre">Reservar clase</ReserveButton>
 
       <VideoSection>
         <VideoWrapper>
