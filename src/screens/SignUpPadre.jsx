@@ -4,7 +4,9 @@ import styled, { keyframes } from 'styled-components';
 import { useNavigate } from 'react-router-dom';
 import { useNotification } from "../NotificationContext";
 import { isValidEmail } from '../utils/validateEmail';
-import { sendWelcomeEmail } from '../utils/email';
+import { sendWelcomeEmail, sendVerificationCode } from '../utils/email';
+import PhoneInput from 'react-phone-input-2';
+import 'react-phone-input-2/lib/style.css';
 
 // Firebase (inicializado en firebaseConfig.js)
 import { auth, db } from '../firebase/firebaseConfig';
@@ -247,8 +249,13 @@ const cursosGrouped = [
 export default function SignUpPadre() {
   const [email, setEmail]           = useState('');
   const [emailError, setEmailError] = useState('');
+  const [emailVerified, setEmailVerified] = useState(false);
+  const [verifCode, setVerifCode] = useState('');
+  const [codeInput, setCodeInput] = useState('');
+  const [sendCooldown, setSendCooldown] = useState(0);
   const [password, setPassword]     = useState('');
   const [confirmPwd, setConfirmPwd] = useState('');
+  const [salutation, setSalutation] = useState('Sr.');
   const [nombre, setNombre]         = useState('');
   const [apellido, setApellido]     = useState('');
   const [telefono, setTelefono]     = useState('');
@@ -260,13 +267,21 @@ export default function SignUpPadre() {
   const [cityOpen, setCityOpen]     = useState(false);
   const [courseOpen, setCourseOpen] = useState(false);
   const [nombreHijo, setNombreHijo] = useState('');
+  const [apellidoHijo, setApellidoHijo] = useState('');
   const [fechaNacHijo, setFechaNacHijo] = useState('');
+  const [generoHijo, setGeneroHijo] = useState('Masculino');
   const [modalOpen, setModalOpen]   = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const navigate = useNavigate();
   const { show } = useNotification();
   const cityRef = useRef();
   const courseRef = useRef();
+
+  useEffect(() => {
+    if (sendCooldown <= 0) return;
+    const timer = setInterval(() => setSendCooldown(c => c - 1), 1000);
+    return () => clearInterval(timer);
+  }, [sendCooldown]);
 
   // Carga ciudades
   useEffect(() => {
@@ -290,6 +305,26 @@ export default function SignUpPadre() {
     return () => document.removeEventListener('mousedown', handleClick);
   }, []);
 
+  const handleSendCode = async () => {
+    if (!isValidEmail(email)) {
+      setEmailError('Correo electrónico no válido.');
+      return;
+    }
+    const code = Math.floor(100000 + Math.random() * 900000).toString();
+    setVerifCode(code);
+    await sendVerificationCode({ email, code });
+    setSendCooldown(30);
+  };
+
+  const handleCheckCode = () => {
+    if (codeInput === verifCode) {
+      setEmailVerified(true);
+      show('Correo verificado', 'success');
+    } else {
+      show('Código incorrecto', 'error');
+    }
+  };
+
   const handleSubmit = async () => {
     if (submitting) return;
     if (
@@ -301,7 +336,8 @@ export default function SignUpPadre() {
       !telefono ||
       !confirmTelefono ||
       !ciudad ||
-      !curso
+      !curso ||
+      !emailVerified
     ) {
       show('Completa todos los campos', 'error');
       return;
@@ -316,7 +352,7 @@ export default function SignUpPadre() {
     }
     if (password !== confirmPwd)
       return show('Las contraseñas no coinciden', 'error');
-    if (!nombreHijo || !fechaNacHijo)
+    if (!nombreHijo || !apellidoHijo || !fechaNacHijo || !generoHijo)
       return show('Completa datos del hijo', 'error');
 
     setTelefonoError('');
@@ -332,6 +368,7 @@ export default function SignUpPadre() {
       const data = {
         uid: user.uid,
         email,
+        tratamiento: salutation,
         nombre,
         apellido,
         telefono,
@@ -343,6 +380,8 @@ export default function SignUpPadre() {
           {
             id: Date.now().toString(),
             nombre: nombreHijo,
+            apellidos: apellidoHijo,
+            genero: generoHijo,
             fechaNacimiento: fechaNacHijo,
             curso,
             photoURL: user.photoURL || ''
@@ -368,6 +407,7 @@ export default function SignUpPadre() {
         <Title>Registro de Tutor</Title>
         <Subtitle>¡Únete y ayuda a tu hijo a aprender!</Subtitle>
 
+        <h3 style={{gridColumn:'1 / -1',marginBottom:'0.5rem',color:'#034640'}}>Datos del tutor legal</h3>
         <FormGrid>
           <Field>
             <div className="fl-field">
@@ -384,6 +424,14 @@ export default function SignUpPadre() {
               <label className="fl-label">E-mail</label>
             </div>
             {emailError && <ErrorText>{emailError}</ErrorText>}
+            <div style={{display:'flex',marginTop:'0.5rem',gap:'0.5rem'}}>
+              <button type="button" onClick={handleSendCode} disabled={sendCooldown>0} style={{flex:'1',background:'#046654',color:'#fff',border:'none',borderRadius:'6px',padding:'0.5rem',cursor:'pointer',opacity:sendCooldown>0?0.6:1}}>
+                {sendCooldown>0 ? `Reenviar (${sendCooldown})` : 'Verificar correo'}
+              </button>
+              <input type="text" value={codeInput} onChange={e=>setCodeInput(e.target.value)} placeholder="Código" style={{flex:'1',padding:'0.5rem',border:'1px solid #ccc',borderRadius:'6px'}} />
+              <button type="button" onClick={handleCheckCode} style={{background:'#ccc',border:'none',borderRadius:'6px',padding:'0.5rem',cursor:'pointer'}}>Comprobar</button>
+            </div>
+            {emailVerified && <p style={{color:'#046654',fontSize:'0.9rem'}}>Correo verificado</p>}
           </Field>
           <Field>
             <div className="fl-field">
@@ -410,6 +458,13 @@ export default function SignUpPadre() {
             </div>
           </Field>
           <Field>
+            <label>Tratamiento</label>
+            <select value={salutation} onChange={e=>setSalutation(e.target.value)} style={{padding:'0.7rem 0.9rem',border:'1px solid #ccc',borderRadius:'8px'}}>
+              <option value="Sr.">Sr.</option>
+              <option value="Sra.">Sra.</option>
+            </select>
+          </Field>
+          <Field>
             <div className="fl-field">
               <input
                 className="form-control fl-input"
@@ -434,34 +489,22 @@ export default function SignUpPadre() {
             </div>
           </Field>
           <Field>
-            <div className="fl-field">
-              <input
-                className="form-control fl-input"
-                type="tel"
-                value={telefono}
-                onChange={e => {
-                  setTelefono(e.target.value);
-                  setTelefonoError('');
-                }}
-                placeholder=" "
-              />
-              <label className="fl-label">Teléfono</label>
-            </div>
+            <label>Teléfono</label>
+            <PhoneInput
+              country={'es'}
+              value={telefono}
+              onChange={value => { setTelefono(value); setTelefonoError(''); }}
+              inputStyle={{ width: '100%' }}
+            />
           </Field>
           <Field>
-            <div className="fl-field">
-              <input
-                className="form-control fl-input"
-                type="tel"
-                value={confirmTelefono}
-                onChange={e => {
-                  setConfirmTelefono(e.target.value);
-                  setTelefonoError('');
-                }}
-                placeholder=" "
-              />
-              <label className="fl-label">Repite Teléfono</label>
-            </div>
+            <label>Repite Teléfono</label>
+            <PhoneInput
+              country={'es'}
+              value={confirmTelefono}
+              onChange={value => { setConfirmTelefono(value); setTelefonoError(''); }}
+              inputStyle={{ width: '100%' }}
+            />
             {telefonoError && <ErrorText>{telefonoError}</ErrorText>}
           </Field>
 
@@ -481,8 +524,10 @@ export default function SignUpPadre() {
                   ))}
                 </DropdownList>
               )}
-            </DropdownContainer>
-          </Field>
+          </DropdownContainer>
+        </Field>
+
+        <h3 style={{gridColumn:'1 / -1',marginTop:'1rem',marginBottom:'0.5rem',color:'#034640'}}>Datos del alumno</h3>
           <Field ref={courseRef}>
             <label>Curso del hijo</label>
             <DropdownContainer>
@@ -523,6 +568,25 @@ export default function SignUpPadre() {
               />
               <label className="fl-label">Nombre del Hijo</label>
             </div>
+          </Field>
+          <Field>
+            <div className="fl-field">
+              <input
+                className="form-control fl-input"
+                type="text"
+                value={apellidoHijo}
+                onChange={e=>setApellidoHijo(e.target.value)}
+                placeholder=" "
+              />
+              <label className="fl-label">Apellidos del Hijo</label>
+            </div>
+          </Field>
+          <Field>
+            <label>Género</label>
+            <select value={generoHijo} onChange={e=>setGeneroHijo(e.target.value)} style={{padding:'0.7rem 0.9rem',border:'1px solid #ccc',borderRadius:'8px'}}>
+              <option value="Masculino">Masculino</option>
+              <option value="Femenino">Femenino</option>
+            </select>
           </Field>
           <Field>
             <div className="fl-field">

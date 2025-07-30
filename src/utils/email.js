@@ -22,3 +22,16 @@ export async function sendWelcomeEmail({ email, name }) {
     console.error('Failed to send welcome email', err);
   }
 }
+
+export async function sendVerificationCode({ email, code }) {
+  try {
+    const base = (process.env.REACT_APP_WELCOME_API || 'http://localhost:3001/send-email').replace('/send-email','');
+    await fetch(`${base}/send-verification-code`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, code })
+    });
+  } catch (err) {
+    console.error('Failed to send verification code', err);
+  }
+}

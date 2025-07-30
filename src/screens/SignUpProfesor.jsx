@@ -4,7 +4,9 @@ import styled, { keyframes } from 'styled-components';
 import { useNavigate } from 'react-router-dom';
 import { useNotification } from "../NotificationContext";
 import { isValidEmail } from '../utils/validateEmail';
-import { sendWelcomeEmail } from '../utils/email';
+import { sendWelcomeEmail, sendVerificationCode } from '../utils/email';
+import PhoneInput from 'react-phone-input-2';
+import 'react-phone-input-2/lib/style.css';
 
 // Firebase (inicializado en firebaseConfig.js)
 import { auth, db } from '../firebase/firebaseConfig';
@@ -225,8 +227,13 @@ const ModalButton = styled.button`
 export default function SignUpProfesor() {
   const [email, setEmail]             = useState('');
   const [emailError, setEmailError]   = useState('');
+  const [emailVerified, setEmailVerified] = useState(false);
+  const [verifCode, setVerifCode] = useState('');
+  const [codeInput, setCodeInput] = useState('');
+  const [sendCooldown, setSendCooldown] = useState(0);
   const [password, setPassword]       = useState('');
   const [confirmPassword, setConfirm] = useState('');
+  const [salutation, setSalutation]   = useState('Sr.');
   const [nombre, setNombre]           = useState('');
   const [apellido, setApellido]       = useState('');
   const [telefono, setTelefono]       = useState('');
@@ -253,6 +260,12 @@ export default function SignUpProfesor() {
     })();
   }, []);
 
+  useEffect(() => {
+    if (sendCooldown <= 0) return;
+    const timer = setInterval(() => setSendCooldown(c => c - 1), 1000);
+    return () => clearInterval(timer);
+  }, [sendCooldown]);
+
   // Cierra dropdown al click fuera
   useEffect(() => {
     const handler = e => {
@@ -264,9 +277,29 @@ export default function SignUpProfesor() {
     return () => document.removeEventListener('mousedown', handler);
   }, []);
 
+  const handleSendCode = async () => {
+    if (!isValidEmail(email)) {
+      setEmailError('Correo electrónico no válido.');
+      return;
+    }
+    const code = Math.floor(100000 + Math.random() * 900000).toString();
+    setVerifCode(code);
+    await sendVerificationCode({ email, code });
+    setSendCooldown(30);
+  };
+
+  const handleCheckCode = () => {
+    if (codeInput === verifCode) {
+      setEmailVerified(true);
+      show('Correo verificado', 'success');
+    } else {
+      show('Código incorrecto', 'error');
+    }
+  };
+
   const handleSubmit = async () => {
     if (submitting) return;
-    if (!email || !password || !confirmPassword || !nombre || !apellido || !telefono || !confirmTelefono || !ciudad) {
+    if (!email || !password || !confirmPassword || !nombre || !apellido || !telefono || !confirmTelefono || !ciudad || !emailVerified) {
       show('Completa todos los campos', 'error');
       return;
     }
@@ -294,6 +327,7 @@ export default function SignUpProfesor() {
       await setDoc(doc(db, 'usuarios', user.uid), {
         uid: user.uid,
         email,
+        tratamiento: salutation,
         nombre,
         apellido,
         telefono,
@@ -334,36 +368,34 @@ export default function SignUpProfesor() {
               <label className="fl-label">E-mail</label>
             </div>
             {emailError && <ErrorText>{emailError}</ErrorText>}
+            <div style={{display:'flex',marginTop:'0.5rem',gap:'0.5rem'}}>
+              <button type="button" onClick={handleSendCode} disabled={sendCooldown>0} style={{flex:'1',background:'#046654',color:'#fff',border:'none',borderRadius:'6px',padding:'0.5rem',cursor:'pointer',opacity:sendCooldown>0?0.6:1}}>
+                {sendCooldown>0 ? `Reenviar (${sendCooldown})` : 'Verificar correo'}
+              </button>
+              <input type="text" value={codeInput} onChange={e=>setCodeInput(e.target.value)} placeholder="Código" style={{flex:'1',padding:'0.5rem',border:'1px solid #ccc',borderRadius:'6px'}} />
+              <button type="button" onClick={handleCheckCode} style={{background:'#ccc',border:'none',borderRadius:'6px',padding:'0.5rem',cursor:'pointer'}}>Comprobar</button>
+            </div>
+            {emailVerified && <p style={{color:'#046654',fontSize:'0.9rem'}}>Correo verificado</p>}
           </Field>
           <Field>
-            <div className="fl-field">
-              <input
-                className="form-control fl-input"
-                type="tel"
-                value={telefono}
-                onChange={e => {
-                  setTelefono(e.target.value);
-                  setTelefonoError('');
-                }}
-                placeholder=" "
-              />
-              <label className="fl-label">Teléfono</label>
-            </div>
+            <label>Teléfono</label>
+            <PhoneInput
+              country={'es'}
+              value={telefono}
+              onChange={value => { setTelefono(value); setTelefonoError(''); }}
+              inputStyle={{ width: '100%' }}
+            />
           </Field>
           <Field>
-            <div className="fl-field">
-              <input
-                className="form-control fl-input"
-                type="tel"
-                value={confirmTelefono}
-                onChange={e => {
-                  setConfirmTelefono(e.target.value);
-                  setTelefonoError('');
-                }}
-                placeholder=" "
-              />
-              <label className="fl-label">Repite Teléfono</label>
-            </div>
+            <label>Repite Teléfono</label>
+            <PhoneInput
+              country={'es'}
+              value={confirmTelefono}
+              onChange={value => { setConfirmTelefono(value); setTelefonoError(''); }}
+              inputStyle={{ width: '100%' }}
+            />
+            {telefonoError && <ErrorText>{telefonoError}</ErrorText>}
+          </Field>
             {telefonoError && <ErrorText>{telefonoError}</ErrorText>}
           </Field>
           <Field>
@@ -389,6 +421,13 @@ export default function SignUpProfesor() {
               />
               <label className="fl-label">Repite Contraseña</label>
             </div>
+          </Field>
+          <Field>
+            <label>Tratamiento</label>
+            <select value={salutation} onChange={e=>setSalutation(e.target.value)} style={{padding:'0.7rem 0.9rem',border:'1px solid #ccc',borderRadius:'8px'}}>
+              <option value="Sr.">Sr.</option>
+              <option value="Sra.">Sra.</option>
+            </select>
           </Field>
           <Field>
             <div className="fl-field">
