@@ -6,7 +6,7 @@ import { useChild } from '../../../ChildContext';
 import LoadingScreen from '../../../components/LoadingScreen';
 import Card from '../../../components/CommonCard';
 import InfoGrid from '../../../components/InfoGrid';
-import ToggleSwitch from "../../../components/ToggleSwitch";
+import Tabs from "../../../components/Tabs";
 import { auth, db } from '../../../firebase/firebaseConfig';
 import {
   collection,
@@ -401,7 +401,14 @@ export default function Clases() {
     <Page>
       <Container>
         <Title>Mis Clases & Solicitudes</Title>
-        <ToggleSwitch leftLabel="Mis clases" rightLabel="Mis solicitudes" value={view === "clases" ? "left" : "right"} onChange={(val) => setView(val === "left" ? "clases" : "solicitudes")}/>
+        <Tabs
+          tabs={[
+            { label: 'Mis clases', value: 'clases' },
+            { label: 'Mis solicitudes', value: 'solicitudes' },
+          ]}
+          active={view}
+          onChange={setView}
+        />
 
         {view === 'clases' ? (
           <>
