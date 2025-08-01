@@ -113,7 +113,7 @@ app.post('/sheet/user', async (req, res) => {
         d.job,
         d.iban,
       ]);
-    } else if (d.rol === 'tutor') {
+    } else if (d.rol === 'padre') {
       await appendRow('alumnos', [
         d.id,
         'P',
