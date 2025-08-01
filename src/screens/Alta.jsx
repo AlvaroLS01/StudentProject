@@ -108,14 +108,14 @@ const Alta = () => (
     <CardsContainer>
       <Card>
         <ImageWrapper>
-          <CardImage src={alumnosImg} alt="Padres e hijos aprendiendo" />
+          <CardImage src={alumnosImg} alt="Tutores y alumnos aprendiendo" />
         </ImageWrapper>
         <CardContent>
-          <CardTitle>Registra a tu hijo para empezar</CardTitle>
+          <CardTitle>Registra a tu alumno para empezar</CardTitle>
           <CardDesc>
-            Crea tu cuenta de tutor y te ayudaremos a encontrar al profesor ideal para tu hijo.
+            Crea tu cuenta de tutor y te ayudaremos a encontrar al profesor ideal para tu alumno.
           </CardDesc>
-          <CardButton to="/alta-padre">
+          <CardButton to="/alta-tutor">
             Soy tutor
           </CardButton>
         </CardContent>
