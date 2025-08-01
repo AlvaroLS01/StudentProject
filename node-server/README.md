@@ -101,7 +101,7 @@ y debes colocarlo manualmente en la carpeta `node-server`.
   POST http://localhost:3001/sheet/user
   {
     "id": "uidFirebase",
-    "rol": "profesor" | "padre",
+    "rol": "profesor" | "tutor",
     "nombre": "Nombre",
     "apellidos": "Apellidos",
     "email": "correo@ejemplo.com",

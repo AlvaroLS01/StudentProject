@@ -262,7 +262,7 @@ const ReservaClase = () => (
         </Card>
       </CardsWrapper>
 
-      <ReserveButton to="/alta-padre">Reservar clase</ReserveButton>
+      <ReserveButton to="/alta-tutor">Reservar clase</ReserveButton>
 
       <VideoSection>
         <VideoWrapper>

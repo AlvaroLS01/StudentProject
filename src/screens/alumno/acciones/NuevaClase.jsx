@@ -370,7 +370,7 @@ export default function NuevaClase() {
       const snap = await getDoc(doc(db, 'usuarios', u.uid));
       if (snap.exists()) {
         const d = snap.data();
-        if (d.rol === 'padre' && selectedChild) {
+        if (d.rol === 'tutor' && selectedChild) {
           setAlumnoNombre(selectedChild.nombre);
           setAlumnoApellidos('');
           setCurso(selectedChild.curso || '');
@@ -531,8 +531,8 @@ export default function NuevaClase() {
         alumnoId: auth.currentUser.uid,
         alumnoNombre,
         alumnoApellidos,
-        hijoId: userData?.rol === 'padre' ? selectedChild?.id : null,
-        padreNombre: userData?.rol === 'padre' ? userData.nombre : null,
+        hijoId: userData?.rol === 'tutor' ? selectedChild?.id : null,
+        padreNombre: userData?.rol === 'tutor' ? userData.nombre : null,
         asignatura: asignaturas[0] || '',
         asignaturas,
         curso,
@@ -563,7 +563,7 @@ export default function NuevaClase() {
 
   const handleSuccessClose = () => {
     setSuccessModal(false);
-    navigate('/alumno?tab=clases&view=solicitudes');
+    navigate('/tutor?tab=clases&view=solicitudes');
   };
 
   return (
@@ -571,7 +571,7 @@ export default function NuevaClase() {
       <Card>
         <Title>
           Solicitar nueva clase
-          {userData?.rol === 'padre' && alumnoNombre && ` para ${alumnoNombre}`}
+          {userData?.rol === 'tutor' && alumnoNombre && ` para ${alumnoNombre}`}
         </Title>
         <Subtitle>Encuentra al profesor ideal para ti</Subtitle>
 

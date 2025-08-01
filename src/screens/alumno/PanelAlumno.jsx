@@ -13,7 +13,7 @@ import NuevaClase    from './acciones/NuevaClase';
 import Clases        from './acciones/Clases';
 import MisProfesores from './acciones/MisProfesores';
 import CalendarioA   from './acciones/Calendario';
-import MisHijos      from './acciones/MisHijos';
+import MisAlumnos    from './acciones/MisAlumnos';
 
 const Container = styled.div`
   display: flex;
@@ -104,7 +104,7 @@ export default function PanelAlumno() {
       firstRender.current = false;
       return;
     }
-    if (userData?.rol === 'padre') {
+    if (userData?.rol === 'tutor') {
       if (selectedChild) {
         show(
           <span>
@@ -114,7 +114,7 @@ export default function PanelAlumno() {
           2000
         );
       } else {
-        show('No hay hijo seleccionado', 'error', 2000);
+        show('No hay alumno seleccionado', 'error', 2000);
       }
     }
   }, [selectedChild, userData, show]);
@@ -131,16 +131,16 @@ export default function PanelAlumno() {
       case 'clases':         return requireChild(<Clases />);
       case 'mis-profesores': return requireChild(<MisProfesores />);
       case 'calendario':     return requireChild(<CalendarioA />);
-      case 'mis-hijos':      return <MisHijos />;
+      case 'mis-alumnos':      return <MisAlumnos />;
       default:               return <NuevaClase />;
     }
   };
 
   const requireChild = component => {
-    if (userData?.rol === 'padre' && !selectedChild) {
+    if (userData?.rol === 'tutor' && !selectedChild) {
       return (
         <CenterMessage>
-          Selecciona un hijo para continuar
+          Selecciona un alumno para continuar
         </CenterMessage>
       );
     }
@@ -148,8 +148,8 @@ export default function PanelAlumno() {
   };
 
   const handleMenuClick = name => {
-    if (userData?.rol === 'padre' && !selectedChild && name !== 'mis-hijos') {
-      show('Selecciona un hijo primero', 'error');
+    if (userData?.rol === 'tutor' && !selectedChild && name !== 'mis-alumnos') {
+      show('Selecciona un alumno primero', 'error');
       return;
     }
     setView(name);
@@ -193,13 +193,13 @@ export default function PanelAlumno() {
               Calendario
             </Button>
           </MenuItem>
-          {userData?.rol === 'padre' && (
+          {userData?.rol === 'tutor' && (
             <MenuItem>
               <Button
-                active={view === 'mis-hijos'}
-                onClick={() => handleMenuClick('mis-hijos')}
+                active={view === 'mis-alumnos'}
+                onClick={() => handleMenuClick('mis-alumnos')}
               >
-                Mis hijos
+                Mis alumnos
               </Button>
             </MenuItem>
           )}
@@ -210,7 +210,7 @@ export default function PanelAlumno() {
         {renderView()}
       </Content>
     </Container>
-    {userData?.rol === 'padre' && (
+    {userData?.rol === 'tutor' && (
       <>
         <ChildSelectorBubble onAddChild={() => setShowAddChild(true)} />
         <AddChildModal open={showAddChild} onClose={() => setShowAddChild(false)} />
