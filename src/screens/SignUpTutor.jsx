@@ -1,4 +1,4 @@
-// src/screens/SignUpPadre.jsx
+// src/screens/SignUpTutor.jsx
 import React, { useState, useEffect, useRef } from 'react';
 import styled, { keyframes } from 'styled-components';
 import { useNavigate } from 'react-router-dom';
@@ -246,7 +246,7 @@ const cursosGrouped = [
   }
 ];
 
-export default function SignUpPadre() {
+export default function SignUpTutor() {
   const [email, setEmail]           = useState('');
   const [emailError, setEmailError] = useState('');
   const [emailVerified, setEmailVerified] = useState(false);
@@ -373,10 +373,10 @@ export default function SignUpPadre() {
         apellido,
         telefono,
         ciudad,
-        rol: 'padre',
+        rol: 'tutor',
         curso,
         createdAt: new Date(),
-        hijos: [
+        alumnos: [
           {
             id: Date.now().toString(),
             nombre: nombreHijo,

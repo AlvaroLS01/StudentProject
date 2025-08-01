@@ -86,7 +86,7 @@ export default function AddChildModal({ open, onClose }) {
       photoURL: userData?.photoURL || auth.currentUser.photoURL || ''
     };
     const nuevos = [...childList, nuevo];
-    await updateDoc(doc(db, 'usuarios', auth.currentUser.uid), { hijos: nuevos });
+    await updateDoc(doc(db, 'usuarios', auth.currentUser.uid), { alumnos: nuevos });
     setChildList(nuevos.filter(c => !c.disabled));
     setSelectedChild(nuevo);
     setName('');
