@@ -425,7 +425,7 @@ export default function Navbar() {
       } else if (rol === 'profesor') {
         navigate('/profesor');
       } else {
-        navigate('/tutor');
+        navigate('/alumno');
       }
       setLoginEmail('');
       setLoginPassword('');
@@ -452,7 +452,7 @@ export default function Navbar() {
         const rol = snap.data().rol;
         if (rol === 'admin') navigate('/admin');
         else if (rol === 'profesor') navigate('/profesor');
-        else navigate('/tutor');
+        else navigate('/alumno');
       } else {
         await setDoc(userRef, { photoURL: user.photoURL }, { merge: true });
         navigate('/seleccion-rol');
@@ -473,13 +473,13 @@ export default function Navbar() {
       ? '/admin'
       : userData?.rol === 'profesor'
       ? '/profesor'
-      : '/tutor';
+      : '/alumno';
   const panelText =
     userData?.rol === 'admin'
       ? 'Panel Admin'
       : userData?.rol === 'profesor'
       ? 'Panel Profesor/a'
-      : 'Panel Tutor/a';
+      : 'Panel Alumno/a';
 
   return (
     <>

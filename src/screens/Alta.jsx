@@ -115,7 +115,7 @@ const Alta = () => (
           <CardDesc>
             Crea tu cuenta de tutor y te ayudaremos a encontrar al profesor ideal para tu hijo.
           </CardDesc>
-          <CardButton to="/alta-tutor">
+          <CardButton to="/alta-padre">
             Soy tutor
           </CardButton>
         </CardContent>
