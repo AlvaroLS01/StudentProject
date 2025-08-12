@@ -1,6 +1,6 @@
 # Servidor de correo
 
-Este servidor Node.js expone diferentes endpoints para enviar correos desde la plataforma: uno de bienvenida, otro para enviar códigos de verificación y otro adicional para notificar la asignación de clases.
+Este servidor Node.js expone diferentes endpoints para enviar correos desde la plataforma: uno de bienvenida, otro para restablecer la contraseña y uno adicional para notificar la asignación de clases.
 
 ## Configuración
 
@@ -12,8 +12,17 @@ Este servidor Node.js expone diferentes endpoints para enviar correos desde la p
    ```bash
     cp .env-example .env
     # Modifica EMAIL_USER y EMAIL_PASS si cambian las credenciales
-    # Configura SPREADSHEET_ID y GOOGLE_SHEETS_CREDENTIALS para usar Google Sheets
+    # Establece JWT_SECRET y RESET_BASE_URL para los correos de restablecimiento
+    # Especifica la ruta del JSON de la cuenta de servicio con
+    # GOOGLE_APPLICATION_CREDENTIALS
     ```
+
+  * `JWT_SECRET` puede ser cualquier cadena aleatoria que solo tú conozcas. El
+    servidor la utiliza para firmar los tokens de restablecimiento. Cuanto más
+    larga y compleja sea, mejor.
+  * `GOOGLE_APPLICATION_CREDENTIALS` debe apuntar al archivo JSON de la cuenta
+    de servicio de Firebase. Este archivo se obtiene desde la consola de
+    Firebase y permite que el servidor utilice la API de administración.
 
 ## Ejecutar el servidor
 
@@ -41,18 +50,25 @@ Envía una petición `POST` a `http://localhost:3001/send-email` con un cuerpo J
 
 Se enviará un correo de bienvenida a la dirección especificada.
 
-### Código de verificación
+### Restablecer contraseña
 
-Envía un `POST` a `http://localhost:3001/send-verification-code` con:
+1. Solicitar el correo de restablecimiento:
 
-```json
-{
-  "email": "correo@ejemplo.com",
-  "code": "123456"
-}
-```
+   ```bash
+   POST http://localhost:3001/request-password-reset
+   { "email": "correo@ejemplo.com" }
+   ```
 
-El servidor enviará el código proporcionado al correo indicado.
+   El usuario recibirá un enlace con un token que apunta a la aplicación.
+
+2. Confirmar el cambio de contraseña:
+
+   ```bash
+   POST http://localhost:3001/reset-password
+   { "token": "tokenRecibido", "password": "nuevaClave" }
+   ```
+
+   Si el token es válido, la contraseña del usuario se actualizará en Firebase.
 
 ### Asignación de clases
 
@@ -84,7 +100,7 @@ y debes colocarlo manualmente en la carpeta `node-server`.
   ```bash
   POST http://localhost:3001/sheet/user
   {
-    "id": "idUsuario",
+    "id": "uidFirebase",
     "rol": "profesor" | "padre",
     "nombre": "Nombre",
     "apellidos": "Apellidos",
