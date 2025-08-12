@@ -9,8 +9,9 @@ import PhoneInput from 'react-phone-input-2';
 import 'react-phone-input-2/lib/style.css';
 
 // Firebase (inicializado en firebaseConfig.js)
-import { auth } from '../firebase/firebaseConfig';
+import { auth, db } from '../firebase/firebaseConfig';
 import { createUserWithEmailAndPassword, sendEmailVerification } from 'firebase/auth';
+import { collection, getDocs, doc, setDoc, query, where } from 'firebase/firestore';
 
 // Animación de entrada
 const fadeIn = keyframes`
@@ -225,6 +226,26 @@ const ModalButton = styled.button`
   }
 `;
 
+// Cursos agrupados igual que en NuevaClase
+const cursosGrouped = [
+  {
+    group: 'Primaria',
+    options: [
+      '1º Primaria',
+      '2º Primaria',
+      '3º Primaria',
+      '4º Primaria',
+      '5º Primaria',
+      '6º Primaria'
+    ]
+  },
+  { group: 'ESO', options: ['1º ESO', '2º ESO', '3º ESO', '4º ESO'] },
+  {
+    group: 'Bachillerato',
+    options: ['1º Bachillerato', '2º Bachillerato']
+  }
+];
+
 export default function SignUpPadre() {
   const [email, setEmail]           = useState('');
   const [emailError, setEmailError] = useState('');
@@ -242,7 +263,6 @@ export default function SignUpPadre() {
   const [telefonoError, setTelefonoError] = useState('');
   const [ciudad, setCiudad]         = useState('');
   const [cities, setCities]         = useState([]);
-  const [cursos, setCursos]         = useState([]);
   const [curso, setCurso]           = useState('');
   const [cityOpen, setCityOpen]     = useState(false);
   const [courseOpen, setCourseOpen] = useState(false);
@@ -250,7 +270,6 @@ export default function SignUpPadre() {
   const [apellidoHijo, setApellidoHijo] = useState('');
   const [fechaNacHijo, setFechaNacHijo] = useState('');
   const [generoHijo, setGeneroHijo] = useState('Masculino');
-  const [nifHijo, setNifHijo]       = useState('');
   const [modalOpen, setModalOpen]   = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const navigate = useNavigate();
@@ -264,17 +283,12 @@ export default function SignUpPadre() {
     return () => clearInterval(timer);
   }, [sendCooldown]);
 
-  // Carga ciudades y cursos desde la API
+  // Carga ciudades
   useEffect(() => {
     (async () => {
       try {
-        const resCities = await fetch('http://localhost:3001/api/cities');
-        const citiesData = await resCities.json();
-        setCities(citiesData.map(c => c.nombre));
-
-        const resCourses = await fetch('http://localhost:3001/api/courses');
-        const coursesData = await resCourses.json();
-        setCursos(coursesData.map(c => c.nombre));
+        const snapCities = await getDocs(collection(db, 'ciudades'));
+        setCities(snapCities.docs.map(d => d.data().ciudad));
       } catch (err) {
         console.error(err);
       }
@@ -338,40 +352,43 @@ export default function SignUpPadre() {
     }
     if (password !== confirmPwd)
       return show('Las contraseñas no coinciden', 'error');
-    if (!nombreHijo || !apellidoHijo || !fechaNacHijo || !generoHijo || !nifHijo)
+    if (!nombreHijo || !apellidoHijo || !fechaNacHijo || !generoHijo)
       return show('Completa datos del hijo', 'error');
 
     setTelefonoError('');
     setSubmitting(true);
     try {
+      const phoneSnap = await getDocs(query(collection(db, 'usuarios'), where('telefono', '==', telefono)));
+      if (!phoneSnap.empty) {
+        setTelefonoError('Este teléfono ya está registrado');
+        setSubmitting(false);
+        return;
+      }
       const { user } = await createUserWithEmailAndPassword(auth, email, password);
-
-      await fetch('http://localhost:3001/api/tutors', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          tutor: {
-            nombre,
-            apellidos: apellido,
-            genero: salutation === 'Sr.' ? 'Masculino' : 'Femenino',
-            telefono,
-            correo_electronico: email,
-            NIF: 'pendiente',
-            direccion_facturacion: 'pendiente'
-          },
-          alumno: {
+      const data = {
+        uid: user.uid,
+        email,
+        tratamiento: salutation,
+        nombre,
+        apellido,
+        telefono,
+        ciudad,
+        rol: 'padre',
+        curso,
+        createdAt: new Date(),
+        hijos: [
+          {
+            id: Date.now().toString(),
             nombre: nombreHijo,
             apellidos: apellidoHijo,
-            direccion: '',
-            NIF: nifHijo,
-            telefono: null,
             genero: generoHijo,
-            curso
+            fechaNacimiento: fechaNacHijo,
+            curso,
+            photoURL: user.photoURL || ''
           },
-          ciudad
-        })
-      });
-
+        ]
+      };
+      await setDoc(doc(db, 'usuarios', user.uid), data);
       await sendWelcomeEmail({ email, name: nombre });
       if (auth.currentUser) {
         await sendEmailVerification(auth.currentUser);
@@ -522,16 +539,21 @@ export default function SignUpPadre() {
               </DropdownHeader>
               {courseOpen && (
                 <DropdownList>
-                  {cursos.map((c, i) => (
-                    <DropdownItem
-                      key={i}
-                      onClick={() => {
-                        setCurso(c);
-                        setCourseOpen(false);
-                      }}
-                    >
-                      {c}
-                    </DropdownItem>
+                  {cursosGrouped.map(({ group, options }) => (
+                    <React.Fragment key={group}>
+                      <DropdownGroupLabel>{group}</DropdownGroupLabel>
+                      {options.map((c, i) => (
+                        <DropdownItem
+                          key={i}
+                          onClick={() => {
+                            setCurso(c);
+                            setCourseOpen(false);
+                          }}
+                        >
+                          {c}
+                        </DropdownItem>
+                      ))}
+                    </React.Fragment>
                   ))}
                 </DropdownList>
               )}
@@ -560,18 +582,6 @@ export default function SignUpPadre() {
                 placeholder=" "
               />
               <label className="fl-label">Apellidos del Hijo</label>
-            </div>
-          </Field>
-          <Field>
-            <div className="fl-field">
-              <input
-                className="form-control fl-input"
-                type="text"
-                value={nifHijo}
-                onChange={e=>setNifHijo(e.target.value)}
-                placeholder=" "
-              />
-              <label className="fl-label">NIF del Hijo</label>
             </div>
           </Field>
           <Field>
