@@ -124,8 +124,7 @@ export default function Usuarios() {
 
   async function fetchStudents() {
     const snaps = [
-      await getDocs(query(collection(db, 'usuarios'), where('rol', '==', 'alumno'))),
-      await getDocs(query(collection(db, 'usuarios'), where('rol', '==', 'padre')))
+      await getDocs(query(collection(db, 'usuarios'), where('rol', '==', 'tutor')))
     ];
     const arr = [];
     for (const snap of snaps) {
@@ -168,8 +167,8 @@ export default function Usuarios() {
   const list = view === 'profesores' ? sortUsers(teachers) : sortUsers(students);
 
   const totalStudents = students.reduce((acc, s) => {
-    if (s.rol === 'padre') {
-      return acc + (s.hijos ? s.hijos.length : 0);
+    if (s.rol === 'tutor') {
+      return acc + (s.alumnos ? s.alumnos.length : 0);
     }
     return acc + 1;
   }, 0);
@@ -181,7 +180,7 @@ export default function Usuarios() {
         <Counter>
           Total {view === 'profesores' ? teachers.length : totalStudents}
         </Counter>
-        <ToggleSwitch leftLabel="Profesores" rightLabel="Alumnos / Padres" value={view === "profesores" ? "left" : "right"} onChange={(val) => setView(val === "left" ? "profesores" : "alumnos")}/>
+        <ToggleSwitch leftLabel="Profesores" rightLabel="Alumnos / Tutores" value={view === "profesores" ? "left" : "right"} onChange={(val) => setView(val === "left" ? "profesores" : "alumnos")}/>
 
         <FilterContainer>
           <label htmlFor="sortUsuarios">Ordenar por:</label>
@@ -202,9 +201,9 @@ export default function Usuarios() {
             {list.map(u => (
               <Item key={u.id}>
                 <UserLink to={`/perfil/${u.id}`}>{u.nombre} {u.apellido}</UserLink>
-                {u.rol === 'padre' && (u.hijos || []).length > 0 && (
+                {u.rol === 'tutor' && (u.alumnos || []).length > 0 && (
                   <ChildrenList>
-                    {u.hijos.map(h => (
+                    {u.alumnos.map(h => (
                       <li key={h.id}>{h.nombre}</li>
                     ))}
                   </ChildrenList>

@@ -13,7 +13,7 @@ export default function RedirectLoggedIn() {
         ? '/admin'
         : userData.rol === 'profesor'
         ? '/profesor'
-        : '/alumno';
+        : '/tutor';
     return <Navigate to={target} replace />;
   }
 
