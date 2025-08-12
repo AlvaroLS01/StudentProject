@@ -9,9 +9,8 @@ import PhoneInput from 'react-phone-input-2';
 import 'react-phone-input-2/lib/style.css';
 
 // Firebase (inicializado en firebaseConfig.js)
-import { auth, db } from '../firebase/firebaseConfig';
+import { auth } from '../firebase/firebaseConfig';
 import { createUserWithEmailAndPassword, sendEmailVerification } from 'firebase/auth';
-import { collection, getDocs, doc, setDoc, query, where } from 'firebase/firestore';
 
 // Animación de entrada
 const fadeIn = keyframes`
@@ -252,8 +251,9 @@ export default function SignUpProfesor() {
   useEffect(() => {
     (async () => {
       try {
-        const snap = await getDocs(collection(db, 'ciudades'));
-        setCities(snap.docs.map(d => d.data().ciudad));
+        const res = await fetch('http://localhost:3001/api/cities');
+        const data = await res.json();
+        setCities(data.map(c => c.nombre));
       } catch (err) {
         console.error(err);
       }
@@ -317,24 +317,28 @@ export default function SignUpProfesor() {
     setTelefonoError('');
     setSubmitting(true);
     try {
-      const phoneSnap = await getDocs(query(collection(db, 'usuarios'), where('telefono', '==', telefono)));
-      if (!phoneSnap.empty) {
-        setTelefonoError('Este teléfono ya está registrado');
-        setSubmitting(false);
-        return;
-      }
       const { user } = await createUserWithEmailAndPassword(auth, email, password);
-      await setDoc(doc(db, 'usuarios', user.uid), {
-        uid: user.uid,
-        email,
-        tratamiento: salutation,
-        nombre,
-        apellido,
-        telefono,
-        ciudad,
-        rol: 'profesor',
-        createdAt: new Date()
+
+      await fetch('http://localhost:3001/api/profesores', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          profesor: {
+            nombre,
+            apellidos: apellido,
+            genero: salutation === 'Sr.' ? 'Masculino' : 'Femenino',
+            telefono,
+            correo_electronico: email,
+            NIF: 'pendiente',
+            direccion_facturacion: 'pendiente',
+            IBAN: 'pendiente',
+            carrera: 'pendiente',
+            curso: 'pendiente',
+            experiencia: ''
+          }
+        })
       });
+
       await sendWelcomeEmail({ email, name: nombre });
       if (auth.currentUser) {
         await sendEmailVerification(auth.currentUser);
