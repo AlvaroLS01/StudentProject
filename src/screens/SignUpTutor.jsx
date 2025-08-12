@@ -1,4 +1,4 @@
-// src/screens/SignUpPadre.jsx
+// src/screens/SignUpTutor.jsx
 import React, { useState, useEffect, useRef } from 'react';
 import styled, { keyframes } from 'styled-components';
 import { useNavigate } from 'react-router-dom';
@@ -246,7 +246,7 @@ const cursosGrouped = [
   }
 ];
 
-export default function SignUpPadre() {
+export default function SignUpTutor() {
   const [email, setEmail]           = useState('');
   const [emailError, setEmailError] = useState('');
   const [emailVerified, setEmailVerified] = useState(false);
@@ -353,7 +353,7 @@ export default function SignUpPadre() {
     if (password !== confirmPwd)
       return show('Las contraseñas no coinciden', 'error');
     if (!nombreHijo || !apellidoHijo || !fechaNacHijo || !generoHijo)
-      return show('Completa datos del hijo', 'error');
+      return show('Completa datos del alumno', 'error');
 
     setTelefonoError('');
     setSubmitting(true);
@@ -373,10 +373,10 @@ export default function SignUpPadre() {
         apellido,
         telefono,
         ciudad,
-        rol: 'padre',
+        rol: 'tutor',
         curso,
         createdAt: new Date(),
-        hijos: [
+        alumnos: [
           {
             id: Date.now().toString(),
             nombre: nombreHijo,
@@ -408,7 +408,7 @@ export default function SignUpPadre() {
       <Card>
         <CloseBtn onClick={() => setModalOpen(true)}>×</CloseBtn>
         <Title>Registro de Tutor</Title>
-        <Subtitle>¡Únete y ayuda a tu hijo a aprender!</Subtitle>
+        <Subtitle>¡Únete y ayuda a tu alumno a aprender!</Subtitle>
 
         <h3 style={{gridColumn:'1 / -1',marginBottom:'0.5rem',color:'#034640'}}>Datos del tutor legal</h3>
         <FormGrid>
@@ -532,7 +532,7 @@ export default function SignUpPadre() {
 
         <h3 style={{gridColumn:'1 / -1',marginTop:'1rem',marginBottom:'0.5rem',color:'#034640'}}>Datos del alumno</h3>
           <Field ref={courseRef}>
-            <label>Curso del hijo</label>
+            <label>Curso del alumno</label>
             <DropdownContainer>
               <DropdownHeader onClick={() => setCourseOpen(o => !o)}>
                 {curso || 'Selecciona curso'} <Arrow open={courseOpen} />
@@ -569,7 +569,7 @@ export default function SignUpPadre() {
                 onChange={e=>setNombreHijo(e.target.value)}
                 placeholder=" "
               />
-              <label className="fl-label">Nombre del Hijo</label>
+              <label className="fl-label">Nombre del Alumno</label>
             </div>
           </Field>
           <Field>
@@ -581,7 +581,7 @@ export default function SignUpPadre() {
                 onChange={e=>setApellidoHijo(e.target.value)}
                 placeholder=" "
               />
-              <label className="fl-label">Apellidos del Hijo</label>
+              <label className="fl-label">Apellidos del Alumno</label>
             </div>
           </Field>
           <Field>
@@ -600,11 +600,11 @@ export default function SignUpPadre() {
                 onChange={e=>setFechaNacHijo(e.target.value)}
                 placeholder=" "
               />
-              <label className="fl-label">Fecha Nacimiento del Hijo</label>
+              <label className="fl-label">Fecha Nacimiento del Alumno</label>
             </div>
           </Field>
           <p style={{gridColumn: '1 / -1', fontSize:'0.85rem', color:'#555'}}>
-            Podrás añadir más hijos desde la pestaña "Mi cuenta".
+            Podrás añadir más alumnos desde la pestaña "Mi cuenta".
           </p>
         </FormGrid>
 

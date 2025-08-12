@@ -129,10 +129,10 @@ export default function CompletarDatosGoogle() {
       return;
     }
     if (
-      rol === 'padre' &&
+      rol === 'tutor' &&
       (!nombreHijo || !apellidoHijo || !fechaNacHijo || !generoHijo)
     ) {
-      show('Completa datos del hijo', 'error');
+      show('Completa datos del alumno', 'error');
       return;
     }
     setTelefonoError('');
@@ -157,8 +157,8 @@ export default function CompletarDatosGoogle() {
         // nothing extra
       } else {
         data.curso = curso;
-        if (rol === 'padre') {
-          data.hijos = [
+        if (rol === 'tutor') {
+          data.alumnos = [
             {
               id: Date.now().toString(),
               nombre: nombreHijo,
@@ -184,7 +184,7 @@ export default function CompletarDatosGoogle() {
       <Card>
         <Title>Completa tu perfil</Title>
         <Form onSubmit={handleSubmit}>
-          {rol === 'padre' && (
+          {rol === 'tutor' && (
             <h3 style={{ gridColumn: '1 / -1', marginBottom: '0.5rem', color: '#034640' }}>
               Datos del tutor legal
             </h3>
@@ -244,13 +244,13 @@ export default function CompletarDatosGoogle() {
               </select>
             </Field>
           )}
-          {rol === 'padre' && (
+          {rol === 'tutor' && (
             <>
               <h3 style={{ gridColumn: '1 / -1', marginTop: '1rem', marginBottom: '0.5rem', color: '#034640' }}>
                 Datos del alumno
               </h3>
               <Field>
-                <label>Nombre del hijo</label>
+                <label>Nombre del alumno</label>
                 <input
                   className="form-control"
                   type="text"
@@ -259,7 +259,7 @@ export default function CompletarDatosGoogle() {
                 />
               </Field>
               <Field>
-                <label>Apellidos del hijo</label>
+                <label>Apellidos del alumno</label>
                 <input
                   className="form-control"
                   type="text"
@@ -279,7 +279,7 @@ export default function CompletarDatosGoogle() {
                 </select>
               </Field>
               <Field>
-                <label>Fecha nacimiento del hijo</label>
+                <label>Fecha nacimiento del alumno</label>
                 <input
                   className="form-control"
                   type="date"
@@ -288,7 +288,7 @@ export default function CompletarDatosGoogle() {
                 />
               </Field>
               <p style={{ gridColumn: '1 / -1', fontSize: '0.85rem', color: '#555' }}>
-                Podrás añadir más hijos desde la pestaña "Mi cuenta".
+                Podrás añadir más alumnos desde la pestaña "Mi cuenta".
               </p>
             </>
           )}

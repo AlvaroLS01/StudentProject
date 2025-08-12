@@ -56,13 +56,13 @@ export default function ChildSelectorBubble({ onAddChild }) {
 
   return (
     <Bubble className={flashAnim ? 'flash' : ''}>
-      <Label>Selecciona hijo</Label>
+      <Label>Selecciona alumno</Label>
       <SelectInput value={selectedChild?.id || ''} onChange={handleChange} style={{ width: 180 }}>
-        <option value="">Selecciona tu hijo</option>
+        <option value="">Selecciona tu alumno</option>
         {childList.map(c => (
           <option key={c.id} value={c.id}>{c.nombre}</option>
         ))}
-        <option value="add_child">Añadir hijo</option>
+        <option value="add_child">Añadir alumno</option>
       </SelectInput>
     </Bubble>
   );

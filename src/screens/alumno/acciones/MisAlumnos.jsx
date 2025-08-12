@@ -98,7 +98,7 @@ const ModalButton = styled.button`
       : `background: #f0f0f0; color: #333;`}
 `;
 
-export default function MisHijos() {
+export default function MisAlumnos() {
   const { childList, setChildList, setSelectedChild } = useChild();
   const { userData } = useAuth();
   const [nombre, setNombre] = useState('');
@@ -116,7 +116,7 @@ export default function MisHijos() {
       photoURL: userData?.photoURL || auth.currentUser.photoURL || ''
     };
     const nuevos = [...childList, nuevo];
-    await updateDoc(doc(db, 'usuarios', auth.currentUser.uid), { hijos: nuevos });
+    await updateDoc(doc(db, 'usuarios', auth.currentUser.uid), { alumnos: nuevos });
     setChildList(nuevos.filter(c => !c.disabled));
     setSelectedChild(nuevo);
     setNombre('');
@@ -128,7 +128,7 @@ export default function MisHijos() {
     const nuevos = childList.map(c =>
       c.id === child.id ? { ...c, disabled: true } : c
     );
-    await updateDoc(doc(db, 'usuarios', auth.currentUser.uid), { hijos: nuevos });
+    await updateDoc(doc(db, 'usuarios', auth.currentUser.uid), { alumnos: nuevos });
     const activos = nuevos.filter(c => !c.disabled);
     setChildList(activos);
     setSelectedChild(activos[0] || null);
@@ -137,7 +137,7 @@ export default function MisHijos() {
   return (
     <Page>
       <Container>
-        <Title>Mis hijos</Title>
+        <Title>Mis alumnos</Title>
         <List>
           {childList.map(c => (
             <Item key={c.id}>
@@ -152,7 +152,7 @@ export default function MisHijos() {
                 disabled={childList.length <= 1}
                 title={
                   childList.length <= 1
-                    ? 'Deberás añadir un hijo antes de eliminar el último que tienes'
+                    ? 'Deberás añadir un alumno antes de eliminar el último que tienes'
                     : ''
                 }
                 onClick={() => setChildToDelete(c)}
@@ -164,7 +164,7 @@ export default function MisHijos() {
         </List>
 
         <Form>
-          <h3>Añadir nuevo hijo</h3>
+          <h3>Añadir nuevo alumno</h3>
           <div>
             <TextInput
               type="text"
