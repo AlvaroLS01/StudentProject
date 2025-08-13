@@ -7,6 +7,7 @@ const admin = require('firebase-admin');
 const jwt = require('jsonwebtoken');
 const { google } = require('googleapis');
 const db = require('./db');
+const bcrypt = require('bcryptjs');
 
 const app = express();
 app.use(cors());
@@ -100,11 +101,13 @@ app.post('/tutor', async (req, res) => {
     correo_electronico,
     NIF,
     direccion_facturacion,
+    password,
   } = req.body;
   try {
+    const hashed = await bcrypt.hash(password, 10);
     const result = await db.query(
-      'INSERT INTO student_project.tutor (nombre, apellidos, genero, telefono, correo_electronico, "NIF", direccion_facturacion) VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING id_tutor',
-      [nombre, apellidos, genero, telefono, correo_electronico, NIF, direccion_facturacion]
+      'INSERT INTO student_project.tutor (nombre, apellidos, genero, telefono, correo_electronico, "NIF", direccion_facturacion, password) VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING id_tutor',
+      [nombre, apellidos, genero, telefono, correo_electronico, NIF, direccion_facturacion, hashed]
     );
     res.json({ id: result.rows[0].id_tutor });
   } catch (err) {
@@ -141,11 +144,13 @@ app.post('/profesor', async (req, res) => {
     carrera,
     curso,
     experiencia,
+    password,
   } = req.body;
   try {
+    const hashed = await bcrypt.hash(password, 10);
     const result = await db.query(
-      'INSERT INTO student_project.profesor (nombre, apellidos, genero, telefono, correo_electronico, "NIF", direccion_facturacion, "IBAN", carrera, curso, experiencia) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11) RETURNING id_profesor',
-      [nombre, apellidos, genero, telefono, correo_electronico, NIF, direccion_facturacion, IBAN, carrera, curso, experiencia]
+      'INSERT INTO student_project.profesor (nombre, apellidos, genero, telefono, correo_electronico, "NIF", direccion_facturacion, "IBAN", carrera, curso, experiencia, password) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12) RETURNING id_profesor',
+      [nombre, apellidos, genero, telefono, correo_electronico, NIF, direccion_facturacion, IBAN, carrera, curso, experiencia, hashed]
     );
     res.json({ id: result.rows[0].id_profesor });
   } catch (err) {

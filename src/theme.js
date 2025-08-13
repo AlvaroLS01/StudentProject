@@ -37,4 +37,8 @@ export const GlobalStyle = createGlobalStyle`
     color: inherit;
     text-decoration: none;
   }
+
+  button, input, select, textarea {
+    font-family: inherit;
+  }
 `;
