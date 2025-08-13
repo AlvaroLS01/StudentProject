@@ -28,8 +28,7 @@ const transporter = nodemailer.createTransport({
   service: 'gmail',
   auth: {
     user: process.env.EMAIL_USER || 'alvaro@studentproject.es',
-    // Remove spaces so app passwords copied with spaces still work
-    pass: (process.env.EMAIL_PASS || 'zvetuxtnocfdwvpj').replace(/\s/g, ''),
+    pass: process.env.EMAIL_PASS || 'zvet uxtn ocfd wvpj',
   },
 });
 
@@ -193,13 +192,8 @@ app.post('/send-email', async (req, res) => {
 
 app.post('/send-verification-code', async (req, res) => {
   const { email, code } = req.body;
-  const missing = [];
-  if (!email) missing.push('email');
-  if (!code) missing.push('code');
-  if (missing.length) {
-    return res
-      .status(400)
-      .json({ error: `Faltan campos: ${missing.join(', ')}` });
+  if (!email || !code) {
+    return res.status(400).json({ error: 'Datos incompletos' });
   }
   try {
     await transporter.sendMail({
@@ -218,14 +212,7 @@ app.post('/send-verification-code', async (req, res) => {
 // Append user data to Google Sheets
 app.post('/sheet/user', async (req, res) => {
   const d = req.body || {};
-  const missing = [];
-  if (!d.id) missing.push('id');
-  if (!d.rol) missing.push('rol');
-  if (missing.length) {
-    return res
-      .status(400)
-      .json({ error: `Faltan campos: ${missing.join(', ')}` });
-  }
+  if (!d.id || !d.rol) return res.status(400).json({ error: 'Datos incompletos' });
 
   try {
     if (d.rol === 'profesor') {
@@ -405,14 +392,7 @@ app.post('/request-password-reset', async (req, res) => {
 
 app.post('/reset-password', async (req, res) => {
   const { token, password } = req.body;
-  const missing = [];
-  if (!token) missing.push('token');
-  if (!password) missing.push('password');
-  if (missing.length) {
-    return res
-      .status(400)
-      .json({ error: `Faltan campos: ${missing.join(', ')}` });
-  }
+  if (!token || !password) return res.status(400).json({ error: 'Datos incompletos' });
 
   try {
     const { email } = jwt.verify(token, process.env.JWT_SECRET || 'secret');
