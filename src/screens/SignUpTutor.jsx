@@ -5,6 +5,12 @@ import { useNavigate } from 'react-router-dom';
 import { useNotification } from "../NotificationContext";
 import { isValidEmail } from '../utils/validateEmail';
 import { sendWelcomeEmail, sendVerificationCode } from '../utils/email';
+import {
+  fetchCities,
+  fetchCursos,
+  registerTutor,
+  registerAlumno,
+} from '../utils/api';
 import PhoneInput from 'react-phone-input-2';
 import 'react-phone-input-2/lib/style.css';
 
@@ -226,26 +232,6 @@ const ModalButton = styled.button`
   }
 `;
 
-// Cursos agrupados igual que en NuevaClase
-const cursosGrouped = [
-  {
-    group: 'Primaria',
-    options: [
-      '1º Primaria',
-      '2º Primaria',
-      '3º Primaria',
-      '4º Primaria',
-      '5º Primaria',
-      '6º Primaria'
-    ]
-  },
-  { group: 'ESO', options: ['1º ESO', '2º ESO', '3º ESO', '4º ESO'] },
-  {
-    group: 'Bachillerato',
-    options: ['1º Bachillerato', '2º Bachillerato']
-  }
-];
-
 export default function SignUpTutor() {
   const [email, setEmail]           = useState('');
   const [emailError, setEmailError] = useState('');
@@ -264,8 +250,14 @@ export default function SignUpTutor() {
   const [ciudad, setCiudad]         = useState('');
   const [cities, setCities]         = useState([]);
   const [curso, setCurso]           = useState('');
+  const [courses, setCourses]       = useState([]);
   const [cityOpen, setCityOpen]     = useState(false);
   const [courseOpen, setCourseOpen] = useState(false);
+  const [nifTutor, setNifTutor] = useState('');
+  const [direccionTutor, setDireccionTutor] = useState('');
+  const [nifAlumno, setNifAlumno] = useState('');
+  const [telefonoHijo, setTelefonoHijo] = useState('');
+  const [direccionAlumno, setDireccionAlumno] = useState('');
   const [nombreHijo, setNombreHijo] = useState('');
   const [apellidoHijo, setApellidoHijo] = useState('');
   const [fechaNacHijo, setFechaNacHijo] = useState('');
@@ -287,8 +279,10 @@ export default function SignUpTutor() {
   useEffect(() => {
     (async () => {
       try {
-        const snapCities = await getDocs(collection(db, 'ciudades'));
-        setCities(snapCities.docs.map(d => d.data().ciudad));
+        const cityList = await fetchCities();
+        setCities(cityList.map(c => c.nombre));
+        const courseList = await fetchCursos();
+        setCourses(courseList.map(c => c.nombre));
       } catch (err) {
         console.error(err);
       }
@@ -305,8 +299,7 @@ export default function SignUpTutor() {
     return () => document.removeEventListener('mousedown', handleClick);
   }, []);
 
-  const handleSendCode = async (e) => {
-    e.preventDefault();
+  const handleSendCode = async () => {
     if (!isValidEmail(email)) {
       setEmailError('Correo electrónico no válido.');
       return;
@@ -317,8 +310,7 @@ export default function SignUpTutor() {
     setSendCooldown(30);
   };
 
-  const handleCheckCode = (e) => {
-    e.preventDefault();
+  const handleCheckCode = () => {
     if (codeInput === verifCode) {
       setEmailVerified(true);
       show('Correo verificado', 'success');
@@ -329,19 +321,24 @@ export default function SignUpTutor() {
 
   const handleSubmit = async () => {
     if (submitting) return;
-    const missingFields = [];
-    if (!email) missingFields.push('correo electrónico');
-    if (!password) missingFields.push('contraseña');
-    if (!confirmPwd) missingFields.push('confirmar contraseña');
-    if (!nombre) missingFields.push('nombre');
-    if (!apellido) missingFields.push('apellido');
-    if (!telefono) missingFields.push('teléfono');
-    if (!confirmTelefono) missingFields.push('confirmar teléfono');
-    if (!ciudad) missingFields.push('ciudad');
-    if (!curso) missingFields.push('curso');
-    if (!emailVerified) missingFields.push('verificación de correo');
-    if (missingFields.length > 0) {
-      show(`Completa: ${missingFields.join(', ')}`, 'error');
+    if (
+      !email ||
+      !password ||
+      !confirmPwd ||
+      !nombre ||
+      !apellido ||
+      !telefono ||
+      !confirmTelefono ||
+      !ciudad ||
+      !curso ||
+      !nifTutor ||
+      !direccionTutor ||
+      !nifAlumno ||
+      !telefonoHijo ||
+      !direccionAlumno ||
+      !emailVerified
+    ) {
+      show('Completa todos los campos', 'error');
       return;
     }
     if (!isValidEmail(email)) {
@@ -354,15 +351,8 @@ export default function SignUpTutor() {
     }
     if (password !== confirmPwd)
       return show('Las contraseñas no coinciden', 'error');
-    const missingChild = [];
-    if (!nombreHijo) missingChild.push('nombre del alumno');
-    if (!apellidoHijo) missingChild.push('apellido del alumno');
-    if (!fechaNacHijo) missingChild.push('fecha de nacimiento del alumno');
-    if (!generoHijo) missingChild.push('género del alumno');
-    if (missingChild.length > 0) {
-      show(`Completa datos del alumno: ${missingChild.join(', ')}`, 'error');
-      return;
-    }
+    if (!nombreHijo || !apellidoHijo || !fechaNacHijo || !generoHijo)
+      return show('Completa datos del alumno', 'error');
 
     setTelefonoError('');
     setSubmitting(true);
@@ -384,6 +374,8 @@ export default function SignUpTutor() {
         ciudad,
         rol: 'tutor',
         curso,
+        NIF: nifTutor,
+        direccion: direccionTutor,
         createdAt: new Date(),
         alumnos: [
           {
@@ -393,11 +385,32 @@ export default function SignUpTutor() {
             genero: generoHijo,
             fechaNacimiento: fechaNacHijo,
             curso,
+            telefono: telefonoHijo,
+            NIF: nifAlumno,
+            direccion: direccionAlumno,
             photoURL: user.photoURL || ''
           },
         ]
       };
       await setDoc(doc(db, 'usuarios', user.uid), data);
+      const generoTutor = salutation === 'Sr.' ? 'Masculino' : 'Femenino';
+      const tutorResp = await registerTutor({
+        nombre,
+        apellidos: apellido,
+        genero: generoTutor,
+        telefono,
+        correo_electronico: email,
+        NIF: nifTutor,
+        direccion_facturacion: direccionTutor,
+      });
+      await registerAlumno(tutorResp.id, {
+        nombre: nombreHijo,
+        apellidos: apellidoHijo,
+        direccion: direccionAlumno,
+        NIF: nifAlumno,
+        telefono: telefonoHijo,
+        genero: generoHijo,
+      });
       await sendWelcomeEmail({ email, name: nombre });
       if (auth.currentUser) {
         await sendEmailVerification(auth.currentUser);
@@ -501,6 +514,30 @@ export default function SignUpTutor() {
             </div>
           </Field>
           <Field>
+            <div className="fl-field">
+              <input
+                className="form-control fl-input"
+                type="text"
+                value={nifTutor}
+                onChange={e => setNifTutor(e.target.value)}
+                placeholder=" "
+              />
+              <label className="fl-label">NIF</label>
+            </div>
+          </Field>
+          <Field>
+            <div className="fl-field">
+              <input
+                className="form-control fl-input"
+                type="text"
+                value={direccionTutor}
+                onChange={e => setDireccionTutor(e.target.value)}
+                placeholder=" "
+              />
+              <label className="fl-label">Dirección facturación</label>
+            </div>
+          </Field>
+          <Field>
             <label>Teléfono</label>
             <PhoneInput
               country={'es'}
@@ -548,21 +585,16 @@ export default function SignUpTutor() {
               </DropdownHeader>
               {courseOpen && (
                 <DropdownList>
-                  {cursosGrouped.map(({ group, options }) => (
-                    <React.Fragment key={group}>
-                      <DropdownGroupLabel>{group}</DropdownGroupLabel>
-                      {options.map((c, i) => (
-                        <DropdownItem
-                          key={i}
-                          onClick={() => {
-                            setCurso(c);
-                            setCourseOpen(false);
-                          }}
-                        >
-                          {c}
-                        </DropdownItem>
-                      ))}
-                    </React.Fragment>
+                  {courses.map((c, i) => (
+                    <DropdownItem
+                      key={i}
+                      onClick={() => {
+                        setCurso(c);
+                        setCourseOpen(false);
+                      }}
+                    >
+                      {c}
+                    </DropdownItem>
                   ))}
                 </DropdownList>
               )}
@@ -594,6 +626,39 @@ export default function SignUpTutor() {
             </div>
           </Field>
           <Field>
+            <div className="fl-field">
+              <input
+                className="form-control fl-input"
+                type="text"
+                value={nifAlumno}
+                onChange={e=>setNifAlumno(e.target.value)}
+                placeholder=" "
+              />
+              <label className="fl-label">NIF del Alumno</label>
+            </div>
+          </Field>
+          <Field>
+            <label>Teléfono del Alumno</label>
+            <PhoneInput
+              country={'es'}
+              value={telefonoHijo}
+              onChange={value => setTelefonoHijo(value)}
+              inputStyle={{ width: '100%' }}
+            />
+          </Field>
+          <Field>
+            <div className="fl-field">
+              <input
+                className="form-control fl-input"
+                type="text"
+                value={direccionAlumno}
+                onChange={e=>setDireccionAlumno(e.target.value)}
+                placeholder=" "
+              />
+              <label className="fl-label">Dirección del Alumno</label>
+            </div>
+          </Field>
+          <Field>
             <label>Género</label>
             <select value={generoHijo} onChange={e=>setGeneroHijo(e.target.value)} style={{padding:'0.7rem 0.9rem',border:'1px solid #ccc',borderRadius:'8px'}}>
               <option value="Masculino">Masculino</option>
@@ -617,7 +682,7 @@ export default function SignUpTutor() {
           </p>
         </FormGrid>
 
-        <Button type="button" onClick={handleSubmit} disabled={submitting}>Crear cuenta</Button>
+        <Button onClick={handleSubmit} disabled={submitting}>Crear cuenta</Button>
       </Card>
 
       {modalOpen && (

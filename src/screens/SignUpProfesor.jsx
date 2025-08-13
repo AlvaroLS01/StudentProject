@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { useNotification } from "../NotificationContext";
 import { isValidEmail } from '../utils/validateEmail';
 import { sendWelcomeEmail, sendVerificationCode } from '../utils/email';
+import { fetchCities, registerProfesor } from '../utils/api';
 import PhoneInput from 'react-phone-input-2';
 import 'react-phone-input-2/lib/style.css';
 
@@ -244,16 +245,22 @@ export default function SignUpProfesor() {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [modalOpen, setModalOpen]     = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [nif, setNif] = useState('');
+  const [direccionFacturacion, setDireccionFacturacion] = useState('');
+  const [iban, setIban] = useState('');
+  const [carrera, setCarrera] = useState('');
+  const [cursoEstudios, setCursoEstudios] = useState('');
+  const [experiencia, setExperiencia] = useState('');
   const navigate = useNavigate();
   const { show } = useNotification();
   const ref = useRef();
 
-  // Carga ciudades
+  // Carga ciudades desde la API
   useEffect(() => {
     (async () => {
       try {
-        const snap = await getDocs(collection(db, 'ciudades'));
-        setCities(snap.docs.map(d => d.data().ciudad));
+        const list = await fetchCities();
+        setCities(list.map(c => c.nombre));
       } catch (err) {
         console.error(err);
       }
@@ -277,8 +284,7 @@ export default function SignUpProfesor() {
     return () => document.removeEventListener('mousedown', handler);
   }, []);
 
-  const handleSendCode = async (e) => {
-    e.preventDefault();
+  const handleSendCode = async () => {
     if (!isValidEmail(email)) {
       setEmailError('Correo electrónico no válido.');
       return;
@@ -289,8 +295,7 @@ export default function SignUpProfesor() {
     setSendCooldown(30);
   };
 
-  const handleCheckCode = (e) => {
-    e.preventDefault();
+  const handleCheckCode = () => {
     if (codeInput === verifCode) {
       setEmailVerified(true);
       show('Correo verificado', 'success');
@@ -301,18 +306,24 @@ export default function SignUpProfesor() {
 
   const handleSubmit = async () => {
     if (submitting) return;
-    const missingFields = [];
-    if (!email) missingFields.push('correo electrónico');
-    if (!password) missingFields.push('contraseña');
-    if (!confirmPassword) missingFields.push('confirmar contraseña');
-    if (!nombre) missingFields.push('nombre');
-    if (!apellido) missingFields.push('apellido');
-    if (!telefono) missingFields.push('teléfono');
-    if (!confirmTelefono) missingFields.push('confirmar teléfono');
-    if (!ciudad) missingFields.push('ciudad');
-    if (!emailVerified) missingFields.push('verificación de correo');
-    if (missingFields.length > 0) {
-      show(`Completa: ${missingFields.join(', ')}`, 'error');
+    if (
+      !email ||
+      !password ||
+      !confirmPassword ||
+      !nombre ||
+      !apellido ||
+      !telefono ||
+      !confirmTelefono ||
+      !ciudad ||
+      !nif ||
+      !direccionFacturacion ||
+      !iban ||
+      !carrera ||
+      !cursoEstudios ||
+      !experiencia ||
+      !emailVerified
+    ) {
+      show('Completa todos los campos', 'error');
       return;
     }
     if (!isValidEmail(email)) {
@@ -345,7 +356,27 @@ export default function SignUpProfesor() {
         telefono,
         ciudad,
         rol: 'profesor',
-        createdAt: new Date()
+        createdAt: new Date(),
+        NIF: nif,
+        direccion: direccionFacturacion,
+        IBAN: iban,
+        carrera,
+        curso: cursoEstudios,
+        experiencia,
+      });
+      const genero = salutation === 'Sr.' ? 'Masculino' : 'Femenino';
+      await registerProfesor({
+        nombre,
+        apellidos: apellido,
+        genero,
+        telefono,
+        correo_electronico: email,
+        NIF: nif,
+        direccion_facturacion: direccionFacturacion,
+        IBAN: iban,
+        carrera,
+        curso: cursoEstudios,
+        experiencia,
       });
       await sendWelcomeEmail({ email, name: nombre });
       if (auth.currentUser) {
@@ -466,6 +497,78 @@ export default function SignUpProfesor() {
               <label className="fl-label">Apellidos</label>
             </div>
           </Field>
+          <Field>
+            <div className="fl-field">
+              <input
+                className="form-control fl-input"
+                type="text"
+                value={nif}
+                onChange={e => setNif(e.target.value)}
+                placeholder=" "
+              />
+              <label className="fl-label">NIF</label>
+            </div>
+          </Field>
+          <Field>
+            <div className="fl-field">
+              <input
+                className="form-control fl-input"
+                type="text"
+                value={direccionFacturacion}
+                onChange={e => setDireccionFacturacion(e.target.value)}
+                placeholder=" "
+              />
+              <label className="fl-label">Dirección facturación</label>
+            </div>
+          </Field>
+          <Field>
+            <div className="fl-field">
+              <input
+                className="form-control fl-input"
+                type="text"
+                value={iban}
+                onChange={e => setIban(e.target.value)}
+                placeholder=" "
+              />
+              <label className="fl-label">IBAN</label>
+            </div>
+          </Field>
+          <Field>
+            <div className="fl-field">
+              <input
+                className="form-control fl-input"
+                type="text"
+                value={carrera}
+                onChange={e => setCarrera(e.target.value)}
+                placeholder=" "
+              />
+              <label className="fl-label">Carrera</label>
+            </div>
+          </Field>
+          <Field>
+            <div className="fl-field">
+              <input
+                className="form-control fl-input"
+                type="text"
+                value={cursoEstudios}
+                onChange={e => setCursoEstudios(e.target.value)}
+                placeholder=" "
+              />
+              <label className="fl-label">Curso</label>
+            </div>
+          </Field>
+          <Field style={{ gridColumn: '1 / -1' }}>
+            <div className="fl-field">
+              <input
+                className="form-control fl-input"
+                type="text"
+                value={experiencia}
+                onChange={e => setExperiencia(e.target.value)}
+                placeholder=" "
+              />
+              <label className="fl-label">Experiencia</label>
+            </div>
+          </Field>
           <Field style={{ gridColumn: '1 / -1' }} ref={ref}>
             <label>Ciudad</label>
             <DropdownContainer>
@@ -484,7 +587,7 @@ export default function SignUpProfesor() {
             </DropdownContainer>
           </Field>
         </FormGrid>
-        <Button type="button" onClick={handleSubmit} disabled={submitting}>Crear cuenta de profesor</Button>
+        <Button onClick={handleSubmit} disabled={submitting}>Crear cuenta de profesor</Button>
       </Card>
 
       {modalOpen && (
