@@ -351,12 +351,14 @@ export default function SignUpTutor() {
     const code = Math.floor(100000 + Math.random() * 900000).toString();
     setVerifCode(code);
     await sendVerificationCode({ email, code });
+    show('Se ha enviado el correo', 'success');
     setSendCooldown(30);
     setCheckStatus(null);
     setEmailVerified(false);
   };
 
   const handleCheckCode = () => {
+    setCheckStatus(null);
     if (codeInput === verifCode) {
       setEmailVerified(true);
       setCheckStatus('success');
@@ -497,29 +499,13 @@ export default function SignUpTutor() {
                     }}
                     placeholder=" "
                   />
-                  <label className="fl-label">E-mail</label>
-                </div>
-                {emailError && <ErrorText>{emailError}</ErrorText>}
-                <VerificationRow>
-                  <SendButton type="button" onClick={handleSendCode} disabled={sendCooldown>0}>
-                    {sendCooldown>0 ? `Reenviar (${sendCooldown})` : 'Verificar correo'}
-                  </SendButton>
-                  <CodeInput
-                    type="text"
-                    value={codeInput}
-                    onChange={e => {
-                      setCodeInput(e.target.value);
-                      setCheckStatus(null);
-                    }}
-                    placeholder="Código"
-                  />
-                  <VerifyButton type="button" onClick={handleCheckCode} status={checkStatus}>Comprobar</VerifyButton>
-                </VerificationRow>
-                {emailVerified && <p style={{color:'#046654',fontSize:'0.9rem'}}>Correo verificado</p>}
-              </Field>
-              <Field>
-                <div className="fl-field">
-                  <input
+              <label className="fl-label">E-mail</label>
+            </div>
+            {emailError && <ErrorText>{emailError}</ErrorText>}
+          </Field>
+          <Field>
+            <div className="fl-field">
+              <input
                     className="form-control fl-input"
                     type="password"
                     value={password}
@@ -540,6 +526,24 @@ export default function SignUpTutor() {
                   />
                   <label className="fl-label">Repite Contraseña</label>
                 </div>
+              </Field>
+              <Field>
+                <VerificationRow>
+                  <SendButton type="button" onClick={handleSendCode} disabled={sendCooldown>0}>
+                    {sendCooldown>0 ? `Reenviar (${sendCooldown})` : 'Verificar correo'}
+                  </SendButton>
+                  <CodeInput
+                    type="text"
+                    value={codeInput}
+                    onChange={e => {
+                      setCodeInput(e.target.value);
+                      setCheckStatus(null);
+                    }}
+                    placeholder="Código"
+                  />
+                  <VerifyButton type="button" onClick={handleCheckCode} status={checkStatus}>Comprobar</VerifyButton>
+                </VerificationRow>
+                {emailVerified && <p style={{color:'#046654',fontSize:'0.9rem'}}>Correo verificado</p>}
               </Field>
             </FormGrid>
             <Button onClick={() => setStep(2)} disabled={!emailVerified || !password || !confirmPwd || password !== confirmPwd}>
