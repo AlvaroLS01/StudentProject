@@ -232,6 +232,7 @@ export default function SignUpProfesor() {
   const [verifCode, setVerifCode] = useState('');
   const [codeInput, setCodeInput] = useState('');
   const [sendCooldown, setSendCooldown] = useState(0);
+  const [step, setStep] = useState(1);
   const [password, setPassword]       = useState('');
   const [confirmPassword, setConfirm] = useState('');
   const [salutation, setSalutation]   = useState('Sr.');
@@ -397,197 +398,208 @@ export default function SignUpProfesor() {
       <Card>
         <CloseBtn onClick={() => setModalOpen(true)}>×</CloseBtn>
         <Title>Registro de Profesor</Title>
-        <Subtitle>¡Empieza hoy a compartir tu pasión por el conocimiento y transforma vidas!</Subtitle>
-        <FormGrid>
-          <Field>
-            <div className="fl-field">
-              <input
-                className="form-control fl-input"
-                type="email"
-                value={email}
-                onChange={e => {
-                  setEmail(e.target.value);
-                  setEmailError('');
-                }}
-                placeholder=" "
-              />
-              <label className="fl-label">E-mail</label>
-            </div>
-            {emailError && <ErrorText>{emailError}</ErrorText>}
-            <div style={{display:'flex',marginTop:'0.5rem',gap:'0.5rem'}}>
-              <button type="button" onClick={handleSendCode} disabled={sendCooldown>0} style={{flex:'1',background:'#046654',color:'#fff',border:'none',borderRadius:'6px',padding:'0.5rem',cursor:'pointer',opacity:sendCooldown>0?0.6:1}}>
-                {sendCooldown>0 ? `Reenviar (${sendCooldown})` : 'Verificar correo'}
-              </button>
-              <input type="text" value={codeInput} onChange={e=>setCodeInput(e.target.value)} placeholder="Código" style={{flex:'1',padding:'0.5rem',border:'1px solid #ccc',borderRadius:'6px'}} />
-              <button type="button" onClick={handleCheckCode} style={{background:'#ccc',border:'none',borderRadius:'6px',padding:'0.5rem',cursor:'pointer'}}>Comprobar</button>
-            </div>
-            {emailVerified && <p style={{color:'#046654',fontSize:'0.9rem'}}>Correo verificado</p>}
-          </Field>
-          <Field>
-            <label>Teléfono</label>
-            <PhoneInput
-              country={'es'}
-              value={telefono}
-              onChange={value => { setTelefono(value); setTelefonoError(''); }}
-              inputStyle={{ width: '100%' }}
-            />
-          </Field>
-          <Field>
-            <label>Repite Teléfono</label>
-            <PhoneInput
-              country={'es'}
-              value={confirmTelefono}
-              onChange={value => { setConfirmTelefono(value); setTelefonoError(''); }}
-              inputStyle={{ width: '100%' }}
-            />
-            {telefonoError && <ErrorText>{telefonoError}</ErrorText>}
-          </Field>
-          <Field>
-            <div className="fl-field">
-              <input
-                className="form-control fl-input"
-                type="password"
-                value={password}
-                onChange={e => setPassword(e.target.value)}
-                placeholder=" "
-              />
-              <label className="fl-label">Contraseña</label>
-            </div>
-          </Field>
-          <Field>
-            <div className="fl-field">
-              <input
-                className="form-control fl-input"
-                type="password"
-                value={confirmPassword}
-                onChange={e => setConfirm(e.target.value)}
-                placeholder=" "
-              />
-              <label className="fl-label">Repite Contraseña</label>
-            </div>
-          </Field>
-          <Field>
-            <label>Tratamiento</label>
-            <select value={salutation} onChange={e=>setSalutation(e.target.value)} style={{padding:'0.7rem 0.9rem',border:'1px solid #ccc',borderRadius:'8px'}}>
-              <option value="Sr.">Sr.</option>
-              <option value="Sra.">Sra.</option>
-            </select>
-          </Field>
-          <Field>
-            <div className="fl-field">
-              <input
-                className="form-control fl-input"
-                type="text"
-                value={nombre}
-                onChange={e => setNombre(e.target.value)}
-                placeholder=" "
-              />
-              <label className="fl-label">Nombre</label>
-            </div>
-          </Field>
-          <Field>
-            <div className="fl-field">
-              <input
-                className="form-control fl-input"
-                type="text"
-                value={apellido}
-                onChange={e => setApellido(e.target.value)}
-                placeholder=" "
-              />
-              <label className="fl-label">Apellidos</label>
-            </div>
-          </Field>
-          <Field>
-            <div className="fl-field">
-              <input
-                className="form-control fl-input"
-                type="text"
-                value={nif}
-                onChange={e => setNif(e.target.value)}
-                placeholder=" "
-              />
-              <label className="fl-label">NIF</label>
-            </div>
-          </Field>
-          <Field>
-            <div className="fl-field">
-              <input
-                className="form-control fl-input"
-                type="text"
-                value={direccionFacturacion}
-                onChange={e => setDireccionFacturacion(e.target.value)}
-                placeholder=" "
-              />
-              <label className="fl-label">Dirección facturación</label>
-            </div>
-          </Field>
-          <Field>
-            <div className="fl-field">
-              <input
-                className="form-control fl-input"
-                type="text"
-                value={iban}
-                onChange={e => setIban(e.target.value)}
-                placeholder=" "
-              />
-              <label className="fl-label">IBAN</label>
-            </div>
-          </Field>
-          <Field>
-            <div className="fl-field">
-              <input
-                className="form-control fl-input"
-                type="text"
-                value={carrera}
-                onChange={e => setCarrera(e.target.value)}
-                placeholder=" "
-              />
-              <label className="fl-label">Carrera</label>
-            </div>
-          </Field>
-          <Field>
-            <div className="fl-field">
-              <input
-                className="form-control fl-input"
-                type="text"
-                value={cursoEstudios}
-                onChange={e => setCursoEstudios(e.target.value)}
-                placeholder=" "
-              />
-              <label className="fl-label">Curso</label>
-            </div>
-          </Field>
-          <Field style={{ gridColumn: '1 / -1' }}>
-            <div className="fl-field">
-              <input
-                className="form-control fl-input"
-                type="text"
-                value={experiencia}
-                onChange={e => setExperiencia(e.target.value)}
-                placeholder=" "
-              />
-              <label className="fl-label">Experiencia</label>
-            </div>
-          </Field>
-          <Field style={{ gridColumn: '1 / -1' }} ref={ref}>
-            <label>Ciudad</label>
-            <DropdownContainer>
-              <DropdownHeader onClick={() => setDropdownOpen(o => !o)}>
-                {ciudad || 'Selecciona ciudad'}<Arrow open={dropdownOpen} />
-              </DropdownHeader>
-              {dropdownOpen && (
-                <DropdownList>
-                  {cities.map((c, i) => (
-                    <DropdownItem key={i} onClick={() => { setCiudad(c); setDropdownOpen(false); }}>
-                      {c}
-                    </DropdownItem>
-                  ))}
-                </DropdownList>
-              )}
-            </DropdownContainer>
-          </Field>
-        </FormGrid>
-        <Button onClick={handleSubmit} disabled={submitting}>Crear cuenta de profesor</Button>
+        {step === 1 ? (
+          <>
+            <Subtitle>Verifica tu correo electrónico</Subtitle>
+            <FormGrid>
+              <Field>
+                <div className="fl-field">
+                  <input
+                    className="form-control fl-input"
+                    type="email"
+                    value={email}
+                    onChange={e => {
+                      setEmail(e.target.value);
+                      setEmailError('');
+                    }}
+                    placeholder=" "
+                  />
+                  <label className="fl-label">E-mail</label>
+                </div>
+                {emailError && <ErrorText>{emailError}</ErrorText>}
+                <div style={{display:'flex',marginTop:'0.5rem',gap:'0.5rem'}}>
+                  <button type="button" onClick={handleSendCode} disabled={sendCooldown>0} style={{flex:'1',background:'#046654',color:'#fff',border:'none',borderRadius:'6px',padding:'0.5rem',cursor:'pointer',opacity:sendCooldown>0?0.6:1}}>
+                    {sendCooldown>0 ? `Reenviar (${sendCooldown})` : 'Verificar correo'}
+                  </button>
+                  <input type="text" value={codeInput} onChange={e=>setCodeInput(e.target.value)} placeholder="Código" style={{flex:'1',padding:'0.5rem',border:'1px solid #ccc',borderRadius:'6px'}} />
+                  <button type="button" onClick={handleCheckCode} style={{background:'#ccc',border:'none',borderRadius:'6px',padding:'0.5rem',cursor:'pointer'}}>Comprobar</button>
+                </div>
+                {emailVerified && <p style={{color:'#046654',fontSize:'0.9rem'}}>Correo verificado</p>}
+              </Field>
+            </FormGrid>
+            <Button onClick={() => setStep(2)} disabled={!emailVerified}>Siguiente</Button>
+          </>
+        ) : (
+          <>
+            <Subtitle>Completa tus datos para {email}</Subtitle>
+            <FormGrid>
+              <Field>
+                <label>Teléfono</label>
+                <PhoneInput
+                  country={'es'}
+                  value={telefono}
+                  onChange={value => { setTelefono(value); setTelefonoError(''); }}
+                  inputStyle={{ width: '100%' }}
+                />
+              </Field>
+              <Field>
+                <label>Repite Teléfono</label>
+                <PhoneInput
+                  country={'es'}
+                  value={confirmTelefono}
+                  onChange={value => { setConfirmTelefono(value); setTelefonoError(''); }}
+                  inputStyle={{ width: '100%' }}
+                />
+                {telefonoError && <ErrorText>{telefonoError}</ErrorText>}
+              </Field>
+              <Field>
+                <div className="fl-field">
+                  <input
+                    className="form-control fl-input"
+                    type="password"
+                    value={password}
+                    onChange={e => setPassword(e.target.value)}
+                    placeholder=" "
+                  />
+                  <label className="fl-label">Contraseña</label>
+                </div>
+              </Field>
+              <Field>
+                <div className="fl-field">
+                  <input
+                    className="form-control fl-input"
+                    type="password"
+                    value={confirmPassword}
+                    onChange={e => setConfirm(e.target.value)}
+                    placeholder=" "
+                  />
+                  <label className="fl-label">Repite Contraseña</label>
+                </div>
+              </Field>
+              <Field>
+                <label>Tratamiento</label>
+                <select value={salutation} onChange={e=>setSalutation(e.target.value)} style={{padding:'0.7rem 0.9rem',border:'1px solid #ccc',borderRadius:'8px'}}>
+                  <option value="Sr.">Sr.</option>
+                  <option value="Sra.">Sra.</option>
+                </select>
+              </Field>
+              <Field>
+                <div className="fl-field">
+                  <input
+                    className="form-control fl-input"
+                    type="text"
+                    value={nombre}
+                    onChange={e => setNombre(e.target.value)}
+                    placeholder=" "
+                  />
+                  <label className="fl-label">Nombre</label>
+                </div>
+              </Field>
+              <Field>
+                <div className="fl-field">
+                  <input
+                    className="form-control fl-input"
+                    type="text"
+                    value={apellido}
+                    onChange={e => setApellido(e.target.value)}
+                    placeholder=" "
+                  />
+                  <label className="fl-label">Apellidos</label>
+                </div>
+              </Field>
+              <Field>
+                <div className="fl-field">
+                  <input
+                    className="form-control fl-input"
+                    type="text"
+                    value={nif}
+                    onChange={e => setNif(e.target.value)}
+                    placeholder=" "
+                  />
+                  <label className="fl-label">NIF</label>
+                </div>
+              </Field>
+              <Field>
+                <div className="fl-field">
+                  <input
+                    className="form-control fl-input"
+                    type="text"
+                    value={direccionFacturacion}
+                    onChange={e => setDireccionFacturacion(e.target.value)}
+                    placeholder=" "
+                  />
+                  <label className="fl-label">Dirección facturación</label>
+                </div>
+              </Field>
+              <Field>
+                <div className="fl-field">
+                  <input
+                    className="form-control fl-input"
+                    type="text"
+                    value={iban}
+                    onChange={e => setIban(e.target.value)}
+                    placeholder=" "
+                  />
+                  <label className="fl-label">IBAN</label>
+                </div>
+              </Field>
+              <Field>
+                <div className="fl-field">
+                  <input
+                    className="form-control fl-input"
+                    type="text"
+                    value={carrera}
+                    onChange={e => setCarrera(e.target.value)}
+                    placeholder=" "
+                  />
+                  <label className="fl-label">Carrera</label>
+                </div>
+              </Field>
+              <Field>
+                <div className="fl-field">
+                  <input
+                    className="form-control fl-input"
+                    type="text"
+                    value={cursoEstudios}
+                    onChange={e => setCursoEstudios(e.target.value)}
+                    placeholder=" "
+                  />
+                  <label className="fl-label">Curso</label>
+                </div>
+              </Field>
+              <Field style={{ gridColumn: '1 / -1' }}>
+                <div className="fl-field">
+                  <input
+                    className="form-control fl-input"
+                    type="text"
+                    value={experiencia}
+                    onChange={e => setExperiencia(e.target.value)}
+                    placeholder=" "
+                  />
+                  <label className="fl-label">Experiencia</label>
+                </div>
+              </Field>
+              <Field style={{ gridColumn: '1 / -1' }} ref={ref}>
+                <label>Ciudad</label>
+                <DropdownContainer>
+                  <DropdownHeader onClick={() => setDropdownOpen(o => !o)}>
+                    {ciudad || 'Selecciona ciudad'}<Arrow open={dropdownOpen} />
+                  </DropdownHeader>
+                  {dropdownOpen && (
+                    <DropdownList>
+                      {cities.map((c, i) => (
+                        <DropdownItem key={i} onClick={() => { setCiudad(c); setDropdownOpen(false); }}>
+                          {c}
+                        </DropdownItem>
+                      ))}
+                    </DropdownList>
+                  )}
+                </DropdownContainer>
+              </Field>
+            </FormGrid>
+            <Button onClick={handleSubmit} disabled={submitting}>Crear cuenta de profesor</Button>
+          </>
+        )}
       </Card>
 
       {modalOpen && (
