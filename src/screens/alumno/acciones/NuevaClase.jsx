@@ -494,8 +494,17 @@ export default function NuevaClase() {
 
     setErrors(newErrors);
 
-    if (Object.keys(newErrors).length > 0) {
-      show('Completa todos los campos obligatorios antes de continuar', 'error');
+    const fieldNames = {
+      asignaturas: 'Asignaturas',
+      curso: 'Curso',
+      ciudad: 'Ciudad',
+      fechas: 'Fechas',
+      horas: 'Horas por semana',
+      horario: 'Horario'
+    };
+    const missing = Object.keys(newErrors).map(k => fieldNames[k]);
+    if (missing.length > 0) {
+      show('Faltan: ' + missing.join(', '), 'error');
       if (firstRef && firstRef.current) {
         firstRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
       }

@@ -120,20 +120,31 @@ export default function CompletarDatosGoogle() {
   const handleSubmit = async e => {
     e.preventDefault();
     if (!user) return;
-    if (!nombre || !apellido || !telefono || !confirmTelefono || !ciudad || (rol !== 'profesor' && !curso)) {
-      show('Completa todos los campos', 'error');
+    const missing = [];
+    if (!nombre) missing.push('Nombre');
+    if (!apellido) missing.push('Apellidos');
+    if (!telefono) missing.push('Teléfono');
+    if (!confirmTelefono) missing.push('Repite Teléfono');
+    if (!ciudad) missing.push('Ciudad');
+    if (rol !== 'profesor' && !curso) missing.push('Curso');
+    if (missing.length) {
+      show('Faltan: ' + missing.join(', '), 'error');
       return;
     }
     if (telefono !== confirmTelefono) {
       setTelefonoError('Los números no coinciden');
       return;
     }
-    if (
-      rol === 'tutor' &&
-      (!nombreHijo || !apellidoHijo || !fechaNacHijo || !generoHijo)
-    ) {
-      show('Completa datos del alumno', 'error');
-      return;
+    if (rol === 'tutor') {
+      const missingAlumno = [];
+      if (!nombreHijo) missingAlumno.push('Nombre del alumno');
+      if (!apellidoHijo) missingAlumno.push('Apellidos del alumno');
+      if (!fechaNacHijo) missingAlumno.push('Fecha nacimiento del alumno');
+      if (!generoHijo) missingAlumno.push('Género del alumno');
+      if (missingAlumno.length) {
+        show('Faltan datos del alumno: ' + missingAlumno.join(', '), 'error');
+        return;
+      }
     }
     setTelefonoError('');
     try {
