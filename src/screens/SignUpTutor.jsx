@@ -329,19 +329,19 @@ export default function SignUpTutor() {
 
   const handleSubmit = async () => {
     if (submitting) return;
-    if (
-      !email ||
-      !password ||
-      !confirmPwd ||
-      !nombre ||
-      !apellido ||
-      !telefono ||
-      !confirmTelefono ||
-      !ciudad ||
-      !curso ||
-      !emailVerified
-    ) {
-      show('Completa todos los campos', 'error');
+    const missingFields = [];
+    if (!email) missingFields.push('correo electrónico');
+    if (!password) missingFields.push('contraseña');
+    if (!confirmPwd) missingFields.push('confirmar contraseña');
+    if (!nombre) missingFields.push('nombre');
+    if (!apellido) missingFields.push('apellido');
+    if (!telefono) missingFields.push('teléfono');
+    if (!confirmTelefono) missingFields.push('confirmar teléfono');
+    if (!ciudad) missingFields.push('ciudad');
+    if (!curso) missingFields.push('curso');
+    if (!emailVerified) missingFields.push('verificación de correo');
+    if (missingFields.length > 0) {
+      show(`Completa: ${missingFields.join(', ')}`, 'error');
       return;
     }
     if (!isValidEmail(email)) {
@@ -354,8 +354,15 @@ export default function SignUpTutor() {
     }
     if (password !== confirmPwd)
       return show('Las contraseñas no coinciden', 'error');
-    if (!nombreHijo || !apellidoHijo || !fechaNacHijo || !generoHijo)
-      return show('Completa datos del alumno', 'error');
+    const missingChild = [];
+    if (!nombreHijo) missingChild.push('nombre del alumno');
+    if (!apellidoHijo) missingChild.push('apellido del alumno');
+    if (!fechaNacHijo) missingChild.push('fecha de nacimiento del alumno');
+    if (!generoHijo) missingChild.push('género del alumno');
+    if (missingChild.length > 0) {
+      show(`Completa datos del alumno: ${missingChild.join(', ')}`, 'error');
+      return;
+    }
 
     setTelefonoError('');
     setSubmitting(true);
