@@ -2,15 +2,8 @@ const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001';
 
 async function handleResponse(res) {
   if (!res.ok) {
-    let message = 'Error de servidor';
-    try {
-      const data = await res.json();
-      message = data.error || message;
-    } catch (e) {
-      const text = await res.text();
-      if (text) message = text;
-    }
-    throw new Error(message);
+    const text = await res.text();
+    throw new Error(text || 'Error de servidor');
   }
   return res.json();
 }
