@@ -13,6 +13,7 @@ import {
 } from '../utils/api';
 import PhoneInput from 'react-phone-input-2';
 import 'react-phone-input-2/lib/style.css';
+import AddressAutocomplete from '../components/AddressAutocomplete';
 
 // Firebase (inicializado en firebaseConfig.js)
 import { auth, db } from '../firebase/firebaseConfig';
@@ -300,11 +301,13 @@ export default function SignUpTutor() {
   const [courseOpen, setCourseOpen] = useState(false);
   const [nifTutor, setNifTutor] = useState('');
   const [direccionTutor, setDireccionTutor] = useState('');
+  const [distritoTutor, setDistritoTutor] = useState('');
   const [nifAlumno, setNifAlumno] = useState('');
   const [telefonoHijo, setTelefonoHijo] = useState('');
   const [confirmTelefonoHijo, setConfirmTelefonoHijo] = useState('');
   const [telefonoHijoError, setTelefonoHijoError] = useState('');
   const [direccionAlumno, setDireccionAlumno] = useState('');
+  const [distritoAlumno, setDistritoAlumno] = useState('');
   const [nombreHijo, setNombreHijo] = useState('');
   const [apellidoHijo, setApellidoHijo] = useState('');
   const [fechaNacHijo, setFechaNacHijo] = useState('');
@@ -372,28 +375,58 @@ export default function SignUpTutor() {
     }
   };
 
+  const extractPlaceData = details => {
+    const comp = type =>
+      details.address_components.find(c => c.types.includes(type));
+    const cityComp = comp('locality');
+    const districtComp =
+      comp('sublocality_level_1') || comp('administrative_area_level_2');
+    return {
+      city: cityComp ? cityComp.long_name : '',
+      district: districtComp ? districtComp.long_name : ''
+    };
+  };
+
+  const handleTutorAddressSelect = details => {
+    const { city, district } = extractPlaceData(details);
+    setDireccionTutor(details.formatted_address);
+    if (city) setCiudad(city);
+    if (district) setDistritoTutor(district);
+  };
+
+  const handleAlumnoAddressSelect = details => {
+    const { district } = extractPlaceData(details);
+    setDireccionAlumno(details.formatted_address);
+    if (district) setDistritoAlumno(district);
+  };
+
   const handleSubmit = async () => {
     if (submitting) return;
-    if (
-      !email ||
-      !password ||
-      !confirmPwd ||
-      !nombre ||
-      !apellido ||
-      !telefono ||
-      !confirmTelefono ||
-      !ciudad ||
-      !curso ||
-      !idCurso ||
-      !nifTutor ||
-      !direccionTutor ||
-      !nifAlumno ||
-      !telefonoHijo ||
-      !confirmTelefonoHijo ||
-      !direccionAlumno ||
-      !emailVerified
-    ) {
-      show('Completa todos los campos', 'error');
+    const missing = [];
+    if (!email) missing.push('Correo');
+    if (!password) missing.push('Contraseña');
+    if (!confirmPwd) missing.push('Confirmar contraseña');
+    if (!nombre) missing.push('Nombre');
+    if (!apellido) missing.push('Apellidos');
+    if (!telefono) missing.push('Teléfono');
+    if (!confirmTelefono) missing.push('Repite Teléfono');
+    if (!ciudad) missing.push('Ciudad');
+    if (!curso || !idCurso) missing.push('Curso');
+    if (!nifTutor) missing.push('NIF');
+    if (!direccionTutor) missing.push('Dirección facturación');
+    if (!distritoTutor) missing.push('Distrito facturación');
+    if (!nifAlumno) missing.push('NIF del Alumno');
+    if (!telefonoHijo) missing.push('Teléfono del Alumno');
+    if (!confirmTelefonoHijo) missing.push('Repite Teléfono del Alumno');
+    if (!direccionAlumno) missing.push('Dirección del Alumno');
+    if (!distritoAlumno) missing.push('Distrito del Alumno');
+    if (!nombreHijo) missing.push('Nombre del Alumno');
+    if (!apellidoHijo) missing.push('Apellidos del Alumno');
+    if (!fechaNacHijo) missing.push('Fecha Nacimiento del Alumno');
+    if (!generoHijo) missing.push('Género del Alumno');
+    if (!emailVerified) missing.push('Verificación de correo');
+    if (missing.length) {
+      show('Faltan: ' + missing.join(', '), 'error');
       return;
     }
     if (!isValidEmail(email)) {
@@ -410,8 +443,6 @@ export default function SignUpTutor() {
     }
     if (password !== confirmPwd)
       return show('Las contraseñas no coinciden', 'error');
-    if (!nombreHijo || !apellidoHijo || !fechaNacHijo || !generoHijo)
-      return show('Completa datos del alumno', 'error');
 
     setTelefonoError('');
     setTelefonoHijoError('');
@@ -436,6 +467,7 @@ export default function SignUpTutor() {
         curso,
         NIF: nifTutor,
         direccion: direccionTutor,
+        distrito: distritoTutor,
         createdAt: new Date(),
         alumnos: [
           {
@@ -448,6 +480,7 @@ export default function SignUpTutor() {
             telefono: telefonoHijo,
             NIF: nifAlumno,
             direccion: direccionAlumno,
+            distrito: distritoAlumno,
             photoURL: user.photoURL || ''
           },
         ]
@@ -462,12 +495,14 @@ export default function SignUpTutor() {
         correo_electronico: email,
         NIF: nifTutor,
         direccion_facturacion: direccionTutor,
+        distrito_facturacion: distritoTutor,
         password,
       });
       await registerAlumno(tutorResp.id, {
         nombre: nombreHijo,
         apellidos: apellidoHijo,
         direccion: direccionAlumno,
+        distrito: distritoAlumno,
         NIF: nifAlumno,
         telefono: telefonoHijo,
         telefonoConfirm: confirmTelefonoHijo,
@@ -612,11 +647,10 @@ export default function SignUpTutor() {
               </Field>
               <Field>
                 <div className="fl-field">
-                  <input
-                    className="form-control fl-input"
-                    type="text"
+                  <AddressAutocomplete
                     value={direccionTutor}
-                    onChange={e => setDireccionTutor(e.target.value)}
+                    onChange={setDireccionTutor}
+                    onSelect={handleTutorAddressSelect}
                     placeholder=" "
                   />
                   <label className="fl-label">Dirección facturación</label>
@@ -741,11 +775,10 @@ export default function SignUpTutor() {
               </Field>
               <Field>
                 <div className="fl-field">
-                  <input
-                    className="form-control fl-input"
-                    type="text"
+                  <AddressAutocomplete
                     value={direccionAlumno}
-                    onChange={e=>setDireccionAlumno(e.target.value)}
+                    onChange={setDireccionAlumno}
+                    onSelect={handleAlumnoAddressSelect}
                     placeholder=" "
                   />
                   <label className="fl-label">Dirección del Alumno</label>

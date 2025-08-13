@@ -8,6 +8,7 @@ import { sendWelcomeEmail, sendVerificationCode } from '../utils/email';
 import { fetchCities, registerProfesor } from '../utils/api';
 import PhoneInput from 'react-phone-input-2';
 import 'react-phone-input-2/lib/style.css';
+import AddressAutocomplete from '../components/AddressAutocomplete';
 
 // Firebase (inicializado en firebaseConfig.js)
 import { auth, db } from '../firebase/firebaseConfig';
@@ -291,6 +292,7 @@ export default function SignUpProfesor() {
   const [submitting, setSubmitting] = useState(false);
   const [nif, setNif] = useState('');
   const [direccionFacturacion, setDireccionFacturacion] = useState('');
+  const [distrito, setDistrito] = useState('');
   const [iban, setIban] = useState('');
   const [carrera, setCarrera] = useState('');
   const [cursoEstudios, setCursoEstudios] = useState('');
@@ -354,26 +356,46 @@ export default function SignUpProfesor() {
     }
   };
 
+  const extractPlaceData = details => {
+    const comp = type =>
+      details.address_components.find(c => c.types.includes(type));
+    const cityComp = comp('locality');
+    const districtComp =
+      comp('sublocality_level_1') || comp('administrative_area_level_2');
+    return {
+      city: cityComp ? cityComp.long_name : '',
+      district: districtComp ? districtComp.long_name : ''
+    };
+  };
+
+  const handleAddressSelect = details => {
+    const { city, district } = extractPlaceData(details);
+    setDireccionFacturacion(details.formatted_address);
+    if (city) setCiudad(city);
+    if (district) setDistrito(district);
+  };
+
   const handleSubmit = async () => {
     if (submitting) return;
-    if (
-      !email ||
-      !password ||
-      !confirmPassword ||
-      !nombre ||
-      !apellido ||
-      !telefono ||
-      !confirmTelefono ||
-      !ciudad ||
-      !nif ||
-      !direccionFacturacion ||
-      !iban ||
-      !carrera ||
-      !cursoEstudios ||
-      !experiencia ||
-      !emailVerified
-    ) {
-      show('Completa todos los campos', 'error');
+    const missing = [];
+    if (!email) missing.push('Correo');
+    if (!password) missing.push('Contraseña');
+    if (!confirmPassword) missing.push('Confirmar contraseña');
+    if (!nombre) missing.push('Nombre');
+    if (!apellido) missing.push('Apellidos');
+    if (!telefono) missing.push('Teléfono');
+    if (!confirmTelefono) missing.push('Repite Teléfono');
+    if (!ciudad) missing.push('Ciudad');
+    if (!nif) missing.push('NIF');
+    if (!direccionFacturacion) missing.push('Dirección facturación');
+    if (!distrito) missing.push('Distrito');
+    if (!iban) missing.push('IBAN');
+    if (!carrera) missing.push('Carrera');
+    if (!cursoEstudios) missing.push('Curso');
+    if (!experiencia) missing.push('Experiencia');
+    if (!emailVerified) missing.push('Verificación de correo');
+    if (missing.length) {
+      show('Faltan: ' + missing.join(', '), 'error');
       return;
     }
     if (!isValidEmail(email)) {
@@ -409,6 +431,7 @@ export default function SignUpProfesor() {
         createdAt: new Date(),
         NIF: nif,
         direccion: direccionFacturacion,
+        distrito,
         IBAN: iban,
         carrera,
         curso: cursoEstudios,
@@ -423,6 +446,7 @@ export default function SignUpProfesor() {
         correo_electronico: email,
         NIF: nif,
         direccion_facturacion: direccionFacturacion,
+        distrito,
         IBAN: iban,
         carrera,
         curso: cursoEstudios,
@@ -585,11 +609,10 @@ export default function SignUpProfesor() {
               </Field>
               <Field>
                 <div className="fl-field">
-                  <input
-                    className="form-control fl-input"
-                    type="text"
+                  <AddressAutocomplete
                     value={direccionFacturacion}
-                    onChange={e => setDireccionFacturacion(e.target.value)}
+                    onChange={setDireccionFacturacion}
+                    onSelect={handleAddressSelect}
                     placeholder=" "
                   />
                   <label className="fl-label">Dirección facturación</label>
