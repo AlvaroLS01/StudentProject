@@ -284,7 +284,8 @@ export default function SignUpProfesor() {
     return () => document.removeEventListener('mousedown', handler);
   }, []);
 
-  const handleSendCode = async () => {
+  const handleSendCode = async (e) => {
+    e.preventDefault();
     if (!isValidEmail(email)) {
       setEmailError('Correo electrónico no válido.');
       return;
@@ -295,7 +296,8 @@ export default function SignUpProfesor() {
     setSendCooldown(30);
   };
 
-  const handleCheckCode = () => {
+  const handleCheckCode = (e) => {
+    e.preventDefault();
     if (codeInput === verifCode) {
       setEmailVerified(true);
       show('Correo verificado', 'success');
@@ -587,7 +589,7 @@ export default function SignUpProfesor() {
             </DropdownContainer>
           </Field>
         </FormGrid>
-        <Button onClick={handleSubmit} disabled={submitting}>Crear cuenta de profesor</Button>
+        <Button type="button" onClick={handleSubmit} disabled={submitting}>Crear cuenta de profesor</Button>
       </Card>
 
       {modalOpen && (

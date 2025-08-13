@@ -299,7 +299,8 @@ export default function SignUpTutor() {
     return () => document.removeEventListener('mousedown', handleClick);
   }, []);
 
-  const handleSendCode = async () => {
+  const handleSendCode = async (e) => {
+    e.preventDefault();
     if (!isValidEmail(email)) {
       setEmailError('Correo electrónico no válido.');
       return;
@@ -310,7 +311,8 @@ export default function SignUpTutor() {
     setSendCooldown(30);
   };
 
-  const handleCheckCode = () => {
+  const handleCheckCode = (e) => {
+    e.preventDefault();
     if (codeInput === verifCode) {
       setEmailVerified(true);
       show('Correo verificado', 'success');
@@ -682,7 +684,7 @@ export default function SignUpTutor() {
           </p>
         </FormGrid>
 
-        <Button onClick={handleSubmit} disabled={submitting}>Crear cuenta</Button>
+        <Button type="button" onClick={handleSubmit} disabled={submitting}>Crear cuenta</Button>
       </Card>
 
       {modalOpen && (
