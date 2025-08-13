@@ -6,6 +6,7 @@ const cors = require('cors');
 const admin = require('firebase-admin');
 const jwt = require('jsonwebtoken');
 const { google } = require('googleapis');
+const db = require('./db');
 
 const app = express();
 app.use(cors());
@@ -49,6 +50,123 @@ async function appendRow(sheetName, values) {
     requestBody: { values: [values] },
   });
 }
+
+// --- Lookup endpoints ----------------------------------------------------
+// These endpoints expose simple catalog data so the frontend can populate
+// dropdowns from the PostgreSQL database rather than from hardcoded lists.
+
+app.get('/ciudades', async (_req, res) => {
+  try {
+    const result = await db.query(
+      'SELECT id_ciudad, nombre FROM student_project.ciudad ORDER BY nombre'
+    );
+    res.json(result.rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Error fetching ciudades' });
+  }
+});
+
+app.get('/cursos', async (_req, res) => {
+  try {
+    const result = await db.query(
+      'SELECT id_curso, nombre FROM student_project.curso ORDER BY id_curso'
+    );
+    res.json(result.rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Error fetching cursos' });
+  }
+});
+
+app.get('/asignaturas', async (_req, res) => {
+  try {
+    const result = await db.query(
+      'SELECT id_asignatura, nombre_asignatura FROM student_project.asignatura ORDER BY nombre_asignatura'
+    );
+    res.json(result.rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Error fetching asignaturas' });
+  }
+});
+
+app.post('/tutor', async (req, res) => {
+  const {
+    nombre,
+    apellidos,
+    genero,
+    telefono,
+    correo_electronico,
+    NIF,
+    direccion_facturacion,
+  } = req.body;
+  try {
+    const result = await db.query(
+      'INSERT INTO student_project.tutor (nombre, apellidos, genero, telefono, correo_electronico, "NIF", direccion_facturacion) VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING id_tutor',
+      [nombre, apellidos, genero, telefono, correo_electronico, NIF, direccion_facturacion]
+    );
+    res.json({ id: result.rows[0].id_tutor });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Error creando tutor" });
+  }
+});
+
+app.post('/tutor/:tutorId/alumno', async (req, res) => {
+  const { tutorId } = req.params;
+  const { nombre, apellidos, direccion, NIF, telefono, genero } = req.body;
+  try {
+    const result = await db.query(
+      'INSERT INTO student_project.alumno (nombre, apellidos, direccion, NIF, telefono, genero, id_tutor) VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING id_alumno',
+      [nombre, apellidos, direccion, NIF, telefono, genero, tutorId]
+    );
+    res.json({ id: result.rows[0].id_alumno });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Error creando alumno" });
+  }
+});
+
+app.post('/profesor', async (req, res) => {
+  const {
+    nombre,
+    apellidos,
+    genero,
+    telefono,
+    correo_electronico,
+    NIF,
+    direccion_facturacion,
+    IBAN,
+    carrera,
+    curso,
+    experiencia,
+  } = req.body;
+  try {
+    const result = await db.query(
+      'INSERT INTO student_project.profesor (nombre, apellidos, genero, telefono, correo_electronico, "NIF", direccion_facturacion, "IBAN", carrera, curso, experiencia) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11) RETURNING id_profesor',
+      [nombre, apellidos, genero, telefono, correo_electronico, NIF, direccion_facturacion, IBAN, carrera, curso, experiencia]
+    );
+    res.json({ id: result.rows[0].id_profesor });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Error creando profesor" });
+  }
+});
+
+app.post('/puja', async (req, res) => {
+  const { fecha_puja, estado_puja, id_profesor, id_oferta } = req.body;
+  try {
+    const result = await db.query(
+      'INSERT INTO student_project.puja (fecha_puja, estado_puja, id_profesor, id_oferta) VALUES ($1,$2,$3,$4) RETURNING id_puja',
+      [fecha_puja, estado_puja, id_profesor, id_oferta]
+    );
+    res.json({ id: result.rows[0].id_puja });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Error creando puja" });
+  }
+});
 
 app.post('/send-email', async (req, res) => {
   const { email, name } = req.body;
@@ -113,7 +231,7 @@ app.post('/sheet/user', async (req, res) => {
         d.job,
         d.iban,
       ]);
-    } else if (d.rol === 'padre') {
+    } else if (d.rol === 'tutor') {
       await appendRow('alumnos', [
         d.id,
         'P',

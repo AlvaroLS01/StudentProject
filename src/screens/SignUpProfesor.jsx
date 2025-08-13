@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { useNotification } from "../NotificationContext";
 import { isValidEmail } from '../utils/validateEmail';
 import { sendWelcomeEmail, sendVerificationCode } from '../utils/email';
+import { fetchCities, registerProfesor } from '../utils/api';
 import PhoneInput from 'react-phone-input-2';
 import 'react-phone-input-2/lib/style.css';
 
@@ -244,16 +245,22 @@ export default function SignUpProfesor() {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [modalOpen, setModalOpen]     = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [nif, setNif] = useState('');
+  const [direccionFacturacion, setDireccionFacturacion] = useState('');
+  const [iban, setIban] = useState('');
+  const [carrera, setCarrera] = useState('');
+  const [cursoEstudios, setCursoEstudios] = useState('');
+  const [experiencia, setExperiencia] = useState('');
   const navigate = useNavigate();
   const { show } = useNotification();
   const ref = useRef();
 
-  // Carga ciudades
+  // Carga ciudades desde la API
   useEffect(() => {
     (async () => {
       try {
-        const snap = await getDocs(collection(db, 'ciudades'));
-        setCities(snap.docs.map(d => d.data().ciudad));
+        const list = await fetchCities();
+        setCities(list.map(c => c.nombre));
       } catch (err) {
         console.error(err);
       }
@@ -299,7 +306,23 @@ export default function SignUpProfesor() {
 
   const handleSubmit = async () => {
     if (submitting) return;
-    if (!email || !password || !confirmPassword || !nombre || !apellido || !telefono || !confirmTelefono || !ciudad || !emailVerified) {
+    if (
+      !email ||
+      !password ||
+      !confirmPassword ||
+      !nombre ||
+      !apellido ||
+      !telefono ||
+      !confirmTelefono ||
+      !ciudad ||
+      !nif ||
+      !direccionFacturacion ||
+      !iban ||
+      !carrera ||
+      !cursoEstudios ||
+      !experiencia ||
+      !emailVerified
+    ) {
       show('Completa todos los campos', 'error');
       return;
     }
@@ -333,7 +356,27 @@ export default function SignUpProfesor() {
         telefono,
         ciudad,
         rol: 'profesor',
-        createdAt: new Date()
+        createdAt: new Date(),
+        NIF: nif,
+        direccion: direccionFacturacion,
+        IBAN: iban,
+        carrera,
+        curso: cursoEstudios,
+        experiencia,
+      });
+      const genero = salutation === 'Sr.' ? 'Masculino' : 'Femenino';
+      await registerProfesor({
+        nombre,
+        apellidos: apellido,
+        genero,
+        telefono,
+        correo_electronico: email,
+        NIF: nif,
+        direccion_facturacion: direccionFacturacion,
+        IBAN: iban,
+        carrera,
+        curso: cursoEstudios,
+        experiencia,
       });
       await sendWelcomeEmail({ email, name: nombre });
       if (auth.currentUser) {
@@ -452,6 +495,78 @@ export default function SignUpProfesor() {
                 placeholder=" "
               />
               <label className="fl-label">Apellidos</label>
+            </div>
+          </Field>
+          <Field>
+            <div className="fl-field">
+              <input
+                className="form-control fl-input"
+                type="text"
+                value={nif}
+                onChange={e => setNif(e.target.value)}
+                placeholder=" "
+              />
+              <label className="fl-label">NIF</label>
+            </div>
+          </Field>
+          <Field>
+            <div className="fl-field">
+              <input
+                className="form-control fl-input"
+                type="text"
+                value={direccionFacturacion}
+                onChange={e => setDireccionFacturacion(e.target.value)}
+                placeholder=" "
+              />
+              <label className="fl-label">Dirección facturación</label>
+            </div>
+          </Field>
+          <Field>
+            <div className="fl-field">
+              <input
+                className="form-control fl-input"
+                type="text"
+                value={iban}
+                onChange={e => setIban(e.target.value)}
+                placeholder=" "
+              />
+              <label className="fl-label">IBAN</label>
+            </div>
+          </Field>
+          <Field>
+            <div className="fl-field">
+              <input
+                className="form-control fl-input"
+                type="text"
+                value={carrera}
+                onChange={e => setCarrera(e.target.value)}
+                placeholder=" "
+              />
+              <label className="fl-label">Carrera</label>
+            </div>
+          </Field>
+          <Field>
+            <div className="fl-field">
+              <input
+                className="form-control fl-input"
+                type="text"
+                value={cursoEstudios}
+                onChange={e => setCursoEstudios(e.target.value)}
+                placeholder=" "
+              />
+              <label className="fl-label">Curso</label>
+            </div>
+          </Field>
+          <Field style={{ gridColumn: '1 / -1' }}>
+            <div className="fl-field">
+              <input
+                className="form-control fl-input"
+                type="text"
+                value={experiencia}
+                onChange={e => setExperiencia(e.target.value)}
+                placeholder=" "
+              />
+              <label className="fl-label">Experiencia</label>
             </div>
           </Field>
           <Field style={{ gridColumn: '1 / -1' }} ref={ref}>

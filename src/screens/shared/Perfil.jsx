@@ -336,9 +336,9 @@ export default function Perfil() {
       curso: childCourse,
       photoURL,
     };
-    const nuevos = [...(profile.hijos || []), nuevo];
-    await updateDoc(doc(db, 'usuarios', userId), { hijos: nuevos });
-    setProfile(p => ({ ...p, hijos: nuevos }));
+    const nuevos = [...(profile.alumnos || []), nuevo];
+    await updateDoc(doc(db, 'usuarios', userId), { alumnos: nuevos });
+    setProfile(p => ({ ...p, alumnos: nuevos }));
     if (auth.currentUser && auth.currentUser.uid === userId) {
       setChildList(nuevos.filter(c => !c.disabled));
       setSelectedChild(nuevo);
@@ -667,14 +667,14 @@ export default function Perfil() {
           </div>
         </ProfileHeader>
 
-        {profile.rol === 'padre' && (
+        {profile.rol === 'tutor' && (
           <Section>
-            <h2 style={{ textAlign: 'center', color: '#024837' }}>Hijos</h2>
-            {(profile.hijos || []).length === 0 ? (
-              <p style={{ textAlign: 'center', color: '#666' }}>Aún no hay hijos registrados.</p>
+            <h2 style={{ textAlign: 'center', color: '#024837' }}>Alumnos</h2>
+            {(profile.alumnos || []).length === 0 ? (
+              <p style={{ textAlign: 'center', color: '#666' }}>Aún no hay alumnos registrados.</p>
             ) : (
               <ChildList>
-                {profile.hijos.map(h => (
+                {profile.alumnos.map(h => (
                   <ChildItem key={h.id}>
                     {profile.photoURL && <ChildImg src={profile.photoURL} alt="foto" />}
                     <div>
@@ -689,7 +689,7 @@ export default function Perfil() {
             {isOwnProfile && (
               <>
                 {!showAddChild && (
-                  <EditButton onClick={() => setShowAddChild(true)}>Añadir hijo</EditButton>
+                  <EditButton onClick={() => setShowAddChild(true)}>Añadir alumno</EditButton>
                 )}
                 {showAddChild && (
                   <AddChildForm>
