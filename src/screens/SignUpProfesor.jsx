@@ -8,7 +8,6 @@ import { sendWelcomeEmail, sendVerificationCode } from '../utils/email';
 import { fetchCities, registerProfesor } from '../utils/api';
 import PhoneInput from 'react-phone-input-2';
 import 'react-phone-input-2/lib/style.css';
-import AddressAutocomplete from '../components/AddressAutocomplete';
 
 // Firebase (inicializado en firebaseConfig.js)
 import { auth, db } from '../firebase/firebaseConfig';
@@ -292,7 +291,6 @@ export default function SignUpProfesor() {
   const [submitting, setSubmitting] = useState(false);
   const [nif, setNif] = useState('');
   const [direccionFacturacion, setDireccionFacturacion] = useState('');
-  const [addressValid, setAddressValid] = useState(false);
   const [distrito, setDistrito] = useState('');
   const [iban, setIban] = useState('');
   const [carrera, setCarrera] = useState('');
@@ -357,25 +355,7 @@ export default function SignUpProfesor() {
     }
   };
 
-  const extractPlaceData = details => {
-    const comp = type =>
-      details.address_components.find(c => c.types.includes(type));
-    const cityComp = comp('locality');
-    const districtComp =
-      comp('sublocality_level_1') || comp('administrative_area_level_2');
-    return {
-      city: cityComp ? cityComp.long_name : '',
-      district: districtComp ? districtComp.long_name : ''
-    };
-  };
-
-  const handleAddressSelect = details => {
-    const { city, district } = extractPlaceData(details);
-    setDireccionFacturacion(details.formatted_address);
-    if (city) setCiudad(city);
-    if (district) setDistrito(district);
-    setAddressValid(true);
-  };
+  // Autocomplete removed; addresses and districts are entered manually
 
   const handleSubmit = async () => {
     if (submitting) return;
@@ -389,7 +369,7 @@ export default function SignUpProfesor() {
     if (!confirmTelefono) missing.push('Repite Teléfono');
     if (!ciudad) missing.push('Ciudad');
     if (!nif) missing.push('NIF');
-    if (!addressValid) missing.push('Dirección facturación');
+    if (!direccionFacturacion) missing.push('Dirección facturación');
     if (!distrito) missing.push('Distrito');
     if (!iban) missing.push('IBAN');
     if (!carrera) missing.push('Carrera');
@@ -617,10 +597,11 @@ export default function SignUpProfesor() {
               </Field>
               <Field>
                 <div className="fl-field">
-                  <AddressAutocomplete
+                  <input
+                    className="form-control fl-input"
+                    type="text"
                     value={direccionFacturacion}
-                    onChange={val => { setDireccionFacturacion(val); setAddressValid(false); }}
-                    onSelect={handleAddressSelect}
+                    onChange={e => setDireccionFacturacion(e.target.value)}
                     placeholder=" "
                   />
                   <label className="fl-label">Dirección facturación</label>
