@@ -20,13 +20,10 @@ cp .env.example .env
 # define REACT_APP_PASSWORD_RESET_API and REACT_APP_CHANGE_PASSWORD_API if
 # the Node server runs on a different URL
 # set REACT_APP_EMAIL_API if /send-assignment-email is hosted elsewhere
-# supply your Google Maps key in REACT_APP_GOOGLE_MAPS_API_KEY
-# and the same key in node-server/.env as GOOGLE_MAPS_API_KEY
 ```
 
 The root `.env.example` lists the variables for the React app. The Node server has
-its own `.env-example` under `node-server/` where you should also define
-`GOOGLE_MAPS_API_KEY` for server-side geocoding.
+its own `.env-example` under `node-server/`.
 
 ## Available Scripts
 

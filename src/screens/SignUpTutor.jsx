@@ -13,7 +13,6 @@ import {
 } from '../utils/api';
 import PhoneInput from 'react-phone-input-2';
 import 'react-phone-input-2/lib/style.css';
-import AddressAutocomplete from '../components/AddressAutocomplete';
 
 // Firebase (inicializado en firebaseConfig.js)
 import { auth, db } from '../firebase/firebaseConfig';
@@ -301,14 +300,12 @@ export default function SignUpTutor() {
   const [courseOpen, setCourseOpen] = useState(false);
   const [nifTutor, setNifTutor] = useState('');
   const [direccionTutor, setDireccionTutor] = useState('');
-  const [tutorAddressValid, setTutorAddressValid] = useState(false);
   const [distritoTutor, setDistritoTutor] = useState('');
   const [nifAlumno, setNifAlumno] = useState('');
   const [telefonoHijo, setTelefonoHijo] = useState('');
   const [confirmTelefonoHijo, setConfirmTelefonoHijo] = useState('');
   const [telefonoHijoError, setTelefonoHijoError] = useState('');
   const [direccionAlumno, setDireccionAlumno] = useState('');
-  const [alumnoAddressValid, setAlumnoAddressValid] = useState(false);
   const [distritoAlumno, setDistritoAlumno] = useState('');
   const [nombreHijo, setNombreHijo] = useState('');
   const [apellidoHijo, setApellidoHijo] = useState('');
@@ -377,32 +374,7 @@ export default function SignUpTutor() {
     }
   };
 
-  const extractPlaceData = details => {
-    const comp = type =>
-      details.address_components.find(c => c.types.includes(type));
-    const cityComp = comp('locality');
-    const districtComp =
-      comp('sublocality_level_1') || comp('administrative_area_level_2');
-    return {
-      city: cityComp ? cityComp.long_name : '',
-      district: districtComp ? districtComp.long_name : ''
-    };
-  };
-
-  const handleTutorAddressSelect = details => {
-    const { city, district } = extractPlaceData(details);
-    setDireccionTutor(details.formatted_address);
-    if (city) setCiudad(city);
-    if (district) setDistritoTutor(district);
-    setTutorAddressValid(true);
-  };
-
-  const handleAlumnoAddressSelect = details => {
-    const { district } = extractPlaceData(details);
-    setDireccionAlumno(details.formatted_address);
-    if (district) setDistritoAlumno(district);
-    setAlumnoAddressValid(true);
-  };
+  // Autocomplete removed; addresses and related fields are now entered manually
 
   const handleSubmit = async () => {
     if (submitting) return;
@@ -417,12 +389,12 @@ export default function SignUpTutor() {
     if (!ciudad) missing.push('Ciudad');
     if (!curso || !idCurso) missing.push('Curso');
     if (!nifTutor) missing.push('NIF');
-    if (!tutorAddressValid) missing.push('Dirección facturación');
+    if (!direccionTutor) missing.push('Dirección facturación');
     if (!distritoTutor) missing.push('Distrito facturación');
     if (!nifAlumno) missing.push('NIF del Alumno');
     if (!telefonoHijo) missing.push('Teléfono del Alumno');
     if (!confirmTelefonoHijo) missing.push('Repite Teléfono del Alumno');
-    if (!alumnoAddressValid) missing.push('Dirección del Alumno');
+    if (!direccionAlumno) missing.push('Dirección del Alumno');
     if (!distritoAlumno) missing.push('Distrito del Alumno');
     if (!nombreHijo) missing.push('Nombre del Alumno');
     if (!apellidoHijo) missing.push('Apellidos del Alumno');
@@ -509,6 +481,7 @@ export default function SignUpTutor() {
         apellidos: apellidoHijo,
         direccion: direccionAlumno,
         distrito: distritoAlumno,
+        ciudad,
         NIF: nifAlumno,
         telefono: telefonoHijo,
         telefonoConfirm: confirmTelefonoHijo,
@@ -657,10 +630,11 @@ export default function SignUpTutor() {
               </Field>
               <Field>
                 <div className="fl-field">
-                  <AddressAutocomplete
+                  <input
+                    className="form-control fl-input"
+                    type="text"
                     value={direccionTutor}
-                    onChange={val => { setDireccionTutor(val); setTutorAddressValid(false); }}
-                    onSelect={handleTutorAddressSelect}
+                    onChange={e => setDireccionTutor(e.target.value)}
                     placeholder=" "
                   />
                   <label className="fl-label">Dirección facturación</label>
@@ -797,10 +771,11 @@ export default function SignUpTutor() {
               </Field>
               <Field>
                 <div className="fl-field">
-                  <AddressAutocomplete
+                  <input
+                    className="form-control fl-input"
+                    type="text"
                     value={direccionAlumno}
-                    onChange={val => { setDireccionAlumno(val); setAlumnoAddressValid(false); }}
-                    onSelect={handleAlumnoAddressSelect}
+                    onChange={e => setDireccionAlumno(e.target.value)}
                     placeholder=" "
                   />
                   <label className="fl-label">Dirección del Alumno</label>
