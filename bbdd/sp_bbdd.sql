@@ -42,6 +42,7 @@ CREATE TABLE IF NOT EXISTS student_project.tutor
     correo_electronico VARCHAR(100),
     "NIF" VARCHAR(100) NOT NULL,
     direccion_facturacion VARCHAR(100) NOT NULL,
+    password VARCHAR(255) NOT NULL,
     PRIMARY KEY (id_tutor)
 );
 
@@ -155,7 +156,8 @@ CREATE TABLE IF NOT EXISTS student_project.profesor
     "IBAN" VARCHAR(100) NOT NULL,
     carrera VARCHAR(100) NOT NULL,
     curso VARCHAR(100) NOT NULL,
-    experiencia TEXT NOT NULL
+    experiencia TEXT NOT NULL,
+    password VARCHAR(255) NOT NULL
 );
 
 COMMENT ON TABLE student_project.profesor

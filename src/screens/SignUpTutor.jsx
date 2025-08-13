@@ -116,6 +116,48 @@ const Field = styled.div`
   }
 `;
 
+const VerificationRow = styled.div`
+  display: flex;
+  margin-top: 0.5rem;
+  gap: 0.5rem;
+`;
+
+const CodeInput = styled.input`
+  flex: 1;
+  padding: 0.5rem;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-family: inherit;
+`;
+
+const SendButton = styled.button`
+  flex: 1;
+  background: #046654;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 0.5rem;
+  cursor: pointer;
+  opacity: ${({ disabled }) => (disabled ? 0.6 : 1)};
+  font-family: inherit;
+`;
+
+const VerifyButton = styled.button`
+  flex: 1;
+  background: ${({ theme, status }) =>
+    status === 'success'
+      ? theme.colors.accent
+      : status === 'error'
+      ? '#ff6b6b'
+      : theme.colors.secondary};
+  color: ${({ status, theme }) => (status ? '#fff' : theme.colors.primary)};
+  border: none;
+  border-radius: 6px;
+  padding: 0.5rem;
+  cursor: pointer;
+  font-family: inherit;
+`;
+
 // Dropdown
 const DropdownContainer = styled.div`
   position: relative;
@@ -238,6 +280,7 @@ export default function SignUpTutor() {
   const [emailVerified, setEmailVerified] = useState(false);
   const [verifCode, setVerifCode] = useState('');
   const [codeInput, setCodeInput] = useState('');
+  const [checkStatus, setCheckStatus] = useState(null);
   const [sendCooldown, setSendCooldown] = useState(0);
   const [step, setStep] = useState(1);
   const [password, setPassword]     = useState('');
@@ -309,13 +352,17 @@ export default function SignUpTutor() {
     setVerifCode(code);
     await sendVerificationCode({ email, code });
     setSendCooldown(30);
+    setCheckStatus(null);
+    setEmailVerified(false);
   };
 
   const handleCheckCode = () => {
     if (codeInput === verifCode) {
       setEmailVerified(true);
+      setCheckStatus('success');
       show('Correo verificado', 'success');
     } else {
+      setCheckStatus('error');
       show('Código incorrecto', 'error');
     }
   };
@@ -403,6 +450,7 @@ export default function SignUpTutor() {
         correo_electronico: email,
         NIF: nifTutor,
         direccion_facturacion: direccionTutor,
+        password,
       });
       await registerAlumno(tutorResp.id, {
         nombre: nombreHijo,
@@ -444,29 +492,31 @@ export default function SignUpTutor() {
                     onChange={e => {
                       setEmail(e.target.value);
                       setEmailError('');
+                      setEmailVerified(false);
+                      setCheckStatus(null);
                     }}
                     placeholder=" "
                   />
                   <label className="fl-label">E-mail</label>
                 </div>
                 {emailError && <ErrorText>{emailError}</ErrorText>}
-                <div style={{display:'flex',marginTop:'0.5rem',gap:'0.5rem'}}>
-                  <button type="button" onClick={handleSendCode} disabled={sendCooldown>0} style={{flex:'1',background:'#046654',color:'#fff',border:'none',borderRadius:'6px',padding:'0.5rem',cursor:'pointer',opacity:sendCooldown>0?0.6:1}}>
+                <VerificationRow>
+                  <SendButton type="button" onClick={handleSendCode} disabled={sendCooldown>0}>
                     {sendCooldown>0 ? `Reenviar (${sendCooldown})` : 'Verificar correo'}
-                  </button>
-                  <input type="text" value={codeInput} onChange={e=>setCodeInput(e.target.value)} placeholder="Código" style={{flex:'1',padding:'0.5rem',border:'1px solid #ccc',borderRadius:'6px'}} />
-                  <button type="button" onClick={handleCheckCode} style={{background:'#ccc',border:'none',borderRadius:'6px',padding:'0.5rem',cursor:'pointer'}}>Comprobar</button>
-                </div>
+                  </SendButton>
+                  <CodeInput
+                    type="text"
+                    value={codeInput}
+                    onChange={e => {
+                      setCodeInput(e.target.value);
+                      setCheckStatus(null);
+                    }}
+                    placeholder="Código"
+                  />
+                  <VerifyButton type="button" onClick={handleCheckCode} status={checkStatus}>Comprobar</VerifyButton>
+                </VerificationRow>
                 {emailVerified && <p style={{color:'#046654',fontSize:'0.9rem'}}>Correo verificado</p>}
               </Field>
-            </FormGrid>
-            <Button onClick={() => setStep(2)} disabled={!emailVerified}>Siguiente</Button>
-          </>
-        ) : (
-          <>
-            <Subtitle>Completa tus datos para {email}</Subtitle>
-            <h3 style={{gridColumn:'1 / -1',marginBottom:'0.5rem',color:'#034640'}}>Datos del tutor legal</h3>
-            <FormGrid>
               <Field>
                 <div className="fl-field">
                   <input
@@ -491,6 +541,16 @@ export default function SignUpTutor() {
                   <label className="fl-label">Repite Contraseña</label>
                 </div>
               </Field>
+            </FormGrid>
+            <Button onClick={() => setStep(2)} disabled={!emailVerified || !password || !confirmPwd || password !== confirmPwd}>
+              Siguiente
+            </Button>
+          </>
+        ) : (
+          <>
+            <Subtitle>Completa tus datos para {email}</Subtitle>
+            <h3 style={{gridColumn:'1 / -1',marginBottom:'0.5rem',color:'#034640'}}>Datos del tutor legal</h3>
+            <FormGrid>
               <Field>
                 <label>Tratamiento</label>
                 <select value={salutation} onChange={e=>setSalutation(e.target.value)} style={{padding:'0.7rem 0.9rem',border:'1px solid #ccc',borderRadius:'8px'}}>
