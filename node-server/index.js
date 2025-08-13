@@ -118,11 +118,25 @@ app.post('/tutor', async (req, res) => {
 
 app.post('/tutor/:tutorId/alumno', async (req, res) => {
   const { tutorId } = req.params;
-  const { nombre, apellidos, direccion, NIF, telefono, genero } = req.body;
+  const {
+    nombre,
+    apellidos,
+    direccion,
+    NIF,
+    telefono,
+    telefonoConfirm,
+    genero,
+    id_curso,
+  } = req.body;
+
+  if (telefono !== telefonoConfirm) {
+    return res.status(400).json({ error: 'Teléfonos no coinciden' });
+  }
+
   try {
     const result = await db.query(
-      'INSERT INTO student_project.alumno (nombre, apellidos, direccion, NIF, telefono, genero, id_tutor) VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING id_alumno',
-      [nombre, apellidos, direccion, NIF, telefono, genero, tutorId]
+      'INSERT INTO student_project.alumno (nombre, apellidos, direccion, NIF, telefono, genero, id_tutor, id_curso) VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING id_alumno',
+      [nombre, apellidos, direccion, NIF, telefono, genero, tutorId, id_curso]
     );
     res.json({ id: result.rows[0].id_alumno });
   } catch (err) {

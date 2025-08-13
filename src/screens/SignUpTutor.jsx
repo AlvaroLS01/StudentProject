@@ -294,6 +294,7 @@ export default function SignUpTutor() {
   const [ciudad, setCiudad]         = useState('');
   const [cities, setCities]         = useState([]);
   const [curso, setCurso]           = useState('');
+  const [idCurso, setIdCurso]       = useState(null);
   const [courses, setCourses]       = useState([]);
   const [cityOpen, setCityOpen]     = useState(false);
   const [courseOpen, setCourseOpen] = useState(false);
@@ -301,6 +302,8 @@ export default function SignUpTutor() {
   const [direccionTutor, setDireccionTutor] = useState('');
   const [nifAlumno, setNifAlumno] = useState('');
   const [telefonoHijo, setTelefonoHijo] = useState('');
+  const [confirmTelefonoHijo, setConfirmTelefonoHijo] = useState('');
+  const [telefonoHijoError, setTelefonoHijoError] = useState('');
   const [direccionAlumno, setDireccionAlumno] = useState('');
   const [nombreHijo, setNombreHijo] = useState('');
   const [apellidoHijo, setApellidoHijo] = useState('');
@@ -326,7 +329,7 @@ export default function SignUpTutor() {
         const cityList = await fetchCities();
         setCities(cityList.map(c => c.nombre));
         const courseList = await fetchCursos();
-        setCourses(courseList.map(c => c.nombre));
+        setCourses(courseList);
       } catch (err) {
         console.error(err);
       }
@@ -381,10 +384,12 @@ export default function SignUpTutor() {
       !confirmTelefono ||
       !ciudad ||
       !curso ||
+      !idCurso ||
       !nifTutor ||
       !direccionTutor ||
       !nifAlumno ||
       !telefonoHijo ||
+      !confirmTelefonoHijo ||
       !direccionAlumno ||
       !emailVerified
     ) {
@@ -399,12 +404,17 @@ export default function SignUpTutor() {
       setTelefonoError('Los números no coinciden');
       return;
     }
+    if (telefonoHijo !== confirmTelefonoHijo) {
+      setTelefonoHijoError('Los números no coinciden');
+      return;
+    }
     if (password !== confirmPwd)
       return show('Las contraseñas no coinciden', 'error');
     if (!nombreHijo || !apellidoHijo || !fechaNacHijo || !generoHijo)
       return show('Completa datos del alumno', 'error');
 
     setTelefonoError('');
+    setTelefonoHijoError('');
     setSubmitting(true);
     try {
       const phoneSnap = await getDocs(query(collection(db, 'usuarios'), where('telefono', '==', telefono)));
@@ -460,7 +470,9 @@ export default function SignUpTutor() {
         direccion: direccionAlumno,
         NIF: nifAlumno,
         telefono: telefonoHijo,
+        telefonoConfirm: confirmTelefonoHijo,
         genero: generoHijo,
+        id_curso: idCurso,
       });
       await sendWelcomeEmail({ email, name: nombre });
       if (auth.currentUser) {
@@ -656,15 +668,16 @@ export default function SignUpTutor() {
                   </DropdownHeader>
                   {courseOpen && (
                     <DropdownList>
-                      {courses.map((c, i) => (
+                      {courses.map((c) => (
                         <DropdownItem
-                          key={i}
+                          key={c.id_curso}
                           onClick={() => {
-                            setCurso(c);
+                            setCurso(c.nombre);
+                            setIdCurso(c.id_curso);
                             setCourseOpen(false);
                           }}
                         >
-                          {c}
+                          {c.nombre}
                         </DropdownItem>
                       ))}
                     </DropdownList>
@@ -712,9 +725,19 @@ export default function SignUpTutor() {
                 <PhoneInput
                   country={'es'}
                   value={telefonoHijo}
-                  onChange={value => setTelefonoHijo(value)}
+                  onChange={value => { setTelefonoHijo(value); setTelefonoHijoError(''); }}
                   inputStyle={{ width: '100%' }}
                 />
+              </Field>
+              <Field>
+                <label>Repite Teléfono del Alumno</label>
+                <PhoneInput
+                  country={'es'}
+                  value={confirmTelefonoHijo}
+                  onChange={value => { setConfirmTelefonoHijo(value); setTelefonoHijoError(''); }}
+                  inputStyle={{ width: '100%' }}
+                />
+                {telefonoHijoError && <ErrorText>{telefonoHijoError}</ErrorText>}
               </Field>
               <Field>
                 <div className="fl-field">
