@@ -301,8 +301,18 @@ export default function SignUpProfesor() {
 
   const handleSubmit = async () => {
     if (submitting) return;
-    if (!email || !password || !confirmPassword || !nombre || !apellido || !telefono || !confirmTelefono || !ciudad || !emailVerified) {
-      show('Completa todos los campos', 'error');
+    const missingFields = [];
+    if (!email) missingFields.push('correo electrónico');
+    if (!password) missingFields.push('contraseña');
+    if (!confirmPassword) missingFields.push('confirmar contraseña');
+    if (!nombre) missingFields.push('nombre');
+    if (!apellido) missingFields.push('apellido');
+    if (!telefono) missingFields.push('teléfono');
+    if (!confirmTelefono) missingFields.push('confirmar teléfono');
+    if (!ciudad) missingFields.push('ciudad');
+    if (!emailVerified) missingFields.push('verificación de correo');
+    if (missingFields.length > 0) {
+      show(`Completa: ${missingFields.join(', ')}`, 'error');
       return;
     }
     if (!isValidEmail(email)) {
