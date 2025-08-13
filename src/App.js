@@ -11,20 +11,20 @@ import Footer          from './components/Footer';
 import Home            from './screens/Home';
 import Alta            from './screens/Alta';
 import ReservaClase    from './screens/ReservaClase';
-import CalendarioA     from './screens/alumno/acciones/Calendario';
+import CalendarioA     from './screens/tutor/acciones/Calendario';
 import CalendarioP     from './screens/profesor/acciones/Calendario';
-import Clases          from './screens/alumno/acciones/Clases';
+import Clases          from './screens/tutor/acciones/Clases';
 import ClasesProfesor  from './screens/profesor/acciones/Clases';
-import NuevaClase      from './screens/alumno/acciones/NuevaClase';
+import NuevaClase      from './screens/tutor/acciones/NuevaClase';
 import Ofertas         from './screens/profesor/acciones/Ofertas';
 import SerProfesor     from './screens/SerProfesor';
 import QuienesSomos    from './screens/QuienesSomos';
 import Contacto        from './screens/Contacto';
 import InicioSesion    from './screens/InicioSesion';
 import SignUpProfesor  from './screens/SignUpProfesor';
-import SignUpPadre     from './screens/SignUpPadre';
+import SignUpTutor     from './screens/SignUpTutor';
 import PanelProfesor   from './screens/profesor/PanelProfesor';
-import PanelAlumno     from './screens/alumno/PanelAlumno';
+import PanelTutor     from './screens/alumno/PanelTutor';
 import PanelAdmin      from './screens/admin/PanelAdmin';
 import GestionClases   from './screens/admin/acciones/GestionClases';
 import MisProfesores   from './screens/alumno/acciones/MisProfesores';
@@ -75,7 +75,7 @@ function AppContent() {
       <Routes>
           {/* Sin Navbar/Footer */}
           <Route path="/alta-profesor" element={<SignUpProfesor />} />
-          <Route path="/alta-padre"    element={<SignUpPadre />} />
+          <Route path="/alta-tutor"    element={<SignUpTutor />} />
           <Route path="/inicio"        element={<InicioSesion />} />
           <Route path="/seleccion-rol" element={<SeleccionRol />} />
           <Route path="/google-datos" element={<CompletarDatosGoogle />} />
@@ -92,11 +92,11 @@ function AppContent() {
             {/* Ruta de perfil con parámetro userId */}
             <Route path="/perfil/:userId"       element={<Perfil />} />
 
-            <Route element={<RequireAuth allowedRoles={['padre','admin']} />}>
-              <Route path="/alumno"               element={<PanelAlumno />} />
-              <Route path="/alumno/nueva-clase"   element={<NuevaClase />} />
-              <Route path="/alumno/clases"        element={<Clases />} />
-              <Route path="/alumno/calendario"    element={<CalendarioA />} />
+            <Route element={<RequireAuth allowedRoles={['tutor','admin']} />}>
+              <Route path="/tutor"               element={<PanelTutor />} />
+              <Route path="/tutor/nueva-clase"   element={<NuevaClase />} />
+              <Route path="/tutor/clases"        element={<Clases />} />
+              <Route path="/tutor/calendario"    element={<CalendarioA />} />
               <Route path="/profesor/mis-profesores" element={<MisProfesores />} />
             </Route>
 
