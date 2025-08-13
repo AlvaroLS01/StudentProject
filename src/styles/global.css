@@ -9,6 +9,12 @@
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
+/* Color corporativo para radios y checkboxes */
+input[type="radio"].form-control,
+input[type="checkbox"].form-control {
+  accent-color: #00A859;
+}
+
 /* ESTADO FOCUS: borde y sombra con verde corporativo */
 .form-control:focus {
   outline: none;
