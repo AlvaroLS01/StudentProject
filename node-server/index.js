@@ -8,6 +8,7 @@ const jwt = require('jsonwebtoken');
 const { google } = require('googleapis');
 const db = require('./db');
 const bcrypt = require('bcryptjs');
+const fetch = (...args) => import('node-fetch').then(({ default: fetch }) => fetch(...args));
 
 const app = express();
 app.use(cors());
@@ -133,15 +134,90 @@ app.post('/tutor/:tutorId/alumno', async (req, res) => {
     return res.status(400).json({ error: 'Teléfonos no coinciden' });
   }
 
+  const mapsKey = process.env.GOOGLE_MAPS_API_KEY;
+  if (!mapsKey) {
+    return res.status(500).json({ error: 'Falta la clave de Google Maps' });
+  }
+
+  let client;
   try {
-    const result = await db.query(
-      'INSERT INTO student_project.alumno (nombre, apellidos, direccion, NIF, telefono, genero, id_tutor, id_curso) VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING id_alumno',
-      [nombre, apellidos, direccion, NIF, telefono, genero, tutorId, id_curso]
+    client = await db.connect();
+    await client.query('BEGIN');
+
+    // Geocode address
+    const geoRes = await fetch(
+      `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(
+        direccion
+      )}&key=${mapsKey}`
     );
-    res.json({ id: result.rows[0].id_alumno });
+    const geoData = await geoRes.json();
+    if (!geoData.results || geoData.results.length === 0) {
+      throw new Error('No se pudo geocodificar la dirección');
+    }
+    const components = geoData.results[0].address_components;
+    const getComp = types => {
+      const comp = components.find(c => types.every(t => c.types.includes(t)));
+      return comp ? comp.long_name : null;
+    };
+    const distrito =
+      getComp(['administrative_area_level_3']) ||
+      getComp(['sublocality', 'sublocality_level_1']);
+    const barrio =
+      getComp(['sublocality', 'sublocality_level_2']) ||
+      getComp(['neighborhood']);
+    const codigoPostal = getComp(['postal_code']);
+    const ciudadNombre =
+      getComp(['locality']) || getComp(['administrative_area_level_2']);
+
+    if (!ciudadNombre) {
+      throw new Error('No se pudo determinar la ciudad');
+    }
+
+    // Ensure city exists
+    let city = await client.query(
+      'SELECT id_ciudad FROM student_project.ciudad WHERE LOWER(nombre)=LOWER($1)',
+      [ciudadNombre]
+    );
+    let id_ciudad;
+    if (city.rowCount > 0) {
+      id_ciudad = city.rows[0].id_ciudad;
+    } else {
+      const insertedCity = await client.query(
+        'INSERT INTO student_project.ciudad (nombre, id_grupo) VALUES ($1, 1) RETURNING id_ciudad',
+        [ciudadNombre]
+      );
+      id_ciudad = insertedCity.rows[0].id_ciudad;
+    }
+
+    const ubic = await client.query(
+      'INSERT INTO student_project.ubicacion (Distrito, Barrio, Codigo_postal, id_ciudad) VALUES ($1,$2,$3,$4) RETURNING id_ubicacion',
+      [distrito, barrio, codigoPostal, id_ciudad]
+    );
+    const id_ubicacion = ubic.rows[0].id_ubicacion;
+
+    const alumno = await client.query(
+      'INSERT INTO student_project.alumno (nombre, apellidos, direccion, NIF, telefono, genero, id_tutor, id_curso, id_ubicacion) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING id_alumno',
+      [
+        nombre,
+        apellidos,
+        direccion,
+        NIF,
+        telefono,
+        genero,
+        tutorId,
+        id_curso,
+        id_ubicacion,
+      ]
+    );
+
+    await client.query('COMMIT');
+    res.json({ id: alumno.rows[0].id_alumno });
   } catch (err) {
+    if (client) await client.query('ROLLBACK');
     console.error(err);
-    res.status(500).json({ error: "Error creando alumno" });
+    res.status(500).json({ error: 'Error creando alumno' });
+  } finally {
+    if (client) client.release();
   }
 });
 
