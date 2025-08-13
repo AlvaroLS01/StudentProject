@@ -9,15 +9,15 @@ export const ChildProvider = ({ children }) => {
   const [selectedChild, setSelectedChild] = useState(null);
 
   useEffect(() => {
-    if (userData?.rol === 'tutor') {
-      const alumnos = (userData.alumnos || []).filter(h => !h.disabled);
-      setChildList(alumnos);
+    if (userData?.rol === 'padre') {
+      const hijos = (userData.hijos || []).filter(h => !h.disabled);
+      setChildList(hijos);
       setSelectedChild(prev => {
-        if (prev && alumnos.some(h => h.id === prev.id)) {
+        if (prev && hijos.some(h => h.id === prev.id)) {
           return prev;
         }
-        if (alumnos.length === 1) {
-          return alumnos[0];
+        if (hijos.length === 1) {
+          return hijos[0];
         }
         return null;
       });

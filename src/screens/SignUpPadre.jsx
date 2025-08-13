@@ -1,16 +1,10 @@
-// src/screens/SignUpTutor.jsx
+// src/screens/SignUpPadre.jsx
 import React, { useState, useEffect, useRef } from 'react';
 import styled, { keyframes } from 'styled-components';
 import { useNavigate } from 'react-router-dom';
 import { useNotification } from "../NotificationContext";
 import { isValidEmail } from '../utils/validateEmail';
 import { sendWelcomeEmail, sendVerificationCode } from '../utils/email';
-import {
-  fetchCities,
-  fetchCursos,
-  registerTutor,
-  registerAlumno,
-} from '../utils/api';
 import PhoneInput from 'react-phone-input-2';
 import 'react-phone-input-2/lib/style.css';
 
@@ -232,7 +226,27 @@ const ModalButton = styled.button`
   }
 `;
 
-export default function SignUpTutor() {
+// Cursos agrupados igual que en NuevaClase
+const cursosGrouped = [
+  {
+    group: 'Primaria',
+    options: [
+      '1º Primaria',
+      '2º Primaria',
+      '3º Primaria',
+      '4º Primaria',
+      '5º Primaria',
+      '6º Primaria'
+    ]
+  },
+  { group: 'ESO', options: ['1º ESO', '2º ESO', '3º ESO', '4º ESO'] },
+  {
+    group: 'Bachillerato',
+    options: ['1º Bachillerato', '2º Bachillerato']
+  }
+];
+
+export default function SignUpPadre() {
   const [email, setEmail]           = useState('');
   const [emailError, setEmailError] = useState('');
   const [emailVerified, setEmailVerified] = useState(false);
@@ -250,14 +264,8 @@ export default function SignUpTutor() {
   const [ciudad, setCiudad]         = useState('');
   const [cities, setCities]         = useState([]);
   const [curso, setCurso]           = useState('');
-  const [courses, setCourses]       = useState([]);
   const [cityOpen, setCityOpen]     = useState(false);
   const [courseOpen, setCourseOpen] = useState(false);
-  const [nifTutor, setNifTutor] = useState('');
-  const [direccionTutor, setDireccionTutor] = useState('');
-  const [nifAlumno, setNifAlumno] = useState('');
-  const [telefonoHijo, setTelefonoHijo] = useState('');
-  const [direccionAlumno, setDireccionAlumno] = useState('');
   const [nombreHijo, setNombreHijo] = useState('');
   const [apellidoHijo, setApellidoHijo] = useState('');
   const [fechaNacHijo, setFechaNacHijo] = useState('');
@@ -279,10 +287,8 @@ export default function SignUpTutor() {
   useEffect(() => {
     (async () => {
       try {
-        const cityList = await fetchCities();
-        setCities(cityList.map(c => c.nombre));
-        const courseList = await fetchCursos();
-        setCourses(courseList.map(c => c.nombre));
+        const snapCities = await getDocs(collection(db, 'ciudades'));
+        setCities(snapCities.docs.map(d => d.data().ciudad));
       } catch (err) {
         console.error(err);
       }
@@ -331,11 +337,6 @@ export default function SignUpTutor() {
       !confirmTelefono ||
       !ciudad ||
       !curso ||
-      !nifTutor ||
-      !direccionTutor ||
-      !nifAlumno ||
-      !telefonoHijo ||
-      !direccionAlumno ||
       !emailVerified
     ) {
       show('Completa todos los campos', 'error');
@@ -352,7 +353,7 @@ export default function SignUpTutor() {
     if (password !== confirmPwd)
       return show('Las contraseñas no coinciden', 'error');
     if (!nombreHijo || !apellidoHijo || !fechaNacHijo || !generoHijo)
-      return show('Completa datos del alumno', 'error');
+      return show('Completa datos del hijo', 'error');
 
     setTelefonoError('');
     setSubmitting(true);
@@ -372,12 +373,10 @@ export default function SignUpTutor() {
         apellido,
         telefono,
         ciudad,
-        rol: 'tutor',
+        rol: 'padre',
         curso,
-        NIF: nifTutor,
-        direccion: direccionTutor,
         createdAt: new Date(),
-        alumnos: [
+        hijos: [
           {
             id: Date.now().toString(),
             nombre: nombreHijo,
@@ -385,32 +384,11 @@ export default function SignUpTutor() {
             genero: generoHijo,
             fechaNacimiento: fechaNacHijo,
             curso,
-            telefono: telefonoHijo,
-            NIF: nifAlumno,
-            direccion: direccionAlumno,
             photoURL: user.photoURL || ''
           },
         ]
       };
       await setDoc(doc(db, 'usuarios', user.uid), data);
-      const generoTutor = salutation === 'Sr.' ? 'Masculino' : 'Femenino';
-      const tutorResp = await registerTutor({
-        nombre,
-        apellidos: apellido,
-        genero: generoTutor,
-        telefono,
-        correo_electronico: email,
-        NIF: nifTutor,
-        direccion_facturacion: direccionTutor,
-      });
-      await registerAlumno(tutorResp.id, {
-        nombre: nombreHijo,
-        apellidos: apellidoHijo,
-        direccion: direccionAlumno,
-        NIF: nifAlumno,
-        telefono: telefonoHijo,
-        genero: generoHijo,
-      });
       await sendWelcomeEmail({ email, name: nombre });
       if (auth.currentUser) {
         await sendEmailVerification(auth.currentUser);
@@ -430,7 +408,7 @@ export default function SignUpTutor() {
       <Card>
         <CloseBtn onClick={() => setModalOpen(true)}>×</CloseBtn>
         <Title>Registro de Tutor</Title>
-        <Subtitle>¡Únete y ayuda a tu alumno a aprender!</Subtitle>
+        <Subtitle>¡Únete y ayuda a tu hijo a aprender!</Subtitle>
 
         <h3 style={{gridColumn:'1 / -1',marginBottom:'0.5rem',color:'#034640'}}>Datos del tutor legal</h3>
         <FormGrid>
@@ -514,30 +492,6 @@ export default function SignUpTutor() {
             </div>
           </Field>
           <Field>
-            <div className="fl-field">
-              <input
-                className="form-control fl-input"
-                type="text"
-                value={nifTutor}
-                onChange={e => setNifTutor(e.target.value)}
-                placeholder=" "
-              />
-              <label className="fl-label">NIF</label>
-            </div>
-          </Field>
-          <Field>
-            <div className="fl-field">
-              <input
-                className="form-control fl-input"
-                type="text"
-                value={direccionTutor}
-                onChange={e => setDireccionTutor(e.target.value)}
-                placeholder=" "
-              />
-              <label className="fl-label">Dirección facturación</label>
-            </div>
-          </Field>
-          <Field>
             <label>Teléfono</label>
             <PhoneInput
               country={'es'}
@@ -578,23 +532,28 @@ export default function SignUpTutor() {
 
         <h3 style={{gridColumn:'1 / -1',marginTop:'1rem',marginBottom:'0.5rem',color:'#034640'}}>Datos del alumno</h3>
           <Field ref={courseRef}>
-            <label>Curso del alumno</label>
+            <label>Curso del hijo</label>
             <DropdownContainer>
               <DropdownHeader onClick={() => setCourseOpen(o => !o)}>
                 {curso || 'Selecciona curso'} <Arrow open={courseOpen} />
               </DropdownHeader>
               {courseOpen && (
                 <DropdownList>
-                  {courses.map((c, i) => (
-                    <DropdownItem
-                      key={i}
-                      onClick={() => {
-                        setCurso(c);
-                        setCourseOpen(false);
-                      }}
-                    >
-                      {c}
-                    </DropdownItem>
+                  {cursosGrouped.map(({ group, options }) => (
+                    <React.Fragment key={group}>
+                      <DropdownGroupLabel>{group}</DropdownGroupLabel>
+                      {options.map((c, i) => (
+                        <DropdownItem
+                          key={i}
+                          onClick={() => {
+                            setCurso(c);
+                            setCourseOpen(false);
+                          }}
+                        >
+                          {c}
+                        </DropdownItem>
+                      ))}
+                    </React.Fragment>
                   ))}
                 </DropdownList>
               )}
@@ -610,7 +569,7 @@ export default function SignUpTutor() {
                 onChange={e=>setNombreHijo(e.target.value)}
                 placeholder=" "
               />
-              <label className="fl-label">Nombre del Alumno</label>
+              <label className="fl-label">Nombre del Hijo</label>
             </div>
           </Field>
           <Field>
@@ -622,40 +581,7 @@ export default function SignUpTutor() {
                 onChange={e=>setApellidoHijo(e.target.value)}
                 placeholder=" "
               />
-              <label className="fl-label">Apellidos del Alumno</label>
-            </div>
-          </Field>
-          <Field>
-            <div className="fl-field">
-              <input
-                className="form-control fl-input"
-                type="text"
-                value={nifAlumno}
-                onChange={e=>setNifAlumno(e.target.value)}
-                placeholder=" "
-              />
-              <label className="fl-label">NIF del Alumno</label>
-            </div>
-          </Field>
-          <Field>
-            <label>Teléfono del Alumno</label>
-            <PhoneInput
-              country={'es'}
-              value={telefonoHijo}
-              onChange={value => setTelefonoHijo(value)}
-              inputStyle={{ width: '100%' }}
-            />
-          </Field>
-          <Field>
-            <div className="fl-field">
-              <input
-                className="form-control fl-input"
-                type="text"
-                value={direccionAlumno}
-                onChange={e=>setDireccionAlumno(e.target.value)}
-                placeholder=" "
-              />
-              <label className="fl-label">Dirección del Alumno</label>
+              <label className="fl-label">Apellidos del Hijo</label>
             </div>
           </Field>
           <Field>
@@ -674,11 +600,11 @@ export default function SignUpTutor() {
                 onChange={e=>setFechaNacHijo(e.target.value)}
                 placeholder=" "
               />
-              <label className="fl-label">Fecha Nacimiento del Alumno</label>
+              <label className="fl-label">Fecha Nacimiento del Hijo</label>
             </div>
           </Field>
           <p style={{gridColumn: '1 / -1', fontSize:'0.85rem', color:'#555'}}>
-            Podrás añadir más alumnos desde la pestaña "Mi cuenta".
+            Podrás añadir más hijos desde la pestaña "Mi cuenta".
           </p>
         </FormGrid>
 

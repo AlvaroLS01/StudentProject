@@ -222,13 +222,13 @@ export default function QuienesSomos() {
             <SectionTitle>Cómo trabajamos</SectionTitle>
             <List>
               <li>Rellena un breve formulario con las materias y horarios.</li>
-              <li>Comparamos y seleccionamos al mejor tutor para las necesidades de tu alumno.</li>
+              <li>Comparamos y seleccionamos al mejor tutor para las necesidades de tu hijo.</li>
               <li>Coordinamos la primera clase mediante un grupo de WhatsApp con padres, alumno, profesor y coordinador.</li>
               <li>Clases presenciales u online.</li>
             </List>
           </ColText>
           <ColImage className="slide-right">
-            <img src={workImg} alt="Tutor y alumno estudiando" />
+            <img src={workImg} alt="Padre e hijo estudiando" />
           </ColImage>
         </OneColumnGrid>
       </Section>
