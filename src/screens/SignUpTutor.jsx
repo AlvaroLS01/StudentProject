@@ -17,8 +17,8 @@ import AddressAutocomplete from '../components/AddressAutocomplete';
 
 // Firebase (inicializado en firebaseConfig.js)
 import { auth, db } from '../firebase/firebaseConfig';
-import { createUserWithEmailAndPassword, sendEmailVerification } from 'firebase/auth';
-import { collection, getDocs, doc, setDoc, query, where } from 'firebase/firestore';
+import { createUserWithEmailAndPassword, sendEmailVerification, deleteUser } from 'firebase/auth';
+import { collection, getDocs, doc, setDoc, deleteDoc, query, where } from 'firebase/firestore';
 
 // Animación de entrada
 const fadeIn = keyframes`
@@ -301,12 +301,14 @@ export default function SignUpTutor() {
   const [courseOpen, setCourseOpen] = useState(false);
   const [nifTutor, setNifTutor] = useState('');
   const [direccionTutor, setDireccionTutor] = useState('');
+  const [tutorAddressValid, setTutorAddressValid] = useState(false);
   const [distritoTutor, setDistritoTutor] = useState('');
   const [nifAlumno, setNifAlumno] = useState('');
   const [telefonoHijo, setTelefonoHijo] = useState('');
   const [confirmTelefonoHijo, setConfirmTelefonoHijo] = useState('');
   const [telefonoHijoError, setTelefonoHijoError] = useState('');
   const [direccionAlumno, setDireccionAlumno] = useState('');
+  const [alumnoAddressValid, setAlumnoAddressValid] = useState(false);
   const [distritoAlumno, setDistritoAlumno] = useState('');
   const [nombreHijo, setNombreHijo] = useState('');
   const [apellidoHijo, setApellidoHijo] = useState('');
@@ -392,12 +394,14 @@ export default function SignUpTutor() {
     setDireccionTutor(details.formatted_address);
     if (city) setCiudad(city);
     if (district) setDistritoTutor(district);
+    setTutorAddressValid(true);
   };
 
   const handleAlumnoAddressSelect = details => {
     const { district } = extractPlaceData(details);
     setDireccionAlumno(details.formatted_address);
     if (district) setDistritoAlumno(district);
+    setAlumnoAddressValid(true);
   };
 
   const handleSubmit = async () => {
@@ -413,12 +417,12 @@ export default function SignUpTutor() {
     if (!ciudad) missing.push('Ciudad');
     if (!curso || !idCurso) missing.push('Curso');
     if (!nifTutor) missing.push('NIF');
-    if (!direccionTutor) missing.push('Dirección facturación');
+    if (!tutorAddressValid) missing.push('Dirección facturación');
     if (!distritoTutor) missing.push('Distrito facturación');
     if (!nifAlumno) missing.push('NIF del Alumno');
     if (!telefonoHijo) missing.push('Teléfono del Alumno');
     if (!confirmTelefonoHijo) missing.push('Repite Teléfono del Alumno');
-    if (!direccionAlumno) missing.push('Dirección del Alumno');
+    if (!alumnoAddressValid) missing.push('Dirección del Alumno');
     if (!distritoAlumno) missing.push('Distrito del Alumno');
     if (!nombreHijo) missing.push('Nombre del Alumno');
     if (!apellidoHijo) missing.push('Apellidos del Alumno');
@@ -447,6 +451,7 @@ export default function SignUpTutor() {
     setTelefonoError('');
     setTelefonoHijoError('');
     setSubmitting(true);
+    let authUser = null;
     try {
       const phoneSnap = await getDocs(query(collection(db, 'usuarios'), where('telefono', '==', telefono)));
       if (!phoneSnap.empty) {
@@ -455,6 +460,7 @@ export default function SignUpTutor() {
         return;
       }
       const { user } = await createUserWithEmailAndPassword(auth, email, password);
+      authUser = user;
       const data = {
         uid: user.uid,
         email,
@@ -517,6 +523,10 @@ export default function SignUpTutor() {
       navigate('/');
     } catch (err) {
       console.error(err);
+      if (authUser) {
+        try { await deleteDoc(doc(db, 'usuarios', authUser.uid)); } catch (_) {}
+        try { await deleteUser(authUser); } catch (_) {}
+      }
       show('Error: ' + err.message, 'error');
     } finally {
       setSubmitting(false);
@@ -649,7 +659,7 @@ export default function SignUpTutor() {
                 <div className="fl-field">
                   <AddressAutocomplete
                     value={direccionTutor}
-                    onChange={setDireccionTutor}
+                    onChange={val => { setDireccionTutor(val); setTutorAddressValid(false); }}
                     onSelect={handleTutorAddressSelect}
                     placeholder=" "
                   />
@@ -789,7 +799,7 @@ export default function SignUpTutor() {
                 <div className="fl-field">
                   <AddressAutocomplete
                     value={direccionAlumno}
-                    onChange={setDireccionAlumno}
+                    onChange={val => { setDireccionAlumno(val); setAlumnoAddressValid(false); }}
                     onSelect={handleAlumnoAddressSelect}
                     placeholder=" "
                   />
