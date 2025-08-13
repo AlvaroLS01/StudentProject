@@ -215,7 +215,7 @@ app.post('/tutor/:tutorId/alumno', async (req, res) => {
   } catch (err) {
     if (client) await client.query('ROLLBACK');
     console.error(err);
-    res.status(500).json({ error: 'Error creando alumno' });
+    res.status(500).json({ error: err.message || 'Error creando alumno' });
   } finally {
     if (client) client.release();
   }

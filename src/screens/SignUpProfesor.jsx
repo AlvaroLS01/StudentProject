@@ -12,8 +12,8 @@ import AddressAutocomplete from '../components/AddressAutocomplete';
 
 // Firebase (inicializado en firebaseConfig.js)
 import { auth, db } from '../firebase/firebaseConfig';
-import { createUserWithEmailAndPassword, sendEmailVerification } from 'firebase/auth';
-import { collection, getDocs, doc, setDoc, query, where } from 'firebase/firestore';
+import { createUserWithEmailAndPassword, sendEmailVerification, deleteUser } from 'firebase/auth';
+import { collection, getDocs, doc, setDoc, deleteDoc, query, where } from 'firebase/firestore';
 
 // Animación de entrada
 const fadeIn = keyframes`
@@ -292,6 +292,7 @@ export default function SignUpProfesor() {
   const [submitting, setSubmitting] = useState(false);
   const [nif, setNif] = useState('');
   const [direccionFacturacion, setDireccionFacturacion] = useState('');
+  const [addressValid, setAddressValid] = useState(false);
   const [distrito, setDistrito] = useState('');
   const [iban, setIban] = useState('');
   const [carrera, setCarrera] = useState('');
@@ -373,6 +374,7 @@ export default function SignUpProfesor() {
     setDireccionFacturacion(details.formatted_address);
     if (city) setCiudad(city);
     if (district) setDistrito(district);
+    setAddressValid(true);
   };
 
   const handleSubmit = async () => {
@@ -387,7 +389,7 @@ export default function SignUpProfesor() {
     if (!confirmTelefono) missing.push('Repite Teléfono');
     if (!ciudad) missing.push('Ciudad');
     if (!nif) missing.push('NIF');
-    if (!direccionFacturacion) missing.push('Dirección facturación');
+    if (!addressValid) missing.push('Dirección facturación');
     if (!distrito) missing.push('Distrito');
     if (!iban) missing.push('IBAN');
     if (!carrera) missing.push('Carrera');
@@ -411,6 +413,7 @@ export default function SignUpProfesor() {
     }
     setTelefonoError('');
     setSubmitting(true);
+    let authUser = null;
     try {
       const phoneSnap = await getDocs(query(collection(db, 'usuarios'), where('telefono', '==', telefono)));
       if (!phoneSnap.empty) {
@@ -419,6 +422,7 @@ export default function SignUpProfesor() {
         return;
       }
       const { user } = await createUserWithEmailAndPassword(auth, email, password);
+      authUser = user;
       await setDoc(doc(db, 'usuarios', user.uid), {
         uid: user.uid,
         email,
@@ -461,6 +465,10 @@ export default function SignUpProfesor() {
       navigate('/');
     } catch (err) {
       console.error(err);
+      if (authUser) {
+        try { await deleteDoc(doc(db, 'usuarios', authUser.uid)); } catch (_) {}
+        try { await deleteUser(authUser); } catch (_) {}
+      }
       show('Error: ' + err.message, 'error');
     } finally {
       setSubmitting(false);
@@ -611,7 +619,7 @@ export default function SignUpProfesor() {
                 <div className="fl-field">
                   <AddressAutocomplete
                     value={direccionFacturacion}
-                    onChange={setDireccionFacturacion}
+                    onChange={val => { setDireccionFacturacion(val); setAddressValid(false); }}
                     onSelect={handleAddressSelect}
                     placeholder=" "
                   />
