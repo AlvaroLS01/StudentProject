@@ -15,6 +15,7 @@ Este servidor Node.js expone diferentes endpoints para enviar correos desde la p
     # Establece JWT_SECRET y RESET_BASE_URL para los correos de restablecimiento
     # Especifica la ruta del JSON de la cuenta de servicio con
     # GOOGLE_APPLICATION_CREDENTIALS
+    # Proporciona GOOGLE_MAPS_API_KEY para geocodificar direcciones
     ```
 
   * `JWT_SECRET` puede ser cualquier cadena aleatoria que solo tú conozcas. El
