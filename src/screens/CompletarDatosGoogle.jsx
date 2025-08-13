@@ -86,8 +86,12 @@ export default function CompletarDatosGoogle() {
   const [telefonoError, setTelefonoError] = useState('');
   const [ciudad, setCiudad] = useState('');
   const [curso, setCurso] = useState('');
+  const [nif, setNif] = useState('');
+  const [distritoFacturacion, setDistritoFacturacion] = useState('');
   const [nombreHijo, setNombreHijo] = useState('');
   const [apellidoHijo, setApellidoHijo] = useState('');
+  const [nifAlumno, setNifAlumno] = useState('');
+  const [distritoAlumno, setDistritoAlumno] = useState('');
   const [generoHijo, setGeneroHijo] = useState('Masculino');
   const [fechaNacHijo, setFechaNacHijo] = useState('');
   const [cities, setCities] = useState([]);
@@ -127,6 +131,8 @@ export default function CompletarDatosGoogle() {
     if (!confirmTelefono) missing.push('Repite Teléfono');
     if (!ciudad) missing.push('Ciudad');
     if (rol !== 'profesor' && !curso) missing.push('Curso');
+    if (!nif) missing.push('NIF');
+    if (!distritoFacturacion) missing.push('Distrito facturación');
     if (missing.length) {
       show('Faltan: ' + missing.join(', '), 'error');
       return;
@@ -139,6 +145,8 @@ export default function CompletarDatosGoogle() {
       const missingAlumno = [];
       if (!nombreHijo) missingAlumno.push('Nombre del alumno');
       if (!apellidoHijo) missingAlumno.push('Apellidos del alumno');
+      if (!nifAlumno) missingAlumno.push('NIF del alumno');
+      if (!distritoAlumno) missingAlumno.push('Distrito del alumno');
       if (!fechaNacHijo) missingAlumno.push('Fecha nacimiento del alumno');
       if (!generoHijo) missingAlumno.push('Género del alumno');
       if (missingAlumno.length) {
@@ -162,6 +170,8 @@ export default function CompletarDatosGoogle() {
         telefono,
         ciudad,
         rol,
+        nif,
+        distritoFacturacion,
         createdAt: new Date()
       };
       if (rol === 'profesor') {
@@ -177,6 +187,8 @@ export default function CompletarDatosGoogle() {
               genero: generoHijo,
               fechaNacimiento: fechaNacHijo,
               curso,
+              nif: nifAlumno,
+              distrito: distritoAlumno,
               photoURL: user.photoURL || ''
             }
           ];
@@ -207,6 +219,10 @@ export default function CompletarDatosGoogle() {
           <Field>
             <label>Apellidos</label>
             <input className="form-control" type="text" value={apellido} onChange={e => setApellido(e.target.value)} />
+          </Field>
+          <Field>
+            <label>NIF</label>
+            <input className="form-control" type="text" value={nif} onChange={e => setNif(e.target.value)} />
           </Field>
           <Field>
             <label>Teléfono</label>
@@ -242,6 +258,10 @@ export default function CompletarDatosGoogle() {
               ))}
             </select>
           </Field>
+          <Field>
+            <label>Distrito facturación</label>
+            <input className="form-control" type="text" value={distritoFacturacion} onChange={e => setDistritoFacturacion(e.target.value)} />
+          </Field>
           {rol !== 'profesor' && (
             <Field>
               <label>Curso</label>
@@ -276,6 +296,24 @@ export default function CompletarDatosGoogle() {
                   type="text"
                   value={apellidoHijo}
                   onChange={e => setApellidoHijo(e.target.value)}
+                />
+              </Field>
+              <Field>
+                <label>NIF del alumno</label>
+                <input
+                  className="form-control"
+                  type="text"
+                  value={nifAlumno}
+                  onChange={e => setNifAlumno(e.target.value)}
+                />
+              </Field>
+              <Field>
+                <label>Distrito del alumno</label>
+                <input
+                  className="form-control"
+                  type="text"
+                  value={distritoAlumno}
+                  onChange={e => setDistritoAlumno(e.target.value)}
                 />
               </Field>
               <Field>

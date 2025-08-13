@@ -623,6 +623,18 @@ export default function SignUpProfesor() {
                   <input
                     className="form-control fl-input"
                     type="text"
+                    value={distrito}
+                    onChange={e => setDistrito(e.target.value)}
+                    placeholder=" "
+                  />
+                  <label className="fl-label">Distrito facturación</label>
+                </div>
+              </Field>
+              <Field>
+                <div className="fl-field">
+                  <input
+                    className="form-control fl-input"
+                    type="text"
                     value={iban}
                     onChange={e => setIban(e.target.value)}
                     placeholder=" "

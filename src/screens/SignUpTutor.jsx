@@ -657,6 +657,18 @@ export default function SignUpTutor() {
                 </div>
               </Field>
               <Field>
+                <div className="fl-field">
+                  <input
+                    className="form-control fl-input"
+                    type="text"
+                    value={distritoTutor}
+                    onChange={e => setDistritoTutor(e.target.value)}
+                    placeholder=" "
+                  />
+                  <label className="fl-label">Distrito facturación</label>
+                </div>
+              </Field>
+              <Field>
                 <label>Teléfono</label>
                 <PhoneInput
                   country={'es'}
@@ -782,6 +794,18 @@ export default function SignUpTutor() {
                     placeholder=" "
                   />
                   <label className="fl-label">Dirección del Alumno</label>
+                </div>
+              </Field>
+              <Field>
+                <div className="fl-field">
+                  <input
+                    className="form-control fl-input"
+                    type="text"
+                    value={distritoAlumno}
+                    onChange={e => setDistritoAlumno(e.target.value)}
+                    placeholder=" "
+                  />
+                  <label className="fl-label">Distrito del Alumno</label>
                 </div>
               </Field>
               <Field>
