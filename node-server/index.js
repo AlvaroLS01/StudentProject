@@ -51,46 +51,6 @@ async function appendRow(sheetName, values) {
   });
 }
 
-// --- Lookup endpoints ----------------------------------------------------
-// These endpoints expose simple catalog data so the frontend can populate
-// dropdowns from the PostgreSQL database rather than from hardcoded lists.
-
-app.get('/ciudades', async (_req, res) => {
-  try {
-    const result = await db.query(
-      'SELECT id_ciudad, nombre FROM student_project.ciudad ORDER BY nombre'
-    );
-    res.json(result.rows);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Error fetching ciudades' });
-  }
-});
-
-app.get('/cursos', async (_req, res) => {
-  try {
-    const result = await db.query(
-      'SELECT id_curso, nombre FROM student_project.curso ORDER BY id_curso'
-    );
-    res.json(result.rows);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Error fetching cursos' });
-  }
-});
-
-app.get('/asignaturas', async (_req, res) => {
-  try {
-    const result = await db.query(
-      'SELECT id_asignatura, nombre_asignatura FROM student_project.asignatura ORDER BY nombre_asignatura'
-    );
-    res.json(result.rows);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Error fetching asignaturas' });
-  }
-});
-
 app.post('/tutor', async (req, res) => {
   const {
     nombre,
