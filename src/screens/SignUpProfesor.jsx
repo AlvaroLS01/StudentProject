@@ -292,6 +292,8 @@ export default function SignUpProfesor() {
   const [nif, setNif] = useState('');
   const [direccionFacturacion, setDireccionFacturacion] = useState('');
   const [distrito, setDistrito] = useState('');
+  const [barrio, setBarrio] = useState('');
+  const [codigoPostal, setCodigoPostal] = useState('');
   const [iban, setIban] = useState('');
   const [carrera, setCarrera] = useState('');
   const [cursoEstudios, setCursoEstudios] = useState('');
@@ -371,6 +373,8 @@ export default function SignUpProfesor() {
     if (!nif) missing.push('NIF');
     if (!direccionFacturacion) missing.push('Dirección facturación');
     if (!distrito) missing.push('Distrito');
+    if (!barrio) missing.push('Barrio');
+    if (!codigoPostal) missing.push('Código Postal');
     if (!iban) missing.push('IBAN');
     if (!carrera) missing.push('Carrera');
     if (!cursoEstudios) missing.push('Curso');
@@ -416,6 +420,8 @@ export default function SignUpProfesor() {
         NIF: nif,
         direccion: direccionFacturacion,
         distrito,
+        barrio,
+        codigo_postal: codigoPostal,
         IBAN: iban,
         carrera,
         curso: cursoEstudios,
@@ -431,6 +437,9 @@ export default function SignUpProfesor() {
         NIF: nif,
         direccion_facturacion: direccionFacturacion,
         distrito,
+        barrio,
+        codigo_postal: codigoPostal,
+        ciudad,
         IBAN: iban,
         carrera,
         curso: cursoEstudios,
@@ -617,6 +626,30 @@ export default function SignUpProfesor() {
                     placeholder=" "
                   />
                   <label className="fl-label">Distrito facturación</label>
+                </div>
+              </Field>
+              <Field>
+                <div className="fl-field">
+                  <input
+                    className="form-control fl-input"
+                    type="text"
+                    value={barrio}
+                    onChange={e => setBarrio(e.target.value)}
+                    placeholder=" "
+                  />
+                  <label className="fl-label">Barrio</label>
+                </div>
+              </Field>
+              <Field>
+                <div className="fl-field">
+                  <input
+                    className="form-control fl-input"
+                    type="text"
+                    value={codigoPostal}
+                    onChange={e => setCodigoPostal(e.target.value)}
+                    placeholder=" "
+                  />
+                  <label className="fl-label">Código Postal</label>
                 </div>
               </Field>
               <Field>

@@ -300,6 +300,8 @@ export default function SignUpTutor() {
   const [nifTutor, setNifTutor] = useState('');
   const [direccionTutor, setDireccionTutor] = useState('');
   const [distritoTutor, setDistritoTutor] = useState('');
+  const [barrioTutor, setBarrioTutor] = useState('');
+  const [codigoPostalTutor, setCodigoPostalTutor] = useState('');
   const [nifAlumno, setNifAlumno] = useState('');
   const [telefonoHijo, setTelefonoHijo] = useState('');
   const [confirmTelefonoHijo, setConfirmTelefonoHijo] = useState('');
@@ -390,6 +392,8 @@ export default function SignUpTutor() {
     if (!nifTutor) missing.push('NIF');
     if (!direccionTutor) missing.push('Dirección facturación');
     if (!distritoTutor) missing.push('Distrito facturación');
+    if (!barrioTutor) missing.push('Barrio facturación');
+    if (!codigoPostalTutor) missing.push('Código postal facturación');
     if (!nifAlumno) missing.push('NIF del Alumno');
     if (!telefonoHijo) missing.push('Teléfono del Alumno');
     if (!confirmTelefonoHijo) missing.push('Repite Teléfono del Alumno');
@@ -445,6 +449,8 @@ export default function SignUpTutor() {
         NIF: nifTutor,
         direccion: direccionTutor,
         distrito: distritoTutor,
+        barrio: barrioTutor,
+        codigo_postal: codigoPostalTutor,
         createdAt: new Date(),
         alumnos: [
           {
@@ -473,6 +479,10 @@ export default function SignUpTutor() {
           correo_electronico: email,
           NIF: nifTutor,
           direccion_facturacion: direccionTutor,
+          distrito: distritoTutor,
+          barrio: barrioTutor,
+          codigo_postal: codigoPostalTutor,
+          ciudad,
           password,
         },
         alumno: {
@@ -650,6 +660,30 @@ export default function SignUpTutor() {
                     placeholder=" "
                   />
                   <label className="fl-label">Distrito facturación</label>
+                </div>
+              </Field>
+              <Field>
+                <div className="fl-field">
+                  <input
+                    className="form-control fl-input"
+                    type="text"
+                    value={barrioTutor}
+                    onChange={e => setBarrioTutor(e.target.value)}
+                    placeholder=" "
+                  />
+                  <label className="fl-label">Barrio facturación</label>
+                </div>
+              </Field>
+              <Field>
+                <div className="fl-field">
+                  <input
+                    className="form-control fl-input"
+                    type="text"
+                    value={codigoPostalTutor}
+                    onChange={e => setCodigoPostalTutor(e.target.value)}
+                    placeholder=" "
+                  />
+                  <label className="fl-label">Código Postal facturación</label>
                 </div>
               </Field>
               <Field>
