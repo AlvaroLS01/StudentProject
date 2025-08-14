@@ -9,12 +9,6 @@
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
-input.form-control,
-textarea.form-control {
-  line-height: 1;
-  text-align: center;
-}
-
 /* Color corporativo para radios y checkboxes */
 input[type="radio"].form-control,
 input[type="checkbox"].form-control {
