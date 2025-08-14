@@ -93,59 +93,34 @@ app.get('/asignaturas', async (_req, res) => {
 });
 
 app.post('/tutor', async (req, res) => {
-  const {
-    nombre,
-    apellidos,
-    genero,
-    telefono,
-    correo_electronico,
-    NIF,
-    direccion_facturacion,
-    password,
-  } = req.body;
-  try {
-    const hashed = await bcrypt.hash(password, 10);
-    const result = await db.query(
-      'INSERT INTO student_project.tutor (nombre, apellidos, genero, telefono, correo_electronico, "NIF", direccion_facturacion, password) VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING id_tutor',
-      [nombre, apellidos, genero, telefono, correo_electronico, NIF, direccion_facturacion, hashed]
-    );
-    res.json({ id: result.rows[0].id_tutor });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "Error creando tutor" });
-  }
-});
-
-app.post('/tutor/:tutorId/alumno', async (req, res) => {
-  const { tutorId } = req.params;
-  const {
-    nombre,
-    apellidos,
-    direccion,
-    NIF,
-    telefono,
-    telefonoConfirm,
-    genero,
-    id_curso,
-    distrito,
-    ciudad,
-    barrio,
-    codigo_postal,
-  } = req.body;
-
-  if (telefono !== telefonoConfirm) {
-    return res.status(400).json({ error: 'Teléfonos no coinciden' });
-  }
-
+  const { tutor, alumno } = req.body;
   let client;
   try {
     client = await db.connect();
     await client.query('BEGIN');
 
-    // Ensure city exists
+    const hashed = await bcrypt.hash(tutor.password, 10);
+    await client.query(
+      'INSERT INTO student_project.tutor (correo_electronico, nombre, apellidos, genero, telefono, "NIF", direccion_facturacion, password) VALUES ($1,$2,$3,$4,$5,$6,$7,$8)',
+      [
+        tutor.correo_electronico,
+        tutor.nombre,
+        tutor.apellidos,
+        tutor.genero,
+        tutor.telefono,
+        tutor.NIF,
+        tutor.direccion_facturacion,
+        hashed,
+      ]
+    );
+
+    if (alumno.telefono !== alumno.telefonoConfirm) {
+      throw new Error('Teléfonos no coinciden');
+    }
+
     const cityRes = await client.query(
       'SELECT id_ciudad FROM student_project.ciudad WHERE LOWER(nombre)=LOWER($1)',
-      [ciudad]
+      [alumno.ciudad]
     );
     let id_ciudad;
     if (cityRes.rowCount > 0) {
@@ -153,38 +128,38 @@ app.post('/tutor/:tutorId/alumno', async (req, res) => {
     } else {
       const insertedCity = await client.query(
         'INSERT INTO student_project.ciudad (nombre, id_grupo) VALUES ($1, 1) RETURNING id_ciudad',
-        [ciudad]
+        [alumno.ciudad]
       );
       id_ciudad = insertedCity.rows[0].id_ciudad;
     }
 
     const ubic = await client.query(
       'INSERT INTO student_project.ubicacion (Distrito, Barrio, Codigo_postal, id_ciudad) VALUES ($1,$2,$3,$4) RETURNING id_ubicacion',
-      [distrito, barrio || null, codigo_postal || null, id_ciudad]
+      [alumno.distrito, alumno.barrio || null, alumno.codigo_postal || null, id_ciudad]
     );
     const id_ubicacion = ubic.rows[0].id_ubicacion;
 
-    const alumno = await client.query(
-      'INSERT INTO student_project.alumno (nombre, apellidos, direccion, NIF, telefono, genero, id_tutor, id_curso, id_ubicacion) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING id_alumno',
+    await client.query(
+      'INSERT INTO student_project.alumno (nombre, apellidos, direccion, NIF, telefono, genero, correo_tutor, id_curso, id_ubicacion) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)',
       [
-        nombre,
-        apellidos,
-        direccion,
-        NIF,
-        telefono,
-        genero,
-        tutorId,
-        id_curso,
+        alumno.nombre,
+        alumno.apellidos,
+        alumno.direccion,
+        alumno.NIF,
+        alumno.telefono,
+        alumno.genero,
+        tutor.correo_electronico,
+        alumno.id_curso,
         id_ubicacion,
       ]
     );
 
     await client.query('COMMIT');
-    res.json({ id: alumno.rows[0].id_alumno });
+    res.json({ id: tutor.correo_electronico });
   } catch (err) {
     if (client) await client.query('ROLLBACK');
     console.error(err);
-    res.status(500).json({ error: err.message || 'Error creando alumno' });
+    res.status(500).json({ error: err.message || 'Error creando tutor' });
   } finally {
     if (client) client.release();
   }
