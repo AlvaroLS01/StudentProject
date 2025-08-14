@@ -15,8 +15,7 @@
 
 .fl-input{
   width:100%;
-  /* increase top padding so typed text sits lower and doesn't collide with label */
-  padding:1.5rem 1rem 0.8rem;
+  padding:1.1rem 1rem 0.6rem;
   border:1px solid transparent;
   border-radius:var(--radius);
   background:var(--bg-bubble);
