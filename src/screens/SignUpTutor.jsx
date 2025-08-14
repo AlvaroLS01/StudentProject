@@ -90,6 +90,13 @@ const FormGrid = styled.div`
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: 1rem;
 `;
+
+// Formulario en columna para el paso de verificación
+const FormColumn = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+`;
 const Field = styled.div`
   display: flex;
   flex-direction: column;
@@ -117,8 +124,13 @@ const Field = styled.div`
 
 const VerificationRow = styled.div`
   display: flex;
+  flex-direction: column;
   margin-top: 0.5rem;
   gap: 0.5rem;
+
+  @media (min-width: 480px) {
+    flex-direction: row;
+  }
 `;
 
 const CodeInput = styled.input`
@@ -524,7 +536,7 @@ export default function SignUpTutor() {
         {step === 1 ? (
           <>
             <Subtitle>Verifica tu correo electrónico</Subtitle>
-            <FormGrid>
+            <FormColumn>
               <Field>
                 <div className="fl-field">
                   <input
@@ -585,14 +597,14 @@ export default function SignUpTutor() {
                 </VerificationRow>
                 {emailVerified && <p style={{color:'#046654',fontSize:'0.9rem'}}>Correo verificado</p>}
               </Field>
-            </FormGrid>
+            </FormColumn>
             <Button onClick={() => setStep(2)} disabled={!emailVerified || !password || !confirmPwd || password !== confirmPwd}>
               Siguiente
             </Button>
           </>
         ) : (
           <>
-            <Subtitle>Completa tus datos para {email}</Subtitle>
+            <Subtitle>Te estás dando de alta con <strong>{email}</strong></Subtitle>
             <h3 style={{gridColumn:'1 / -1',marginBottom:'0.5rem',color:'#034640'}}>Datos del tutor legal</h3>
             <FormGrid>
               <Field>
