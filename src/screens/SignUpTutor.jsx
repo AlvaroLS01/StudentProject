@@ -301,12 +301,16 @@ export default function SignUpTutor() {
   const [nifTutor, setNifTutor] = useState('');
   const [direccionTutor, setDireccionTutor] = useState('');
   const [distritoTutor, setDistritoTutor] = useState('');
+  const [barrioTutor, setBarrioTutor] = useState('');
+  const [codigoPostalTutor, setCodigoPostalTutor] = useState('');
   const [nifAlumno, setNifAlumno] = useState('');
   const [telefonoHijo, setTelefonoHijo] = useState('');
   const [confirmTelefonoHijo, setConfirmTelefonoHijo] = useState('');
   const [telefonoHijoError, setTelefonoHijoError] = useState('');
   const [direccionAlumno, setDireccionAlumno] = useState('');
   const [distritoAlumno, setDistritoAlumno] = useState('');
+  const [barrioAlumno, setBarrioAlumno] = useState('');
+  const [codigoPostalAlumno, setCodigoPostalAlumno] = useState('');
   const [nombreHijo, setNombreHijo] = useState('');
   const [apellidoHijo, setApellidoHijo] = useState('');
   const [fechaNacHijo, setFechaNacHijo] = useState('');
@@ -391,11 +395,15 @@ export default function SignUpTutor() {
     if (!nifTutor) missing.push('NIF');
     if (!direccionTutor) missing.push('Dirección facturación');
     if (!distritoTutor) missing.push('Distrito facturación');
+    if (!barrioTutor) missing.push('Barrio facturación');
+    if (!codigoPostalTutor) missing.push('Código Postal facturación');
     if (!nifAlumno) missing.push('NIF del Alumno');
     if (!telefonoHijo) missing.push('Teléfono del Alumno');
     if (!confirmTelefonoHijo) missing.push('Repite Teléfono del Alumno');
     if (!direccionAlumno) missing.push('Dirección del Alumno');
     if (!distritoAlumno) missing.push('Distrito del Alumno');
+    if (!barrioAlumno) missing.push('Barrio del Alumno');
+    if (!codigoPostalAlumno) missing.push('Código Postal del Alumno');
     if (!nombreHijo) missing.push('Nombre del Alumno');
     if (!apellidoHijo) missing.push('Apellidos del Alumno');
     if (!fechaNacHijo) missing.push('Fecha Nacimiento del Alumno');
@@ -446,6 +454,8 @@ export default function SignUpTutor() {
         NIF: nifTutor,
         direccion: direccionTutor,
         distrito: distritoTutor,
+        barrio: barrioTutor,
+        codigoPostal: codigoPostalTutor,
         createdAt: new Date(),
         alumnos: [
           {
@@ -459,6 +469,8 @@ export default function SignUpTutor() {
             NIF: nifAlumno,
             direccion: direccionAlumno,
             distrito: distritoAlumno,
+            barrio: barrioAlumno,
+            codigoPostal: codigoPostalAlumno,
             photoURL: user.photoURL || ''
           },
         ]
@@ -474,6 +486,8 @@ export default function SignUpTutor() {
         NIF: nifTutor,
         direccion_facturacion: direccionTutor,
         distrito_facturacion: distritoTutor,
+        barrio: barrioTutor,
+        codigo_postal: codigoPostalTutor,
         password,
       });
       await registerAlumno(tutorResp.id, {
@@ -481,6 +495,8 @@ export default function SignUpTutor() {
         apellidos: apellidoHijo,
         direccion: direccionAlumno,
         distrito: distritoAlumno,
+        barrio: barrioAlumno,
+        codigo_postal: codigoPostalAlumno,
         ciudad,
         NIF: nifAlumno,
         telefono: telefonoHijo,
@@ -653,6 +669,30 @@ export default function SignUpTutor() {
                 </div>
               </Field>
               <Field>
+                <div className="fl-field">
+                  <input
+                    className="form-control fl-input"
+                    type="text"
+                    value={barrioTutor}
+                    onChange={e => setBarrioTutor(e.target.value)}
+                    placeholder=" "
+                  />
+                  <label className="fl-label">Barrio facturación</label>
+                </div>
+              </Field>
+              <Field>
+                <div className="fl-field">
+                  <input
+                    className="form-control fl-input"
+                    type="text"
+                    value={codigoPostalTutor}
+                    onChange={e => setCodigoPostalTutor(e.target.value)}
+                    placeholder=" "
+                  />
+                  <label className="fl-label">Código Postal facturación</label>
+                </div>
+              </Field>
+              <Field>
                 <label>Teléfono</label>
                 <PhoneInput
                   country={'es'}
@@ -791,6 +831,30 @@ export default function SignUpTutor() {
                     placeholder=" "
                   />
                   <label className="fl-label">Distrito del Alumno</label>
+                </div>
+              </Field>
+              <Field>
+                <div className="fl-field">
+                  <input
+                    className="form-control fl-input"
+                    type="text"
+                    value={barrioAlumno}
+                    onChange={e => setBarrioAlumno(e.target.value)}
+                    placeholder=" "
+                  />
+                  <label className="fl-label">Barrio del Alumno</label>
+                </div>
+              </Field>
+              <Field>
+                <div className="fl-field">
+                  <input
+                    className="form-control fl-input"
+                    type="text"
+                    value={codigoPostalAlumno}
+                    onChange={e => setCodigoPostalAlumno(e.target.value)}
+                    placeholder=" "
+                  />
+                  <label className="fl-label">Código Postal del Alumno</label>
                 </div>
               </Field>
               <Field>
