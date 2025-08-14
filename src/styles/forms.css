@@ -15,14 +15,12 @@
 
 .fl-input{
   width:100%;
-  padding:0.75rem 1rem;
+  padding:1.1rem 1rem 0.6rem;
   border:1px solid transparent;
   border-radius:var(--radius);
   background:var(--bg-bubble);
   font-size:1rem;
   color:var(--text);
-  line-height:1;
-  text-align:center;
   transition:border-color var(--transition), box-shadow var(--transition), background var(--transition);
 }
 
