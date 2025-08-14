@@ -9,7 +9,6 @@ import {
   fetchCities,
   fetchCursos,
   registerTutor,
-  registerAlumno,
 } from '../utils/api';
 import PhoneInput from 'react-phone-input-2';
 import 'react-phone-input-2/lib/style.css';
@@ -465,28 +464,29 @@ export default function SignUpTutor() {
       };
       await setDoc(doc(db, 'usuarios', user.uid), data);
       const generoTutor = salutation === 'Sr.' ? 'Masculino' : 'Femenino';
-      const tutorResp = await registerTutor({
-        nombre,
-        apellidos: apellido,
-        genero: generoTutor,
-        telefono,
-        correo_electronico: email,
-        NIF: nifTutor,
-        direccion_facturacion: direccionTutor,
-        distrito_facturacion: distritoTutor,
-        password,
-      });
-      await registerAlumno(tutorResp.id, {
-        nombre: nombreHijo,
-        apellidos: apellidoHijo,
-        direccion: direccionAlumno,
-        distrito: distritoAlumno,
-        ciudad,
-        NIF: nifAlumno,
-        telefono: telefonoHijo,
-        telefonoConfirm: confirmTelefonoHijo,
-        genero: generoHijo,
-        id_curso: idCurso,
+      await registerTutor({
+        tutor: {
+          nombre,
+          apellidos: apellido,
+          genero: generoTutor,
+          telefono,
+          correo_electronico: email,
+          NIF: nifTutor,
+          direccion_facturacion: direccionTutor,
+          password,
+        },
+        alumno: {
+          nombre: nombreHijo,
+          apellidos: apellidoHijo,
+          direccion: direccionAlumno,
+          distrito: distritoAlumno,
+          ciudad,
+          NIF: nifAlumno,
+          telefono: telefonoHijo,
+          telefonoConfirm: confirmTelefonoHijo,
+          genero: generoHijo,
+          id_curso: idCurso,
+        }
       });
       await sendWelcomeEmail({ email, name: nombre });
       if (auth.currentUser) {

@@ -34,16 +34,14 @@ COMMENT ON TABLE student_project.asignatura
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS student_project.tutor
 (
-    id_tutor serial NOT NULL,
+    correo_electronico VARCHAR(100) PRIMARY KEY,
     nombre VARCHAR(100),
     apellidos VARCHAR(100),
     genero VARCHAR(100),
-    telefono VARCHAR(25),
-    correo_electronico VARCHAR(100),
+    telefono VARCHAR(25) UNIQUE,
     "NIF" VARCHAR(100) NOT NULL,
     direccion_facturacion VARCHAR(100) NOT NULL,
-    password VARCHAR(255) NOT NULL,
-    PRIMARY KEY (id_tutor)
+    password VARCHAR(255) NOT NULL
 );
 
 
@@ -122,15 +120,15 @@ CREATE TABLE IF NOT EXISTS student_project.alumno
     apellidos VARCHAR(100),
     direccion VARCHAR(100),
     NIF VARCHAR(100) NOT NULL,
-    telefono VARCHAR(25),
-    genero VARCHAR(100),	
-	  
-	id_tutor INT NOT NULL REFERENCES student_project.tutor(id_tutor)
+    telefono VARCHAR(25) UNIQUE,
+    genero VARCHAR(100),
+
+        correo_tutor VARCHAR(100) NOT NULL REFERENCES student_project.tutor(correo_electronico)
     ON DELETE RESTRICT
-    ON UPDATE CASCADE,	
-	id_curso INT NOT NULL REFERENCES student_project.curso(id_curso)
+    ON UPDATE CASCADE,
+        id_curso INT NOT NULL REFERENCES student_project.curso(id_curso)
     ON DELETE RESTRICT
-    ON UPDATE CASCADE,	
+    ON UPDATE CASCADE,
 	id_ubicacion INT NOT NULL REFERENCES student_project.ubicacion(id_ubicacion)
     ON DELETE RESTRICT
     ON UPDATE CASCADE	
@@ -149,7 +147,7 @@ CREATE TABLE IF NOT EXISTS student_project.profesor
     nombre VARCHAR(100),
     apellidos VARCHAR(100),
     genero VARCHAR(100),
-    telefono VARCHAR(25),
+    telefono VARCHAR(25) UNIQUE,
     correo_electronico VARCHAR(100),
     "NIF" VARCHAR(100) NOT NULL,
     direccion_facturacion VARCHAR(100) NOT NULL,
