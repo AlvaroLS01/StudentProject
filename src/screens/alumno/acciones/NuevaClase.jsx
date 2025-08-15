@@ -13,7 +13,7 @@ import {
   getDoc,
   doc
 } from 'firebase/firestore';
-import { fetchCities, fetchCursos, fetchAsignaturas } from '../../../utils/api';
+import { fetchCities, fetchCursos, fetchAsignaturas, createOferta } from '../../../utils/api';
 
 // Animación fade-in
 const fadeIn = keyframes`
@@ -546,6 +546,22 @@ export default function NuevaClase() {
     if (submitting) return;
     setSubmitting(true);
     try {
+      const ofertaRes = await createOferta({
+        fecha_oferta: new Date().toISOString().slice(0,10),
+        disponibilidad: Array.from(selectedSlots).join(','),
+        estado: 'pendiente',
+        numero_horas: parseInt(horasSemana, 10),
+        modalidad,
+        beneficio_sp: precioPadres - precioProfesores,
+        ganancia_profesor: precioProfesores,
+        precio_alumno: precioPadres,
+        precio_profesor: precioProfesores,
+        tutor_email: auth.currentUser.email,
+        alumno_nombre: alumnoNombre,
+        alumno_apellidos: alumnoApellidos,
+        asignaturas,
+      });
+
       await addDoc(collection(db,'clases'), {
         alumnoId: auth.currentUser.uid,
         alumnoNombre,
@@ -567,6 +583,7 @@ export default function NuevaClase() {
         precioProfesores,
         notas,
         estado: 'pendiente',
+        ofertaId: ofertaRes.id,
         createdAt: serverTimestamp()
       });
       resetForm();
