@@ -127,7 +127,7 @@ app.post('/tutor', async (req, res) => {
       id_ciudad = cityRes.rows[0].id_ciudad;
     } else {
       const insertedCity = await client.query(
-        'INSERT INTO student_project.ciudad (nombre, id_grupo) VALUES ($1, 1) RETURNING id_ciudad',
+        'INSERT INTO student_project.ciudad (nombre) VALUES ($1) RETURNING id_ciudad',
         [alumno.ciudad]
       );
       id_ciudad = insertedCity.rows[0].id_ciudad;
@@ -193,17 +193,129 @@ app.post('/profesor', async (req, res) => {
   }
 });
 
-app.post('/puja', async (req, res) => {
-  const { fecha_puja, estado_puja, id_profesor, id_oferta } = req.body;
+app.post('/oferta', async (req, res) => {
+  const {
+    fecha_oferta,
+    disponibilidad,
+    estado,
+    numero_horas,
+    modalidad,
+    beneficio_sp,
+    ganancia_profesor,
+    precio_alumno,
+    precio_profesor,
+    tutor_email,
+    alumno_nombre,
+    alumno_apellidos,
+    asignaturas = [],
+  } = req.body;
+
+  let client;
   try {
-    const result = await db.query(
+    client = await db.connect();
+    await client.query('BEGIN');
+
+    const aRes = await client.query(
+      'SELECT id_alumno FROM student_project.alumno WHERE correo_tutor=$1 AND LOWER(nombre)=LOWER($2) AND ($3::text IS NULL OR LOWER(apellidos)=LOWER($3))',
+      [tutor_email, alumno_nombre, alumno_apellidos || null]
+    );
+    if (aRes.rowCount === 0) {
+      throw new Error('Alumno no encontrado');
+    }
+    const id_alumno = aRes.rows[0].id_alumno;
+
+    const result = await client.query(
+      'INSERT INTO student_project.oferta (fecha_oferta, disponibilidad, estado, numero_horas, modalidad, beneficio_sp, ganancia_profesor, precio_alumno, precio_profesor, id_alumno) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) RETURNING id_oferta',
+      [
+        fecha_oferta,
+        disponibilidad,
+        estado,
+        numero_horas,
+        modalidad,
+        beneficio_sp,
+        ganancia_profesor,
+        precio_alumno,
+        precio_profesor,
+        id_alumno,
+      ]
+    );
+    const ofertaId = result.rows[0].id_oferta;
+
+    for (const nombre of asignaturas) {
+      const asRes = await client.query(
+        'SELECT id_asignatura FROM student_project.asignatura WHERE LOWER(nombre_asignatura)=LOWER($1)',
+        [nombre]
+      );
+      if (asRes.rowCount > 0) {
+        await client.query(
+          'INSERT INTO student_project.oferta_asignatura (id_oferta, id_asignatura) VALUES ($1,$2)',
+          [ofertaId, asRes.rows[0].id_asignatura]
+        );
+      }
+    }
+
+    await client.query('COMMIT');
+    res.json({ id: ofertaId });
+  } catch (err) {
+    if (client) await client.query('ROLLBACK');
+    console.error(err);
+    res.status(500).json({ error: 'Error creando oferta' });
+  } finally {
+    if (client) client.release();
+  }
+});
+
+app.post('/puja', async (req, res) => {
+  const {
+    fecha_puja,
+    estado_puja,
+    profesor_email,
+    id_oferta,
+    asignaturas = [],
+    precio,
+  } = req.body;
+
+  let client;
+  try {
+    client = await db.connect();
+    await client.query('BEGIN');
+
+    const pRes = await client.query(
+      'SELECT id_profesor FROM student_project.profesor WHERE correo_electronico=$1',
+      [profesor_email]
+    );
+    if (pRes.rowCount === 0) {
+      throw new Error('Profesor no encontrado');
+    }
+    const id_profesor = pRes.rows[0].id_profesor;
+
+    const result = await client.query(
       'INSERT INTO student_project.puja (fecha_puja, estado_puja, id_profesor, id_oferta) VALUES ($1,$2,$3,$4) RETURNING id_puja',
       [fecha_puja, estado_puja, id_profesor, id_oferta]
     );
-    res.json({ id: result.rows[0].id_puja });
+    const pujaId = result.rows[0].id_puja;
+
+    for (const nombre of asignaturas) {
+      const asRes = await client.query(
+        'SELECT id_asignatura FROM student_project.asignatura WHERE LOWER(nombre_asignatura)=LOWER($1)',
+        [nombre]
+      );
+      if (asRes.rowCount > 0) {
+        await client.query(
+          'INSERT INTO student_project.puja_asignatura (id_puja, id_asignatura, precio) VALUES ($1,$2,$3)',
+          [pujaId, asRes.rows[0].id_asignatura, precio]
+        );
+      }
+    }
+
+    await client.query('COMMIT');
+    res.json({ id: pujaId });
   } catch (err) {
+    if (client) await client.query('ROLLBACK');
     console.error(err);
-    res.status(500).json({ error: "Error creando puja" });
+    res.status(500).json({ error: 'Error creando puja' });
+  } finally {
+    if (client) client.release();
   }
 });
 

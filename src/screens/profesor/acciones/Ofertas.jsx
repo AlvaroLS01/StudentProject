@@ -17,6 +17,7 @@ import {
   doc,
   getDoc
 } from 'firebase/firestore';
+import { createPuja } from '../../../utils/api';
 
 // Animación de fade-in al desplegar
 const fadeDown = keyframes`
@@ -609,6 +610,15 @@ export default function Ofertas() {
       classId: clase.id,
       createdAt: serverTimestamp(),
       estado: 'oferta'
+    });
+
+    await createPuja({
+      fecha_puja: new Date().toISOString().slice(0,10),
+      estado_puja: 'oferta',
+      profesor_email: prof.email,
+      id_oferta: clase.ofertaId,
+      asignaturas: selectedSubs,
+      precio: clase.precioProfesores,
     });
     setClases(cs => cs.filter(c => c.id !== clase.id));
     setConfirmModal(false);

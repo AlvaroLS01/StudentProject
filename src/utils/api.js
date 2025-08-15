@@ -47,3 +47,21 @@ export async function registerProfesor(data) {
   });
   return handleResponse(res);
 }
+
+export async function createOferta(data) {
+  const res = await fetch(`${API_URL}/oferta`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  });
+  return handleResponse(res);
+}
+
+export async function createPuja(data) {
+  const res = await fetch(`${API_URL}/puja`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  });
+  return handleResponse(res);
+}

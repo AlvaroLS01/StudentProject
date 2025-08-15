@@ -62,30 +62,13 @@ COMMENT ON TABLE student_project.curso
     IS 'Cursos de los alumnos';
 
 -- -----------------------------------------------------
--- Table `student_project`.`grupo`
--- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS student_project.grupo
-(
-    id_grupo serial PRIMARY KEY,
-    nombre VARCHAR(100) NOT NULL
-);
-
-COMMENT ON TABLE student_project.grupo
-    IS 'Grupo al que pertenece cada ciudad';
-
-
--- -----------------------------------------------------
 -- Table `student_project`.`ciudad`
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS student_project.ciudad
 (
     id_ciudad serial NOT NULL,
     nombre VARCHAR(100) NOT NULL,
-    PRIMARY KEY (id_ciudad),
-
-	id_grupo INT NOT NULL REFERENCES student_project.grupo(id_grupo)
-    ON DELETE RESTRICT
-    ON UPDATE CASCADE	
+    PRIMARY KEY (id_ciudad)
 );
 
 COMMENT ON TABLE student_project.ciudad
@@ -148,7 +131,7 @@ CREATE TABLE IF NOT EXISTS student_project.profesor
     apellidos VARCHAR(100),
     genero VARCHAR(100),
     telefono VARCHAR(25) UNIQUE,
-    correo_electronico VARCHAR(100),
+    correo_electronico VARCHAR(100) UNIQUE NOT NULL,
     "NIF" VARCHAR(100) NOT NULL,
     direccion_facturacion VARCHAR(100) NOT NULL,
     "IBAN" VARCHAR(100) NOT NULL,
@@ -183,7 +166,7 @@ CREATE TABLE IF NOT EXISTS student_project.oferta
 );
 
 COMMENT ON TABLE student_project.oferta
-    IS 'Las ofertas de los profesores.';
+    IS 'Solicitudes de clase creadas por los tutores.';
 
 -- -----------------------------------------------------
 -- Table `student_project`.`oferta_asignatura`
@@ -254,13 +237,16 @@ CREATE TABLE IF NOT EXISTS student_project.clase
     duracion_clase numeric NOT NULL,
     fecha_registro_clase date NOT NULL,
 
-	id_asignatura INT NOT NULL REFERENCES student_project.asignatura(id_asignatura)
+        id_asignatura INT NOT NULL REFERENCES student_project.asignatura(id_asignatura)
     ON DELETE RESTRICT
     ON UPDATE CASCADE,
-	id_ubicacion INT NOT NULL REFERENCES student_project.ubicacion(id_ubicacion)
+        id_ubicacion INT NOT NULL REFERENCES student_project.ubicacion(id_ubicacion)
     ON DELETE RESTRICT
     ON UPDATE CASCADE,
-	id_profesor INT NOT NULL REFERENCES student_project.profesor(id_profesor)
+        id_profesor INT NOT NULL REFERENCES student_project.profesor(id_profesor)
+    ON DELETE RESTRICT
+    ON UPDATE CASCADE,
+        id_alumno INT NOT NULL REFERENCES student_project.alumno(id_alumno)
     ON DELETE RESTRICT
     ON UPDATE CASCADE
 );
