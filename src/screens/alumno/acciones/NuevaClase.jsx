@@ -8,12 +8,12 @@ import { useAuth } from '../../../AuthContext';
 import { useChild } from '../../../ChildContext';
 import {
   collection,
-  getDocs,
   addDoc,
   serverTimestamp,
   getDoc,
   doc
 } from 'firebase/firestore';
+import { fetchCities, fetchCursos, fetchAsignaturas } from '../../../utils/api';
 
 // Animación fade-in
 const fadeIn = keyframes`
@@ -311,18 +311,11 @@ const priceTable = {
     }
   }
 };
-const cursosGrouped = [
-  {
-    group: 'Primaria',
-    options: ['1º Primaria','2º Primaria','3º Primaria','4º Primaria','5º Primaria','6º Primaria']
-  },
-  { group: 'ESO',      options: ['1º ESO','2º ESO','3º ESO','4º ESO'] },
-  { group: 'Bachillerato', options: ['1º Bachillerato','2º Bachillerato'] }
-];
 const daysOfWeek = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
 const hours = Array.from({ length: 14 }, (_, i) => 8 + i);
 
 export default function NuevaClase() {
+  const [cursosGrouped, setCursosGrouped] = useState([]);
   const [asignaturas, setAsignaturas]     = useState([]);
   const [curso, setCurso]                 = useState('');
   const [tipoClase, setTipoClase]         = useState('individual');
@@ -384,15 +377,32 @@ export default function NuevaClase() {
     })();
   }, [selectedChild]);
 
-  // Carga asignaturas y ciudades
+  // Carga asignaturas, ciudades y cursos desde el servidor
   useEffect(() => {
     (async () => {
-      const [sa, sc] = await Promise.all([
-        getDocs(collection(db,'asignaturas')),
-        getDocs(collection(db,'ciudades'))
-      ]);
-      setAsignaturasList(sa.docs.map(d => d.data().asignatura));
-      setCiudadesList(sc.docs.map(d => d.data().ciudad));
+      try {
+        const [asigRes, cityRes, courseRes] = await Promise.all([
+          fetchAsignaturas(),
+          fetchCities(),
+          fetchCursos()
+        ]);
+        setAsignaturasList(asigRes.map(a => a.nombre_asignatura || a.nombre));
+        setCiudadesList(cityRes.map(c => c.nombre));
+        const groups = {};
+        courseRes.forEach(({ nombre }) => {
+          let key;
+          if (nombre.includes('Primaria')) key = 'Primaria';
+          else if (nombre.includes('ESO')) key = 'ESO';
+          else if (nombre.includes('Bachillerato')) key = 'Bachillerato';
+          else key = 'Otros';
+          if (!groups[key]) groups[key] = [];
+          groups[key].push(nombre);
+        });
+        const grouped = Object.entries(groups).map(([group, options]) => ({ group, options }));
+        setCursosGrouped(grouped);
+      } catch (err) {
+        console.error(err);
+      }
     })();
   }, []);
 
