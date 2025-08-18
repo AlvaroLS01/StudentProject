@@ -95,6 +95,22 @@ app.get('/asignaturas', async (_req, res) => {
   }
 });
 
+app.get('/tarifas', async (_req, res) => {
+  try {
+    const result = await db.query(
+      `SELECT t.id_tarifa, g.nombre AS grupo, t.nombre, t.precio_tutor, t.precio_doble_tutor,
+              t.precio_profesor, t.precio_doble_profesor
+         FROM student_project.tarifa t
+         JOIN student_project.grupo g ON t.id_grupo = g.id_grupo
+         ORDER BY t.id_tarifa`
+    );
+    res.json(result.rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Error fetching tarifas' });
+  }
+});
+
 app.post('/tutor', async (req, res) => {
   const { tutor, alumno } = req.body;
   let client;
@@ -130,7 +146,9 @@ app.post('/tutor', async (req, res) => {
       id_ciudad = cityRes.rows[0].id_ciudad;
     } else {
       const insertedCity = await client.query(
-        'INSERT INTO student_project.ciudad (nombre) VALUES ($1) RETURNING id_ciudad',
+        `INSERT INTO student_project.ciudad (nombre, id_grupo)
+         VALUES ($1, (SELECT id_grupo FROM student_project.grupo WHERE nombre='A'))
+         RETURNING id_ciudad`,
         [alumno.ciudad]
       );
       id_ciudad = insertedCity.rows[0].id_ciudad;
