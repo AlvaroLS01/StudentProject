@@ -523,9 +523,10 @@ export default function NuevaClase() {
       const ofertaRes = await createOferta({
         fecha_oferta: new Date().toISOString().slice(0,10),
         disponibilidad: Array.from(selectedSlots).join(','),
-        estado: 'pendiente',
+        estado: 'sin profesor',
         numero_horas: parseInt(horasSemana, 10),
         modalidad,
+        tipo: tipoClase,
         beneficio_sp: precioPadres - precioProfesores,
         ganancia_profesor: precioProfesores,
         precio_alumno: precioPadres,
