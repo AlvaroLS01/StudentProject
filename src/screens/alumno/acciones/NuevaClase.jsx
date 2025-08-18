@@ -13,7 +13,7 @@ import {
   getDoc,
   doc
 } from 'firebase/firestore';
-import { fetchCities, fetchCursos, fetchAsignaturas } from '../../../utils/api';
+import { fetchCities, fetchCursos, fetchAsignaturas, createOferta, fetchPagos } from '../../../utils/api';
 
 // Animación fade-in
 const fadeIn = keyframes`
@@ -264,53 +264,8 @@ const ModalButton = styled.button`
   }
 `;
 
-// Datos de tarifas y listas
-const ciudadesSur = ['Sevilla', 'Huelva', 'Granada', 'Malaga', 'Valencia'];
-
 // Utilidad para obtener la fecha de hoy en formato YYYY-MM-DD
 const getToday = () => new Date().toISOString().split('T')[0];
-const priceTable = {
-  individual: {
-    A: {
-      online: {
-        Primaria:     { padres: 13,   profesores: 10   },
-        ESO:          { padres: 14.5, profesores: 11.5 },
-        BACHILLERATO: { padres: 16,   profesores: 12.5 }
-      },
-      presencial: {
-        Primaria:     { padres: 15,   profesores: 12   },
-        ESO:          { padres: 16.5, profesores: 13   },
-        BACHILLERATO: { padres: 17.5, profesores: 14   }
-      }
-    },
-    B: {
-      online: {
-        Primaria:     { padres: 11.5, profesores: 9   },
-        ESO:          { padres: 12.5, profesores: 10  },
-        BACHILLERATO: { padres: 13,   profesores: 10  }
-      },
-      presencial: {
-        Primaria:         { padres: 11.5, profesores: 9   },
-        '1º y 2º ESO':    { padres: 13,   profesores: 10  },
-        '3º y 4º ESO':    { padres: 13.5, profesores: 10.5},
-        '1º BACHILLERATO':{ padres: 14,   profesores: 11  },
-        '2º BACHILLERATO':{ padres: 14.5, profesores: 11.5}
-      }
-    }
-  },
-  doble: {
-    A: {
-      Primaria:     { padres: 24,   profesores: 15  },
-      ESO:          { padres: 27,   profesores: 18  },
-      BACHILLERATO: { padres: 29,   profesores: 20  }
-    },
-    B: {
-      Primaria:     { padres: 18.5, profesores: 12.5},
-      ESO:          { padres: 23,   profesores: 15  },
-      BACHILLERATO: { padres: 25,   profesores: 17  }
-    }
-  }
-};
 const daysOfWeek = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
 const hours = Array.from({ length: 14 }, (_, i) => 8 + i);
 
@@ -321,6 +276,7 @@ export default function NuevaClase() {
   const [tipoClase, setTipoClase]         = useState('individual');
   const [modalidad, setModalidad]         = useState('online');
   const [ciudad, setCiudad]               = useState('');
+  const [cityGroups, setCityGroups]       = useState({});
   const [zona, setZona]                   = useState('');
   const [startDate, setStartDate]         = useState(getToday());
   const [endDate, setEndDate]             = useState('');
@@ -331,6 +287,7 @@ export default function NuevaClase() {
   const [precioProfesores, setPrecioProfesores] = useState(0);
   const [asignaturasList, setAsignaturasList]   = useState([]);
   const [ciudadesList, setCiudadesList]         = useState([]);
+  const [pagoMap, setPagoMap]                   = useState({});
   const [openAsign, setOpenAsign]               = useState(false);
   const [openCurso, setOpenCurso]               = useState(false);
   const [openCity, setOpenCity]                 = useState(false);
@@ -381,13 +338,28 @@ export default function NuevaClase() {
   useEffect(() => {
     (async () => {
       try {
-        const [asigRes, cityRes, courseRes] = await Promise.all([
+        const [asigRes, cityRes, courseRes, pagoRes] = await Promise.all([
           fetchAsignaturas(),
           fetchCities(),
-          fetchCursos()
+          fetchCursos(),
+          fetchPagos()
         ]);
         setAsignaturasList(asigRes.map(a => a.nombre_asignatura || a.nombre));
+        const cityMap = {};
+        cityRes.forEach(c => {
+          cityMap[c.nombre] = c.grupo || 'A';
+        });
         setCiudadesList(cityRes.map(c => c.nombre));
+        setCityGroups(cityMap);
+        const pMap = {};
+        pagoRes.forEach(p => {
+          const g = p.grupo;
+          if (!pMap[g]) pMap[g] = {};
+          if (!pMap[g][p.curso]) pMap[g][p.curso] = {};
+          if (!pMap[g][p.curso][p.modalidad]) pMap[g][p.curso][p.modalidad] = {};
+          pMap[g][p.curso][p.modalidad][p.tipo] = p;
+        });
+        setPagoMap(pMap);
         const groups = {};
         courseRes.forEach(({ nombre }) => {
           let key;
@@ -419,36 +391,38 @@ export default function NuevaClase() {
 
   // Calcular precios
   useEffect(() => {
-    if (!curso || !ciudad) return;
-    const group = ciudadesSur.includes(ciudad) ? 'B' : 'A';
-    let base;
-    if (tipoClase === 'individual') {
-      let key;
-      if (group === 'B' && modalidad === 'presencial') {
-        if (curso.includes('Primaria')) key = 'Primaria';
-        else if (curso.includes('ESO')) {
-          const num = parseInt(curso);
-          key = num <= 2 ? '1º y 2º ESO' : '3º y 4º ESO';
-        } else {
-          key = parseInt(curso) === 1 ? '1º BACHILLERATO' : '2º BACHILLERATO';
-        }
+    if (!curso || !ciudad || !Object.keys(pagoMap).length) return;
+    const group = cityGroups[ciudad] || 'A';
+    const modKey = modalidad === 'online' ? 'Online' : 'Presencial';
+    let cKey;
+    if (curso.includes('Primaria')) cKey = 'Primaria';
+    else if (curso.includes('ESO')) {
+      if (modKey === 'Presencial' && group === 'B') {
+        if (curso.includes('1º') || curso.includes('2º')) cKey = '1º y 2º ESO';
+        else cKey = '3º y 4º ESO';
       } else {
-        if (curso.includes('Primaria')) key = 'Primaria';
-        else if (curso.includes('ESO')) key = 'ESO';
-        else key = 'BACHILLERATO';
+        cKey = 'ESO';
       }
-      base = priceTable.individual[group][modalidad][key];
+    } else if (curso.includes('Bachillerato')) {
+      if (modKey === 'Presencial' && group === 'B') {
+        if (curso.includes('1º')) cKey = '1º Bachillerato';
+        else if (curso.includes('2º')) cKey = '2º Bachillerato';
+        else cKey = 'Bachillerato';
+      } else {
+        cKey = 'Bachillerato';
+      }
     } else {
-      const nivel = curso.includes('Primaria')
-        ? 'Primaria'
-        : curso.includes('ESO')
-        ? 'ESO'
-        : 'BACHILLERATO';
-      base = priceTable.doble[group][nivel];
+      cKey = curso;
     }
-    setPrecioPadres(base.padres.toFixed(2));
-    setPrecioProfesores(base.profesores.toFixed(2));
-  }, [tipoClase, modalidad, ciudad, curso]);
+    const p = pagoMap[group]?.[cKey]?.[modKey]?.[tipoClase];
+    if (p) {
+      setPrecioPadres(parseFloat(p.precio_tutor).toFixed(2));
+      setPrecioProfesores(parseFloat(p.precio_profesor).toFixed(2));
+    } else {
+      setPrecioPadres(0);
+      setPrecioProfesores(0);
+    }
+  }, [tipoClase, modalidad, ciudad, curso, cityGroups, pagoMap]);
 
   // Toggle franjas horarias
   const toggleSlot = (day, hour) => {
@@ -546,6 +520,22 @@ export default function NuevaClase() {
     if (submitting) return;
     setSubmitting(true);
     try {
+      const ofertaRes = await createOferta({
+        fecha_oferta: new Date().toISOString().slice(0,10),
+        disponibilidad: Array.from(selectedSlots).join(','),
+        estado: 'pendiente',
+        numero_horas: parseInt(horasSemana, 10),
+        modalidad,
+        beneficio_sp: precioPadres - precioProfesores,
+        ganancia_profesor: precioProfesores,
+        precio_alumno: precioPadres,
+        precio_profesor: precioProfesores,
+        tutor_email: auth.currentUser.email,
+        alumno_nombre: alumnoNombre,
+        alumno_apellidos: alumnoApellidos,
+        asignaturas,
+      });
+
       await addDoc(collection(db,'clases'), {
         alumnoId: auth.currentUser.uid,
         alumnoNombre,
@@ -567,6 +557,7 @@ export default function NuevaClase() {
         precioProfesores,
         notas,
         estado: 'pendiente',
+        ofertaId: ofertaRes.id,
         createdAt: serverTimestamp()
       });
       resetForm();

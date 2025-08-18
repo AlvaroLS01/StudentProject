@@ -30,6 +30,11 @@ export async function fetchAsignaturas() {
   return handleResponse(res);
 }
 
+export async function fetchPagos() {
+  const res = await fetch(`${API_URL}/pagos`);
+  return handleResponse(res);
+}
+
 export async function registerTutor(data) {
   const res = await fetch(`${API_URL}/tutor`, {
     method: 'POST',
@@ -41,6 +46,24 @@ export async function registerTutor(data) {
 
 export async function registerProfesor(data) {
   const res = await fetch(`${API_URL}/profesor`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  });
+  return handleResponse(res);
+}
+
+export async function createOferta(data) {
+  const res = await fetch(`${API_URL}/oferta`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  });
+  return handleResponse(res);
+}
+
+export async function createPuja(data) {
+  const res = await fetch(`${API_URL}/puja`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data),
