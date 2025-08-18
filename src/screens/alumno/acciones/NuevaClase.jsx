@@ -264,9 +264,6 @@ const ModalButton = styled.button`
   }
 `;
 
-// Datos de tarifas y listas
-const ciudadesSur = ['Sevilla', 'Huelva', 'Granada', 'Malaga', 'Valencia'];
-
 // Utilidad para obtener la fecha de hoy en formato YYYY-MM-DD
 const getToday = () => new Date().toISOString().split('T')[0];
 const priceTable = {
@@ -321,6 +318,7 @@ export default function NuevaClase() {
   const [tipoClase, setTipoClase]         = useState('individual');
   const [modalidad, setModalidad]         = useState('online');
   const [ciudad, setCiudad]               = useState('');
+  const [cityGroups, setCityGroups]       = useState({});
   const [zona, setZona]                   = useState('');
   const [startDate, setStartDate]         = useState(getToday());
   const [endDate, setEndDate]             = useState('');
@@ -387,7 +385,12 @@ export default function NuevaClase() {
           fetchCursos()
         ]);
         setAsignaturasList(asigRes.map(a => a.nombre_asignatura || a.nombre));
+        const cityMap = {};
+        cityRes.forEach(c => {
+          cityMap[c.nombre] = c.grupo || 'A';
+        });
         setCiudadesList(cityRes.map(c => c.nombre));
+        setCityGroups(cityMap);
         const groups = {};
         courseRes.forEach(({ nombre }) => {
           let key;
@@ -420,7 +423,7 @@ export default function NuevaClase() {
   // Calcular precios
   useEffect(() => {
     if (!curso || !ciudad) return;
-    const group = ciudadesSur.includes(ciudad) ? 'B' : 'A';
+    const group = cityGroups[ciudad] || 'A';
     let base;
     if (tipoClase === 'individual') {
       let key;
@@ -448,7 +451,7 @@ export default function NuevaClase() {
     }
     setPrecioPadres(base.padres.toFixed(2));
     setPrecioProfesores(base.profesores.toFixed(2));
-  }, [tipoClase, modalidad, ciudad, curso]);
+  }, [tipoClase, modalidad, ciudad, curso, cityGroups]);
 
   // Toggle franjas horarias
   const toggleSlot = (day, hour) => {

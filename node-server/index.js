@@ -59,7 +59,10 @@ async function appendRow(sheetName, values) {
 app.get('/ciudades', async (_req, res) => {
   try {
     const result = await db.query(
-      'SELECT id_ciudad, nombre FROM student_project.ciudad ORDER BY nombre'
+      `SELECT c.id_ciudad, c.nombre, g.nombre AS grupo
+       FROM student_project.ciudad c
+       JOIN student_project.grupo g ON c.id_grupo = g.id_grupo
+       ORDER BY c.nombre`
     );
     res.json(result.rows);
   } catch (err) {

@@ -62,12 +62,27 @@ COMMENT ON TABLE student_project.curso
     IS 'Cursos de los alumnos';
 
 -- -----------------------------------------------------
+-- Table `student_project`.`grupo`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS student_project.grupo
+(
+    id_grupo serial PRIMARY KEY,
+    nombre VARCHAR(100) UNIQUE NOT NULL
+);
+
+COMMENT ON TABLE student_project.grupo
+    IS 'Grupos de ciudades para tarifas';
+
+-- -----------------------------------------------------
 -- Table `student_project`.`ciudad`
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS student_project.ciudad
 (
     id_ciudad serial NOT NULL,
-    nombre VARCHAR(100) NOT NULL,
+    nombre VARCHAR(100) UNIQUE NOT NULL,
+    id_grupo INT NOT NULL REFERENCES student_project.grupo(id_grupo)
+        ON DELETE RESTRICT
+        ON UPDATE CASCADE,
     PRIMARY KEY (id_ciudad)
 );
 
@@ -253,3 +268,21 @@ CREATE TABLE IF NOT EXISTS student_project.clase
 
 COMMENT ON TABLE student_project.clase
     IS 'Información referente a las clases.';
+
+-- -----------------------------------------------------
+-- Seed data for grupos y ciudades
+-- -----------------------------------------------------
+INSERT INTO student_project.grupo (nombre) VALUES ('A'), ('B')
+ON CONFLICT (nombre) DO NOTHING;
+
+INSERT INTO student_project.ciudad (nombre, id_grupo) VALUES
+    ('Madrid',    (SELECT id_grupo FROM student_project.grupo WHERE nombre = 'A')),
+    ('Barcelona', (SELECT id_grupo FROM student_project.grupo WHERE nombre = 'A')),
+    ('Bilbao',    (SELECT id_grupo FROM student_project.grupo WHERE nombre = 'A')),
+    ('Sevilla',   (SELECT id_grupo FROM student_project.grupo WHERE nombre = 'B')),
+    ('Cadiz',     (SELECT id_grupo FROM student_project.grupo WHERE nombre = 'B')),
+    ('Huelva',    (SELECT id_grupo FROM student_project.grupo WHERE nombre = 'B')),
+    ('Granada',   (SELECT id_grupo FROM student_project.grupo WHERE nombre = 'B')),
+    ('Malaga',    (SELECT id_grupo FROM student_project.grupo WHERE nombre = 'B')),
+    ('Valencia',  (SELECT id_grupo FROM student_project.grupo WHERE nombre = 'B'))
+ON CONFLICT (nombre) DO NOTHING;
