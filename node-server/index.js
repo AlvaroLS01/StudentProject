@@ -217,10 +217,13 @@ app.post('/profesor', async (req, res) => {
 app.post('/oferta', async (req, res) => {
   const {
     fecha_oferta,
+    fecha_inicio,
+    fecha_fin,
     disponibilidad,
     estado,
     numero_horas,
     modalidad,
+    tipo,
     beneficio_sp,
     ganancia_profesor,
     precio_alumno,
@@ -229,6 +232,7 @@ app.post('/oferta', async (req, res) => {
     alumno_nombre,
     alumno_apellidos,
     asignaturas = [],
+    anotaciones,
   } = req.body;
 
   let client;
@@ -246,17 +250,22 @@ app.post('/oferta', async (req, res) => {
     const id_alumno = aRes.rows[0].id_alumno;
 
     const result = await client.query(
-      'INSERT INTO student_project.oferta (fecha_oferta, disponibilidad, estado, numero_horas, modalidad, beneficio_sp, ganancia_profesor, precio_alumno, precio_profesor, id_alumno) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) RETURNING id_oferta',
+      'INSERT INTO student_project.oferta (fecha_oferta, fecha_inicio, fecha_fin, disponibilidad, estado, numero_horas, modalidad, tipo, beneficio_sp, ganancia_profesor, precio_alumno, precio_profesor, asignaturas_seleccionadas, anotaciones, id_alumno) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15) RETURNING id_oferta',
       [
         fecha_oferta,
+        fecha_inicio,
+        fecha_fin,
         disponibilidad,
         estado,
         numero_horas,
         modalidad,
+        tipo,
         beneficio_sp,
         ganancia_profesor,
         precio_alumno,
         precio_profesor,
+        asignaturas.join(','),
+        anotaciones || null,
         id_alumno,
       ]
     );

@@ -522,10 +522,13 @@ export default function NuevaClase() {
     try {
       const ofertaRes = await createOferta({
         fecha_oferta: new Date().toISOString().slice(0,10),
+        fecha_inicio: startDate,
+        fecha_fin: endDate,
         disponibilidad: Array.from(selectedSlots).join(','),
-        estado: 'pendiente',
+        estado: 'En búsqueda de profesor',
         numero_horas: parseInt(horasSemana, 10),
         modalidad,
+        tipo: tipoClase,
         beneficio_sp: precioPadres - precioProfesores,
         ganancia_profesor: precioProfesores,
         precio_alumno: precioPadres,
@@ -534,6 +537,7 @@ export default function NuevaClase() {
         alumno_nombre: alumnoNombre,
         alumno_apellidos: alumnoApellidos,
         asignaturas,
+        anotaciones: notas,
       });
 
       await addDoc(collection(db,'clases'), {
@@ -556,7 +560,7 @@ export default function NuevaClase() {
         precioPadres,
         precioProfesores,
         notas,
-        estado: 'pendiente',
+        estado: 'En búsqueda de profesor',
         ofertaId: ofertaRes.id,
         createdAt: serverTimestamp()
       });

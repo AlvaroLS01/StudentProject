@@ -186,18 +186,23 @@ CREATE TABLE IF NOT EXISTS student_project.oferta
 (
     id_oferta serial PRIMARY KEY,
     fecha_oferta date NOT NULL,
+    fecha_inicio date NOT NULL,
+    fecha_fin date NOT NULL,
     disponibilidad VARCHAR(100) NOT NULL,
     estado VARCHAR(100),
     numero_horas numeric NOT NULL,
     modalidad VARCHAR(100) NOT NULL,
+    tipo VARCHAR(100) NOT NULL,
     beneficio_sp numeric NOT NULL,
     ganancia_profesor numeric NOT NULL,
     precio_alumno numeric NOT NULL,
     precio_profesor numeric NOT NULL,
+    asignaturas_seleccionadas TEXT NOT NULL,
+    anotaciones TEXT,
 
-	id_alumno INT NOT NULL REFERENCES student_project.alumno(id_alumno)
+        id_alumno INT NOT NULL REFERENCES student_project.alumno(id_alumno)
     ON DELETE RESTRICT
-    ON UPDATE CASCADE	
+    ON UPDATE CASCADE
 );
 
 COMMENT ON TABLE student_project.oferta
