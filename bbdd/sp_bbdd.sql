@@ -74,24 +74,24 @@ COMMENT ON TABLE student_project.grupo
     IS 'Grupos de ciudades para tarifas';
 
 -- -----------------------------------------------------
--- Table `student_project`.`tarifa`
+-- Table `student_project`.`pago`
 -- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS student_project.tarifa
+CREATE TABLE IF NOT EXISTS student_project.pago
 (
-    id_tarifa serial PRIMARY KEY,
+    id_pago serial PRIMARY KEY,
     id_grupo INT NOT NULL REFERENCES student_project.grupo(id_grupo)
         ON DELETE RESTRICT
         ON UPDATE CASCADE,
-    nombre VARCHAR(100) NOT NULL,
+    curso VARCHAR(100) NOT NULL,
+    modalidad VARCHAR(100) NOT NULL,
+    tipo VARCHAR(100) NOT NULL,
     precio_tutor numeric NOT NULL,
-    precio_doble_tutor numeric NOT NULL,
     precio_profesor numeric NOT NULL,
-    precio_doble_profesor numeric NOT NULL,
-    CONSTRAINT tarifa_unq UNIQUE (id_grupo, nombre)
+    CONSTRAINT pago_unq UNIQUE (id_grupo, curso, modalidad, tipo)
 );
 
-COMMENT ON TABLE student_project.tarifa
-    IS 'Tarifas por curso y modalidad según grupo';
+COMMENT ON TABLE student_project.pago
+    IS 'Tarifas por curso, modalidad y tipo según grupo';
 
 -- -----------------------------------------------------
 -- Table `student_project`.`ciudad`
@@ -295,21 +295,38 @@ COMMENT ON TABLE student_project.clase
 INSERT INTO student_project.grupo (nombre) VALUES ('A'), ('B')
 ON CONFLICT (nombre) DO NOTHING;
 
-INSERT INTO student_project.tarifa (id_grupo, nombre, precio_tutor, precio_doble_tutor, precio_profesor, precio_doble_profesor) VALUES
-    ((SELECT id_grupo FROM student_project.grupo WHERE nombre = 'A'), 'Primaria Online', 13, 24, 10, 15),
-    ((SELECT id_grupo FROM student_project.grupo WHERE nombre = 'A'), 'Primaria Presencial', 15, 24, 12, 15),
-    ((SELECT id_grupo FROM student_project.grupo WHERE nombre = 'A'), 'ESO Online', 14.5, 27, 11.5, 18),
-    ((SELECT id_grupo FROM student_project.grupo WHERE nombre = 'A'), 'ESO Presencial', 16.5, 27, 13, 18),
-    ((SELECT id_grupo FROM student_project.grupo WHERE nombre = 'A'), 'Bachillerato Online', 16, 29, 12.5, 20),
-    ((SELECT id_grupo FROM student_project.grupo WHERE nombre = 'A'), 'Bachillerato Presencial', 17.5, 29, 14, 20),
-    ((SELECT id_grupo FROM student_project.grupo WHERE nombre = 'B'), 'Primaria Online', 11.5, 18.5, 9, 12.5),
-    ((SELECT id_grupo FROM student_project.grupo WHERE nombre = 'B'), 'Primaria Presencial', 11.5, 18.5, 9, 12.5),
-    ((SELECT id_grupo FROM student_project.grupo WHERE nombre = 'B'), 'ESO Online', 12.5, 23, 10, 15),
-    ((SELECT id_grupo FROM student_project.grupo WHERE nombre = 'B'), '1º y 2º ESO Presencial', 13, 23, 10, 15),
-    ((SELECT id_grupo FROM student_project.grupo WHERE nombre = 'B'), '3º y 4º ESO Presencial', 13.5, 23, 10.5, 15),
-    ((SELECT id_grupo FROM student_project.grupo WHERE nombre = 'B'), 'Bachillerato Online', 13, 25, 10, 17),
-    ((SELECT id_grupo FROM student_project.grupo WHERE nombre = 'B'), '1º Bachillerato Presencial', 14, 25, 11, 17),
-    ((SELECT id_grupo FROM student_project.grupo WHERE nombre = 'B'), '2º Bachillerato Presencial', 14.5, 25, 11.5, 17)
+INSERT INTO student_project.pago (id_grupo, curso, modalidad, tipo, precio_tutor, precio_profesor)
+VALUES
+    -- Grupo A
+    ((SELECT id_grupo FROM student_project.grupo WHERE nombre = 'A'), 'Primaria',     'Online',     'individual', 13,   10),
+    ((SELECT id_grupo FROM student_project.grupo WHERE nombre = 'A'), 'Primaria',     'Online',     'doble',      24,   15),
+    ((SELECT id_grupo FROM student_project.grupo WHERE nombre = 'A'), 'Primaria',     'Presencial', 'individual', 15,   12),
+    ((SELECT id_grupo FROM student_project.grupo WHERE nombre = 'A'), 'Primaria',     'Presencial', 'doble',      24,   15),
+    ((SELECT id_grupo FROM student_project.grupo WHERE nombre = 'A'), 'ESO',          'Online',     'individual', 14.5, 11.5),
+    ((SELECT id_grupo FROM student_project.grupo WHERE nombre = 'A'), 'ESO',          'Online',     'doble',      27,   18),
+    ((SELECT id_grupo FROM student_project.grupo WHERE nombre = 'A'), 'ESO',          'Presencial', 'individual', 16.5, 13),
+    ((SELECT id_grupo FROM student_project.grupo WHERE nombre = 'A'), 'ESO',          'Presencial', 'doble',      27,   18),
+    ((SELECT id_grupo FROM student_project.grupo WHERE nombre = 'A'), 'Bachillerato', 'Online',     'individual', 16,   12.5),
+    ((SELECT id_grupo FROM student_project.grupo WHERE nombre = 'A'), 'Bachillerato', 'Online',     'doble',      29,   20),
+    ((SELECT id_grupo FROM student_project.grupo WHERE nombre = 'A'), 'Bachillerato', 'Presencial', 'individual', 17.5, 14),
+    ((SELECT id_grupo FROM student_project.grupo WHERE nombre = 'A'), 'Bachillerato', 'Presencial', 'doble',      29,   20),
+    -- Grupo B
+    ((SELECT id_grupo FROM student_project.grupo WHERE nombre = 'B'), 'Primaria',            'Online',     'individual', 11.5, 9),
+    ((SELECT id_grupo FROM student_project.grupo WHERE nombre = 'B'), 'Primaria',            'Online',     'doble',      18.5, 12.5),
+    ((SELECT id_grupo FROM student_project.grupo WHERE nombre = 'B'), 'Primaria',            'Presencial', 'individual', 11.5, 9),
+    ((SELECT id_grupo FROM student_project.grupo WHERE nombre = 'B'), 'Primaria',            'Presencial', 'doble',      18.5, 12.5),
+    ((SELECT id_grupo FROM student_project.grupo WHERE nombre = 'B'), 'ESO',                 'Online',     'individual', 12.5, 10),
+    ((SELECT id_grupo FROM student_project.grupo WHERE nombre = 'B'), 'ESO',                 'Online',     'doble',      23,   15),
+    ((SELECT id_grupo FROM student_project.grupo WHERE nombre = 'B'), '1º y 2º ESO',         'Presencial', 'individual', 13,   10),
+    ((SELECT id_grupo FROM student_project.grupo WHERE nombre = 'B'), '1º y 2º ESO',         'Presencial', 'doble',      23,   15),
+    ((SELECT id_grupo FROM student_project.grupo WHERE nombre = 'B'), '3º y 4º ESO',         'Presencial', 'individual', 13.5, 10.5),
+    ((SELECT id_grupo FROM student_project.grupo WHERE nombre = 'B'), '3º y 4º ESO',         'Presencial', 'doble',      23,   15),
+    ((SELECT id_grupo FROM student_project.grupo WHERE nombre = 'B'), 'Bachillerato',        'Online',     'individual', 13,   10),
+    ((SELECT id_grupo FROM student_project.grupo WHERE nombre = 'B'), 'Bachillerato',        'Online',     'doble',      25,   17),
+    ((SELECT id_grupo FROM student_project.grupo WHERE nombre = 'B'), '1º Bachillerato',     'Presencial', 'individual', 14,   11),
+    ((SELECT id_grupo FROM student_project.grupo WHERE nombre = 'B'), '1º Bachillerato',     'Presencial', 'doble',      25,   17),
+    ((SELECT id_grupo FROM student_project.grupo WHERE nombre = 'B'), '2º Bachillerato',     'Presencial', 'individual', 14.5, 11.5),
+    ((SELECT id_grupo FROM student_project.grupo WHERE nombre = 'B'), '2º Bachillerato',     'Presencial', 'doble',      25,   17)
 ON CONFLICT DO NOTHING;
 
 INSERT INTO student_project.ciudad (nombre, id_grupo) VALUES

@@ -13,7 +13,7 @@ import {
   getDoc,
   doc
 } from 'firebase/firestore';
-import { fetchCities, fetchCursos, fetchAsignaturas, createOferta, fetchTarifas } from '../../../utils/api';
+import { fetchCities, fetchCursos, fetchAsignaturas, createOferta, fetchPagos } from '../../../utils/api';
 
 // Animación fade-in
 const fadeIn = keyframes`
@@ -287,7 +287,7 @@ export default function NuevaClase() {
   const [precioProfesores, setPrecioProfesores] = useState(0);
   const [asignaturasList, setAsignaturasList]   = useState([]);
   const [ciudadesList, setCiudadesList]         = useState([]);
-  const [tarifaMap, setTarifaMap]               = useState({});
+  const [pagoMap, setPagoMap]                   = useState({});
   const [openAsign, setOpenAsign]               = useState(false);
   const [openCurso, setOpenCurso]               = useState(false);
   const [openCity, setOpenCity]                 = useState(false);
@@ -338,11 +338,11 @@ export default function NuevaClase() {
   useEffect(() => {
     (async () => {
       try {
-        const [asigRes, cityRes, courseRes, tarifaRes] = await Promise.all([
+        const [asigRes, cityRes, courseRes, pagoRes] = await Promise.all([
           fetchAsignaturas(),
           fetchCities(),
           fetchCursos(),
-          fetchTarifas()
+          fetchPagos()
         ]);
         setAsignaturasList(asigRes.map(a => a.nombre_asignatura || a.nombre));
         const cityMap = {};
@@ -351,13 +351,15 @@ export default function NuevaClase() {
         });
         setCiudadesList(cityRes.map(c => c.nombre));
         setCityGroups(cityMap);
-        const tMap = {};
-        tarifaRes.forEach(t => {
-          const g = t.grupo;
-          if (!tMap[g]) tMap[g] = {};
-          tMap[g][t.nombre] = t;
+        const pMap = {};
+        pagoRes.forEach(p => {
+          const g = p.grupo;
+          if (!pMap[g]) pMap[g] = {};
+          if (!pMap[g][p.curso]) pMap[g][p.curso] = {};
+          if (!pMap[g][p.curso][p.modalidad]) pMap[g][p.curso][p.modalidad] = {};
+          pMap[g][p.curso][p.modalidad][p.tipo] = p;
         });
-        setTarifaMap(tMap);
+        setPagoMap(pMap);
         const groups = {};
         courseRes.forEach(({ nombre }) => {
           let key;
@@ -389,44 +391,38 @@ export default function NuevaClase() {
 
   // Calcular precios
   useEffect(() => {
-    if (!curso || !ciudad || !Object.keys(tarifaMap).length) return;
+    if (!curso || !ciudad || !Object.keys(pagoMap).length) return;
     const group = cityGroups[ciudad] || 'A';
-    let nombre;
-    if (modalidad === 'online') {
-      if (curso.includes('Primaria')) nombre = 'Primaria Online';
-      else if (curso.includes('ESO')) nombre = 'ESO Online';
-      else nombre = 'Bachillerato Online';
-    } else {
-      if (group === 'B') {
-        if (curso.includes('Primaria')) nombre = 'Primaria Presencial';
-        else if (curso.includes('ESO')) {
-          if (curso.includes('1º') || curso.includes('2º')) nombre = '1º y 2º ESO Presencial';
-          else nombre = '3º y 4º ESO Presencial';
-        } else {
-          if (curso.includes('1º')) nombre = '1º Bachillerato Presencial';
-          else nombre = '2º Bachillerato Presencial';
-        }
+    const modKey = modalidad === 'online' ? 'Online' : 'Presencial';
+    let cKey;
+    if (curso.includes('Primaria')) cKey = 'Primaria';
+    else if (curso.includes('ESO')) {
+      if (modKey === 'Presencial' && group === 'B') {
+        if (curso.includes('1º') || curso.includes('2º')) cKey = '1º y 2º ESO';
+        else cKey = '3º y 4º ESO';
       } else {
-        if (curso.includes('Primaria')) nombre = 'Primaria Presencial';
-        else if (curso.includes('ESO')) nombre = 'ESO Presencial';
-        else nombre = 'Bachillerato Presencial';
+        cKey = 'ESO';
       }
+    } else if (curso.includes('Bachillerato')) {
+      if (modKey === 'Presencial' && group === 'B') {
+        if (curso.includes('1º')) cKey = '1º Bachillerato';
+        else if (curso.includes('2º')) cKey = '2º Bachillerato';
+        else cKey = 'Bachillerato';
+      } else {
+        cKey = 'Bachillerato';
+      }
+    } else {
+      cKey = curso;
     }
-    const t = tarifaMap[group] && tarifaMap[group][nombre];
-    if (t) {
-      const pad = tipoClase === 'individual'
-        ? parseFloat(t.precio_tutor)
-        : parseFloat(t.precio_doble_tutor);
-      const prof = tipoClase === 'individual'
-        ? parseFloat(t.precio_profesor)
-        : parseFloat(t.precio_doble_profesor);
-      setPrecioPadres(pad.toFixed(2));
-      setPrecioProfesores(prof.toFixed(2));
+    const p = pagoMap[group]?.[cKey]?.[modKey]?.[tipoClase];
+    if (p) {
+      setPrecioPadres(parseFloat(p.precio_tutor).toFixed(2));
+      setPrecioProfesores(parseFloat(p.precio_profesor).toFixed(2));
     } else {
       setPrecioPadres(0);
       setPrecioProfesores(0);
     }
-  }, [tipoClase, modalidad, ciudad, curso, cityGroups, tarifaMap]);
+  }, [tipoClase, modalidad, ciudad, curso, cityGroups, pagoMap]);
 
   // Toggle franjas horarias
   const toggleSlot = (day, hour) => {

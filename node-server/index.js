@@ -95,19 +95,19 @@ app.get('/asignaturas', async (_req, res) => {
   }
 });
 
-app.get('/tarifas', async (_req, res) => {
+app.get('/pagos', async (_req, res) => {
   try {
     const result = await db.query(
-      `SELECT t.id_tarifa, g.nombre AS grupo, t.nombre, t.precio_tutor, t.precio_doble_tutor,
-              t.precio_profesor, t.precio_doble_profesor
-         FROM student_project.tarifa t
-         JOIN student_project.grupo g ON t.id_grupo = g.id_grupo
-         ORDER BY t.id_tarifa`
+      `SELECT p.id_pago, g.nombre AS grupo, p.curso, p.modalidad, p.tipo,
+              p.precio_tutor, p.precio_profesor
+         FROM student_project.pago p
+         JOIN student_project.grupo g ON p.id_grupo = g.id_grupo
+         ORDER BY p.id_pago`
     );
     res.json(result.rows);
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: 'Error fetching tarifas' });
+    res.status(500).json({ error: 'Error fetching pagos' });
   }
 });
 

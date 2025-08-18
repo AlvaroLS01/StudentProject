@@ -30,8 +30,8 @@ export async function fetchAsignaturas() {
   return handleResponse(res);
 }
 
-export async function fetchTarifas() {
-  const res = await fetch(`${API_URL}/tarifas`);
+export async function fetchPagos() {
+  const res = await fetch(`${API_URL}/pagos`);
   return handleResponse(res);
 }
 
