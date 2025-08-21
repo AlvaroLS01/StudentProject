@@ -52,7 +52,7 @@ export const ModalText = styled.p`
 
 export const ModalActions = styled.div`
   display: flex;
-  justify-content: flex-end;
+  justify-content: center;
   gap: 1rem;
   margin-top: 1.5rem;
 `;

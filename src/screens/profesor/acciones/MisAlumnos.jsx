@@ -247,13 +247,13 @@ const Select = styled.select`
 
 const ModalActions = styled.div`
   display: flex;
-  justify-content: space-around;
+  justify-content: center;
+  gap: 1rem;
   padding: 0.75rem 1rem;
   border-top: 1px solid #eee;
 `;
 
 const ModalButton = styled.button`
-  flex: 1;
   padding: 0.75rem;
   border: none;
   border-radius: 6px;
