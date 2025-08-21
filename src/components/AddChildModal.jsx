@@ -84,7 +84,7 @@ export default function AddChildModal({ open, onClose }) {
         id: Date.now().toString(),
         nombre: name,
         apellidos: lastName,
-        genero,
+        genero: gender,
         fechaNacimiento: date,
         curso: courseName,
         telefono: phone,
@@ -93,7 +93,7 @@ export default function AddChildModal({ open, onClose }) {
         distrito: district,
         barrio,
         codigo_postal: postalCode,
-        ciudad,
+        ciudad: city,
         photoURL: userData?.photoURL || auth.currentUser.photoURL || ''
       };
       const nuevos = [...childList, nuevo];
