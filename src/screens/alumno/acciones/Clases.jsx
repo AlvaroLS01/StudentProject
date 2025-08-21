@@ -5,6 +5,7 @@ import { useSearchParams, Link } from 'react-router-dom';
 import { useChild } from '../../../ChildContext';
 import Card from '../../../components/CommonCard';
 import InfoGrid from '../../../components/InfoGrid';
+import ProgressBar from '../../../components/ProgressBar';
 import Tabs from "../../../components/Tabs";
 import { auth, db } from '../../../firebase/firebaseConfig';
 import {
@@ -131,6 +132,18 @@ const RejectButton = styled.button`
     cursor: not-allowed;
   }
 `;
+
+const getProgressData = s => {
+  if (s.estado === 'pendiente') {
+    return s.offers === 0
+      ? { percent: 33.3, color: '#e53e3e', label: 'En búsqueda de profesor' }
+      : { percent: 66.6, color: '#dd6b20', label: 'En selección de profesor' };
+  }
+  if (s.estado === 'en_proceso') {
+    return { percent: 100, color: '#3182ce', label: 'Esperando respuesta del profesor' };
+  }
+  return { percent: 0, color: '#38a169', label: 'Profesor asignado' };
+};
 
 export default function Clases() {
   const { selectedChild } = useChild();
@@ -507,14 +520,7 @@ export default function Clases() {
               </Card>
             ))}
             {solicitudes.map(s => {
-              let estado;
-              if (s.estado === 'pendiente') {
-                estado = s.offers === 0 ? 'En búsqueda de profesor' : 'En selección de profesor';
-              } else if (s.estado === 'en_proceso') {
-                estado = 'Esperando respuesta del profesor';
-              } else {
-                estado = 'Profesor asignado';
-              }
+              const { percent, color, label } = getProgressData(s);
               return (
                 <Card key={s.id}>
                   <InfoGrid>
@@ -534,12 +540,15 @@ export default function Clases() {
                       <Label>Horas/semana:</Label> <Value>{s.horasSemana}</Value>
                     </div>
                     <div>
-                      <Label>Estado:</Label> <Value>{estado}</Value>
+                      <Label>Estado:</Label> <Value>{label}</Value>
                     </div>
                   </InfoGrid>
+                  {label !== 'Profesor asignado' && (
+                    <ProgressBar percent={percent} color={color} label={label} />
+                  )}
                 </Card>
               );
-              })}
+            })}
               </>
             )
           )}
