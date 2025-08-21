@@ -244,7 +244,6 @@ export default function NuevaClase() {
   const [modalidad, setModalidad]         = useState('online');
   const [ciudad, setCiudad]               = useState('');
   const [cityGroups, setCityGroups]       = useState({});
-  const [zona, setZona]                   = useState('');
   const [startDate, setStartDate]         = useState(getToday());
   const [endDate, setEndDate]             = useState('');
   const [noEndDate, setNoEndDate]         = useState(false);
@@ -487,6 +486,7 @@ export default function NuevaClase() {
     if (submitting) return;
     setSubmitting(true);
     try {
+      const modalidadStore = modalidad === 'presencial' ? 'Presencial' : 'Online';
       const ofertaRes = await createOferta({
         fecha_oferta: new Date().toISOString().slice(0,10),
         fecha_inicio: startDate,
@@ -494,7 +494,7 @@ export default function NuevaClase() {
         disponibilidad: Array.from(selectedSlots).join(','),
         estado: 'pendiente',
         numero_horas: parseInt(horasSemana, 10),
-        modalidad,
+        modalidad: modalidadStore,
         tipo: tipoClase,
         beneficio_sp: precioPadres - precioProfesores,
         ganancia_profesor: precioProfesores,
@@ -517,9 +517,8 @@ export default function NuevaClase() {
         asignaturas,
         curso,
         tipoClase,
-        modalidad,
+        modalidad: modalidadStore,
         ciudad,
-        zona: modalidad === 'presencial' ? zona : null,
         fechaInicio: startDate,
         fechaFin: endDate,
         horasSemana: parseInt(horasSemana, 10),
@@ -665,7 +664,10 @@ export default function NuevaClase() {
                   name="modalidad"
                   value="presencial"
                   checked={modalidad === 'presencial'}
-                  onChange={e => setModalidad(e.target.value)}
+                  onChange={e => {
+                    setModalidad(e.target.value);
+                    alert('Si se elige presencial, la dirección usada será la del alumno');
+                  }}
                 /> Presencial
               </label>
             </div>
@@ -693,17 +695,7 @@ export default function NuevaClase() {
             </DropdownContainer>
           </Field>
 
-          {/* Zona / Barrio */}
-          {modalidad === 'presencial' && (
-            <Field>
-              <label>Zona / Barrio</label>
-              <input className="form-control"
-                value={zona}
-                onChange={e => setZona(e.target.value)}
-                placeholder="Centro, Norte..."
-              />
-            </Field>
-          )}
+          {/* Zona / Barrio eliminado para modalidad presencial */}
 
           {/* Fecha de inicio y fecha de fin por día */}
           <Field ref={datesRef} error={errors.fechas} style={{ gridColumn: '1 / -1' }}>
