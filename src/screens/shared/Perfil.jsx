@@ -617,24 +617,27 @@ export default function Perfil() {
                   <InfoGrid>
                     {profile.telefono && (
                       <div>
-                        <Label>Teléfono:</Label> <Value>{profile.telefono}</Value>
+                        <Label>Teléfono</Label>
+                        <Value>{profile.telefono}</Value>
                       </div>
                     )}
                     {profile.ciudad && (
                       <div>
-                        <Label>Ciudad:</Label> <Value>{profile.ciudad}</Value>
+                        <Label>Ciudad</Label>
+                        <Value>{profile.ciudad}</Value>
                       </div>
                     )}
                     {role === 'profesor' && profile.studies && (
                       <div>
-                        <Label>Estudios:</Label> <Value>{profile.studies}</Value>
+                        <Label>Estudios</Label>
+                        <Value>{profile.studies}</Value>
                       </div>
                     )}
                     {role === 'profesor' &&
                       profile.studyTime &&
                       profile.status !== 'trabaja' && (
                         <div>
-                          <Label>Tiempo estudiando:</Label>{' '}
+                          <Label>Tiempo estudiando</Label>
                           <Value>{profile.studyTime}</Value>
                         </div>
                       )}
@@ -642,7 +645,7 @@ export default function Perfil() {
                       profile.careerFinished !== undefined &&
                       profile.careerFinished !== null && (
                         <div>
-                          <Label>Carrera finalizada:</Label>{' '}
+                          <Label>Carrera finalizada</Label>
                           <Value>{profile.careerFinished ? 'Sí' : 'No'}</Value>
                         </div>
                       )}
@@ -650,12 +653,13 @@ export default function Perfil() {
                       profile.job &&
                       profile.status === 'trabaja' && (
                         <div>
-                          <Label>Trabajo:</Label> <Value>{profile.job}</Value>
+                          <Label>Trabajo</Label>
+                          <Value>{profile.job}</Value>
                         </div>
                       )}
                     {role === 'profesor' && profile.status && (
                       <div>
-                        <Label>Situación:</Label>{' '}
+                        <Label>Situación</Label>
                         <Value>
                           {profile.status === 'estudia' ? 'Estudia' : 'Trabaja'}
                         </Value>
@@ -663,7 +667,8 @@ export default function Perfil() {
                     )}
                     {role === 'profesor' && profile.iban && (
                       <div>
-                        <Label>IBAN:</Label> <Value>{profile.iban}</Value>
+                        <Label>IBAN</Label>
+                        <Value>{profile.iban}</Value>
                       </div>
                     )}
                   </InfoGrid>
