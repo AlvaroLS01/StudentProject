@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import styled from 'styled-components';
 import Card from '../../../components/CommonCard';
 import InfoGrid from '../../../components/InfoGrid';
@@ -92,7 +92,23 @@ export default function MisOfertas() {
     })();
   }, []);
 
-  const statusInfo = offer => {
+  const alertMap = useMemo(() => {
+    const map = new Map();
+    assignments.forEach(a => map.set(a.offerId, a));
+    return map;
+  }, [assignments]);
+
+  const merged = useMemo(
+    () => offers.map(o => ({ ...o, alert: alertMap.get(o.id) })),
+    [offers, alertMap]
+  );
+
+  const statusInfo = (offer, alert) => {
+    if (alert) {
+      if (alert.estado === 'espera_profesor') return { text: 'Pendiente tu aceptación', color: '#d69e2e' };
+      if (alert.estado === 'espera_alumno') return { text: 'Esperando al alumno', color: '#2f855a' };
+    }
+    if (offer.estado === 'cancelada') return { text: 'Cancelada', color: '#e53e3e' };
     if (offer.estado === 'aceptada') return { text: 'Oferta aceptada', color: '#2f855a' };
     if (offer.classEstado === 'aceptada') return { text: 'No seleccionada', color: '#718096' };
     return { text: 'Pendiente', color: '#d69e2e' };
@@ -115,6 +131,7 @@ export default function MisOfertas() {
     try {
       await rejectPendingClass(rec.id);
       setAssignments(as => as.filter(a => a.id !== rec.id));
+      setOffers(os => os.map(o => o.id === rec.offerId ? { ...o, estado: 'cancelada' } : o));
     } finally {
       setProcessing(prev => { const s = new Set(prev); s.delete(rec.id); return s; });
     }
@@ -124,32 +141,24 @@ export default function MisOfertas() {
 
   return (
     <div>
-      {assignments.map(a => (
-        <Card key={a.id}>
-          <InfoGrid>
-            <div><strong>Alumno:</strong> {a.alumnoNombre}</div>
-            <div><strong>Asignaturas:</strong> {a.classInfo?.asignaturas ? a.classInfo.asignaturas.join(', ') : a.classInfo?.asignatura}</div>
-            <div><strong>Estado:</strong> {a.estado === 'espera_profesor' ? 'Pendiente tu aceptación' : 'Esperando al alumno'}</div>
-          </InfoGrid>
-          {a.estado === 'espera_profesor' && (
-            <div>
-              <Button onClick={() => handleAccept(a)} disabled={processing.has(a.id)}>Aceptar</Button>{' '}
-              <CancelButton onClick={() => handleCancel(a)} disabled={processing.has(a.id)}>Cancelar</CancelButton>
-            </div>
-          )}
-        </Card>
-      ))}
-      {offers.length === 0 ? (
+      {merged.length === 0 ? (
         <p>No has enviado ofertas.</p>
       ) : (
-        offers.map(o => {
-          const { text, color } = statusInfo(o);
+        merged.map(o => {
+          const alert = o.alert;
+          const { text, color } = statusInfo(o, alert);
           return (
             <Card key={o.id}>
+              {alert && alert.estado === 'espera_profesor' && (
+                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.5rem', marginBottom: '0.5rem' }}>
+                  <Button onClick={() => handleAccept(alert)} disabled={processing.has(alert.id)}>Aceptar</Button>
+                  <CancelButton onClick={() => handleCancel(alert)} disabled={processing.has(alert.id)}>Cancelar</CancelButton>
+                </div>
+              )}
               <InfoGrid>
-                <div><strong>Alumno:</strong> {o.alumnoNombre || '-'}</div>
-                <div><strong>Asignaturas:</strong> {o.asignaturas ? o.asignaturas.join(', ') : o.asignatura}</div>
-                <div><strong>Precio ofertado:</strong> €{o.precio}</div>
+                <div><strong>Alumno:</strong> {o.alumnoNombre || alert?.alumnoNombre || '-'}</div>
+                <div><strong>Asignaturas:</strong> {o.asignaturas ? o.asignaturas.join(', ') : o.asignatura || alert?.classInfo?.asignaturas?.join(', ') || alert?.classInfo?.asignatura}</div>
+                {o.precio && (<div><strong>Precio ofertado:</strong> €{o.precio}</div>)}
                 <div><strong>Estado:</strong> <StatusText color={color}>{text}</StatusText></div>
               </InfoGrid>
             </Card>
