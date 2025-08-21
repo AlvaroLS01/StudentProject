@@ -547,127 +547,136 @@ export default function Perfil() {
             )}
           </PhotoWrapper>
           <div>
-            <p>{profile.email}</p>
-            {isEditing ? (
-              <>
-                <InlineInput
-                  value={formData.ciudad}
-                  onChange={e =>
-                    setFormData({ ...formData, ciudad: e.target.value })
-                  }
-                  placeholder="Ciudad"
-                />
-                {role === 'profesor' && (
-                  <>
-                    <SelectInput
-                      value={formData.status}
-                      onChange={e =>
-                        setFormData({ ...formData, status: e.target.value })
-                      }
-                    >
-                      <option value="">Estudias o trabajas</option>
-                      <option value="estudia">Estudio</option>
-                      <option value="trabaja">Trabajo</option>
-                    </SelectInput>
-                    <InlineInput
-                      value={formData.studies}
-                      onChange={e =>
-                        setFormData({ ...formData, studies: e.target.value })
-                      }
-                      placeholder="Estudios"
-                    />
-                    <InlineInput
-                      value={formData.studyTime}
-                      onChange={e =>
-                        setFormData({ ...formData, studyTime: e.target.value })
-                      }
-                      placeholder="Tiempo estudiando"
-                    />
-                    <label style={{ display: 'block', marginTop: '0.5rem' }}>
-                      <input className="form-control"
-                        type="checkbox"
-                        checked={formData.careerFinished}
+            {isOwnProfile && <p>{profile.email}</p>}
+            {isOwnProfile && (
+              isEditing ? (
+                <>
+                  <InlineInput
+                    value={formData.ciudad}
+                    onChange={e =>
+                      setFormData({ ...formData, ciudad: e.target.value })
+                    }
+                    placeholder="Ciudad"
+                  />
+                  {role === 'profesor' && (
+                    <>
+                      <SelectInput
+                        value={formData.status}
                         onChange={e =>
-                          setFormData({ ...formData, careerFinished: e.target.checked })
+                          setFormData({ ...formData, status: e.target.value })
                         }
-                      />{' '}Carrera finalizada
-                    </label>
-                    <InlineInput
-                      value={formData.job}
-                      onChange={e =>
-                        setFormData({ ...formData, job: e.target.value })
-                      }
-                      placeholder="Trabajo"
-                    />
-                    <InlineInput
-                      value={formData.iban}
-                      onChange={e =>
-                        setFormData({ ...formData, iban: e.target.value })
-                      }
-                      placeholder="IBAN o cuenta"
-                    />
-                  </>
-                )}
-                <EditButton onClick={handleSave}>Guardar</EditButton>
-              </>
-            ) : (
-              <>
-                <InfoGrid>
-                  {profile.telefono && (
-                    <div>
-                      <Label>Teléfono:</Label> <Value>{profile.telefono}</Value>
-                    </div>
+                      >
+                        <option value="">Estudias o trabajas</option>
+                        <option value="estudia">Estudio</option>
+                        <option value="trabaja">Trabajo</option>
+                      </SelectInput>
+                      <InlineInput
+                        value={formData.studies}
+                        onChange={e =>
+                          setFormData({ ...formData, studies: e.target.value })
+                        }
+                        placeholder="Estudios"
+                      />
+                      <InlineInput
+                        value={formData.studyTime}
+                        onChange={e =>
+                          setFormData({ ...formData, studyTime: e.target.value })
+                        }
+                        placeholder="Tiempo estudiando"
+                      />
+                      <label style={{ display: 'block', marginTop: '0.5rem' }}>
+                        <input
+                          className="form-control"
+                          type="checkbox"
+                          checked={formData.careerFinished}
+                          onChange={e =>
+                            setFormData({ ...formData, careerFinished: e.target.checked })
+                          }
+                        />{' '}Carrera finalizada
+                      </label>
+                      <InlineInput
+                        value={formData.job}
+                        onChange={e =>
+                          setFormData({ ...formData, job: e.target.value })
+                        }
+                        placeholder="Trabajo"
+                      />
+                      <InlineInput
+                        value={formData.iban}
+                        onChange={e =>
+                          setFormData({ ...formData, iban: e.target.value })
+                        }
+                        placeholder="IBAN o cuenta"
+                      />
+                    </>
                   )}
-                  {profile.ciudad && (
-                    <div>
-                      <Label>Ciudad:</Label> <Value>{profile.ciudad}</Value>
-                    </div>
-                  )}
-                  {role === 'profesor' && profile.studies && (
-                    <div>
-                      <Label>Estudios:</Label> <Value>{profile.studies}</Value>
-                    </div>
-                  )}
-                  {role === 'profesor' && profile.studyTime && profile.status !== 'trabaja' && (
-                    <div>
-                      <Label>Tiempo estudiando:</Label>{' '}
-                      <Value>{profile.studyTime}</Value>
-                    </div>
-                  )}
-                  {role === 'profesor' && profile.careerFinished !== undefined && profile.careerFinished !== null && (
-                    <div>
-                      <Label>Carrera finalizada:</Label>{' '}
-                      <Value>{profile.careerFinished ? 'Sí' : 'No'}</Value>
-                    </div>
-                  )}
-                  {role === 'profesor' && profile.job && profile.status === 'trabaja' && (
-                    <div>
-                      <Label>Trabajo:</Label> <Value>{profile.job}</Value>
-                    </div>
-                  )}
-                  {role === 'profesor' && profile.status && (
-                    <div>
-                      <Label>Situación:</Label>{' '}
-                      <Value>{profile.status === 'estudia' ? 'Estudia' : 'Trabaja'}</Value>
-                    </div>
-                  )}
-                  {role === 'profesor' && profile.iban && (
-                    <div>
-                      <Label>IBAN:</Label> <Value>{profile.iban}</Value>
-                    </div>
-                  )}
-                </InfoGrid>
-                {isOwnProfile && (
+                  <EditButton onClick={handleSave}>Guardar</EditButton>
+                </>
+              ) : (
+                <>
+                  <InfoGrid>
+                    {profile.telefono && (
+                      <div>
+                        <Label>Teléfono:</Label> <Value>{profile.telefono}</Value>
+                      </div>
+                    )}
+                    {profile.ciudad && (
+                      <div>
+                        <Label>Ciudad:</Label> <Value>{profile.ciudad}</Value>
+                      </div>
+                    )}
+                    {role === 'profesor' && profile.studies && (
+                      <div>
+                        <Label>Estudios:</Label> <Value>{profile.studies}</Value>
+                      </div>
+                    )}
+                    {role === 'profesor' &&
+                      profile.studyTime &&
+                      profile.status !== 'trabaja' && (
+                        <div>
+                          <Label>Tiempo estudiando:</Label>{' '}
+                          <Value>{profile.studyTime}</Value>
+                        </div>
+                      )}
+                    {role === 'profesor' &&
+                      profile.careerFinished !== undefined &&
+                      profile.careerFinished !== null && (
+                        <div>
+                          <Label>Carrera finalizada:</Label>{' '}
+                          <Value>{profile.careerFinished ? 'Sí' : 'No'}</Value>
+                        </div>
+                      )}
+                    {role === 'profesor' &&
+                      profile.job &&
+                      profile.status === 'trabaja' && (
+                        <div>
+                          <Label>Trabajo:</Label> <Value>{profile.job}</Value>
+                        </div>
+                      )}
+                    {role === 'profesor' && profile.status && (
+                      <div>
+                        <Label>Situación:</Label>{' '}
+                        <Value>
+                          {profile.status === 'estudia' ? 'Estudia' : 'Trabaja'}
+                        </Value>
+                      </div>
+                    )}
+                    {role === 'profesor' && profile.iban && (
+                      <div>
+                        <Label>IBAN:</Label> <Value>{profile.iban}</Value>
+                      </div>
+                    )}
+                  </InfoGrid>
                   <EditButton onClick={() => setIsEditing(true)}>
                     Editar datos
                   </EditButton>
-                )}
-              </>
+                </>
+              )
             )}
           </div>
         </ProfileHeader>
 
-        {profile.rol === 'tutor' && (
+        {profile.rol === 'tutor' && isOwnProfile && (
           <Section>
             <h2 style={{ textAlign: 'center', color: '#024837' }}>Alumnos</h2>
             {(profile.alumnos || []).length === 0 ? (
