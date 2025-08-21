@@ -1,11 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import styled, { keyframes } from 'styled-components';
-import { TextInput, PrimaryButton, DangerButton } from '../../../components/FormElements';
+import { TextInput, SelectInput, PrimaryButton, DangerButton } from '../../../components/FormElements';
 import { auth, db } from '../../../firebase/firebaseConfig';
 import { doc, updateDoc } from 'firebase/firestore';
 import { useChild } from '../../../ChildContext';
 import { useAuth } from '../../../AuthContext';
 import { Overlay, Modal, ModalText, ModalActions, ModalButton } from '../../../components/ModalStyles';
+import { fetchCursos, registerAlumno } from '../../../utils/api';
 
 const fadeIn = keyframes`
   from { opacity: 0; transform: translateY(-10px); }
@@ -57,35 +58,112 @@ const Img = styled.img`
 const Form = styled.div`
   margin-top: 2rem;
   background: #fff;
-  padding: 1rem;
+  padding: 1.5rem;
   border-radius: 8px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1rem;
 `;
 
 
 export default function MisAlumnos() {
   const { childList, setChildList, setSelectedChild } = useChild();
   const { userData } = useAuth();
-  const [nombre, setNombre] = useState('');
-  const [fecha, setFecha] = useState('');
+  const [name, setName] = useState('');
+  const [lastName, setLastName] = useState('');
+  const [gender, setGender] = useState('');
+  const [date, setDate] = useState('');
+  const [courseId, setCourseId] = useState('');
+  const [courses, setCourses] = useState([]);
+  const [phone, setPhone] = useState('');
+  const [phoneConfirm, setPhoneConfirm] = useState('');
+  const [nif, setNif] = useState('');
+  const [address, setAddress] = useState('');
+  const [district, setDistrict] = useState('');
+  const [city, setCity] = useState('');
+  const [barrio, setBarrio] = useState('');
+  const [postalCode, setPostalCode] = useState('');
   const [saving, setSaving] = useState(false);
   const [childToDelete, setChildToDelete] = useState(null);
 
+  useEffect(() => {
+    fetchCursos().then(setCourses).catch(console.error);
+  }, []);
+
   const addChild = async () => {
-    if (!nombre || !fecha || saving) return;
+    if (
+      !name ||
+      !lastName ||
+      !gender ||
+      !date ||
+      !courseId ||
+      !phone ||
+      phone !== phoneConfirm ||
+      !nif ||
+      !address ||
+      !district ||
+      !city ||
+      saving
+    ) return;
     setSaving(true);
-    const nuevo = {
-      id: Date.now().toString(),
-      nombre,
-      fechaNacimiento: fecha,
-      photoURL: userData?.photoURL || auth.currentUser.photoURL || ''
-    };
-    const nuevos = [...childList, nuevo];
-    await updateDoc(doc(db, 'usuarios', auth.currentUser.uid), { alumnos: nuevos });
-    setChildList(nuevos.filter(c => !c.disabled));
-    setSelectedChild(nuevo);
-    setNombre('');
-    setFecha('');
-    setSaving(false);
+    try {
+      await registerAlumno({
+        tutor_email: userData?.email || auth.currentUser.email,
+        alumno: {
+          nombre: name,
+          apellidos: lastName,
+          direccion: address,
+          NIF: nif,
+          telefono: phone,
+          telefonoConfirm: phoneConfirm,
+          genero: gender,
+          id_curso: courseId,
+          distrito: district,
+          barrio,
+          codigo_postal: postalCode,
+          ciudad: city,
+        }
+      });
+
+      const courseName = courses.find(c => c.id_curso === parseInt(courseId))?.curso || '';
+      const nuevo = {
+        id: Date.now().toString(),
+        nombre: name,
+        apellidos: lastName,
+        genero: gender,
+        fechaNacimiento: date,
+        curso: courseName,
+        telefono: phone,
+        NIF: nif,
+        direccion: address,
+        distrito: district,
+        barrio,
+        codigo_postal: postalCode,
+        ciudad: city,
+        photoURL: userData?.photoURL || auth.currentUser.photoURL || ''
+      };
+      const nuevos = [...childList, nuevo];
+      await updateDoc(doc(db, 'usuarios', auth.currentUser.uid), { alumnos: nuevos });
+      setChildList(nuevos.filter(c => !c.disabled));
+      setSelectedChild(nuevo);
+      setName('');
+      setLastName('');
+      setGender('');
+      setDate('');
+      setCourseId('');
+      setPhone('');
+      setPhoneConfirm('');
+      setNif('');
+      setAddress('');
+      setDistrict('');
+      setCity('');
+      setBarrio('');
+      setPostalCode('');
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setSaving(false);
+    }
   };
 
   const removeChild = async child => {
@@ -101,7 +179,7 @@ export default function MisAlumnos() {
   return (
     <Page>
       <Container>
-        <Title>Mis alumnos</Title>
+        <Title>Alumnos</Title>
         <List>
           {childList.map(c => (
             <Item key={c.id}>
@@ -128,23 +206,91 @@ export default function MisAlumnos() {
         </List>
 
         <Form>
-          <h3>Añadir nuevo alumno</h3>
-          <div>
-            <TextInput
-              type="text"
-              placeholder="Nombre"
-              value={nombre}
-              onChange={e => setNombre(e.target.value)}
-            />
-          </div>
-          <div>
-            <TextInput
-              type="date"
-              value={fecha}
-              onChange={e => setFecha(e.target.value)}
-            />
-          </div>
-          <PrimaryButton onClick={addChild} disabled={saving}>Guardar</PrimaryButton>
+          <h3 style={{ gridColumn: '1 / -1', margin: 0 }}>Añadir alumno</h3>
+          <TextInput
+            type="text"
+            placeholder="Nombre"
+            value={name}
+            onChange={e => setName(e.target.value)}
+          />
+          <TextInput
+            type="text"
+            placeholder="Apellidos"
+            value={lastName}
+            onChange={e => setLastName(e.target.value)}
+          />
+          <SelectInput value={gender} onChange={e => setGender(e.target.value)}>
+            <option value="">Género</option>
+            <option value="Masculino">Masculino</option>
+            <option value="Femenino">Femenino</option>
+            <option value="Otro">Otro</option>
+          </SelectInput>
+          <TextInput
+            type="date"
+            value={date}
+            onChange={e => setDate(e.target.value)}
+          />
+          <SelectInput value={courseId} onChange={e => setCourseId(e.target.value)}>
+            <option value="">Selecciona curso</option>
+            {courses.map(c => (
+              <option key={c.id_curso} value={c.id_curso}>{c.curso}</option>
+            ))}
+          </SelectInput>
+          <TextInput
+            type="tel"
+            placeholder="Teléfono"
+            value={phone}
+            onChange={e => setPhone(e.target.value)}
+          />
+          <TextInput
+            type="tel"
+            placeholder="Repite teléfono"
+            value={phoneConfirm}
+            onChange={e => setPhoneConfirm(e.target.value)}
+          />
+          <TextInput
+            type="text"
+            placeholder="NIF"
+            value={nif}
+            onChange={e => setNif(e.target.value)}
+          />
+          <TextInput
+            type="text"
+            placeholder="Dirección"
+            value={address}
+            onChange={e => setAddress(e.target.value)}
+          />
+          <TextInput
+            type="text"
+            placeholder="Distrito"
+            value={district}
+            onChange={e => setDistrict(e.target.value)}
+          />
+          <TextInput
+            type="text"
+            placeholder="Barrio (opcional)"
+            value={barrio}
+            onChange={e => setBarrio(e.target.value)}
+          />
+          <TextInput
+            type="text"
+            placeholder="Código postal (opcional)"
+            value={postalCode}
+            onChange={e => setPostalCode(e.target.value)}
+          />
+          <TextInput
+            type="text"
+            placeholder="Ciudad"
+            value={city}
+            onChange={e => setCity(e.target.value)}
+          />
+          <PrimaryButton
+            onClick={addChild}
+            disabled={saving}
+            style={{ gridColumn: '1 / -1' }}
+          >
+            {saving ? 'Guardando...' : 'Guardar'}
+          </PrimaryButton>
         </Form>
       </Container>
       {childToDelete && (
