@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { TextInput, SelectInput, PrimaryButton } from './FormElements';
 import { auth, db } from '../firebase/firebaseConfig';
 import { doc, updateDoc } from 'firebase/firestore';
 import { useChild } from '../ChildContext';
 import { useAuth } from '../AuthContext';
+import { fetchCursos, registerAlumno } from '../utils/api';
 
 const Overlay = styled.div`
   position: fixed;
@@ -45,55 +46,106 @@ const Title = styled.h2`
 `;
 
 
-const cursosGrouped = [
-  {
-    group: 'Primaria',
-    options: [
-      '1º Primaria',
-      '2º Primaria',
-      '3º Primaria',
-      '4º Primaria',
-      '5º Primaria',
-      '6º Primaria'
-    ]
-  },
-  {
-    group: 'ESO',
-    options: ['1º ESO', '2º ESO', '3º ESO', '4º ESO']
-  },
-  {
-    group: 'Bachillerato',
-    options: ['1º Bachillerato', '2º Bachillerato']
-  }
-];
-
 export default function AddChildModal({ open, onClose }) {
   const { childList, setChildList, setSelectedChild } = useChild();
   const { userData } = useAuth();
   const [name, setName] = useState('');
+  const [lastName, setLastName] = useState('');
+  const [gender, setGender] = useState('');
   const [date, setDate] = useState('');
-  const [course, setCourse] = useState('');
+  const [courseId, setCourseId] = useState('');
+  const [courses, setCourses] = useState([]);
+  const [phone, setPhone] = useState('');
+  const [phoneConfirm, setPhoneConfirm] = useState('');
+  const [nif, setNif] = useState('');
+  const [address, setAddress] = useState('');
+  const [district, setDistrict] = useState('');
+  const [city, setCity] = useState('');
+  const [barrio, setBarrio] = useState('');
+  const [postalCode, setPostalCode] = useState('');
   const [saving, setSaving] = useState(false);
 
+  useEffect(() => {
+    if (open) {
+      fetchCursos().then(setCourses).catch(console.error);
+    }
+  }, [open]);
+
   const addChild = async () => {
-    if (!name || !date || !course || saving) return;
+    if (
+      !name ||
+      !lastName ||
+      !gender ||
+      !date ||
+      !courseId ||
+      !phone ||
+      phone !== phoneConfirm ||
+      !nif ||
+      !address ||
+      !district ||
+      !city ||
+      saving
+    ) return;
     setSaving(true);
-    const nuevo = {
-      id: Date.now().toString(),
-      nombre: name,
-      fechaNacimiento: date,
-      curso: course,
-      photoURL: userData?.photoURL || auth.currentUser.photoURL || ''
-    };
-    const nuevos = [...childList, nuevo];
-    await updateDoc(doc(db, 'usuarios', auth.currentUser.uid), { alumnos: nuevos });
-    setChildList(nuevos.filter(c => !c.disabled));
-    setSelectedChild(nuevo);
-    setName('');
-    setDate('');
-    setCourse('');
-    setSaving(false);
-    onClose();
+    try {
+      await registerAlumno({
+        tutor_email: userData?.email || auth.currentUser.email,
+        alumno: {
+          nombre: name,
+          apellidos: lastName,
+          direccion: address,
+          NIF: nif,
+          telefono: phone,
+          telefonoConfirm: phoneConfirm,
+          genero: gender,
+          id_curso: courseId,
+          distrito: district,
+          barrio,
+          codigo_postal: postalCode,
+          ciudad: city,
+        }
+      });
+
+      const courseName = courses.find(c => c.id_curso === parseInt(courseId))?.curso || '';
+      const nuevo = {
+        id: Date.now().toString(),
+        nombre: name,
+        apellidos: lastName,
+        genero,
+        fechaNacimiento: date,
+        curso: courseName,
+        telefono: phone,
+        NIF: nif,
+        direccion: address,
+        distrito: district,
+        barrio,
+        codigo_postal: postalCode,
+        ciudad,
+        photoURL: userData?.photoURL || auth.currentUser.photoURL || ''
+      };
+      const nuevos = [...childList, nuevo];
+      await updateDoc(doc(db, 'usuarios', auth.currentUser.uid), { alumnos: nuevos });
+      setChildList(nuevos.filter(c => !c.disabled));
+      setSelectedChild(nuevo);
+      setName('');
+      setLastName('');
+      setGender('');
+      setDate('');
+      setCourseId('');
+      setPhone('');
+      setPhoneConfirm('');
+      setNif('');
+      setAddress('');
+      setDistrict('');
+      setCity('');
+      setBarrio('');
+      setPostalCode('');
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setSaving(false);
+      onClose();
+    }
   };
 
   if (!open) return null;
@@ -110,20 +162,76 @@ export default function AddChildModal({ open, onClose }) {
           onChange={e => setName(e.target.value)}
         />
         <TextInput
+          type="text"
+          placeholder="Apellidos"
+          value={lastName}
+          onChange={e => setLastName(e.target.value)}
+        />
+        <SelectInput value={gender} onChange={e => setGender(e.target.value)}>
+          <option value="">Género</option>
+          <option value="Masculino">Masculino</option>
+          <option value="Femenino">Femenino</option>
+          <option value="Otro">Otro</option>
+        </SelectInput>
+        <TextInput
           type="date"
           value={date}
           onChange={e => setDate(e.target.value)}
         />
-        <SelectInput value={course} onChange={e => setCourse(e.target.value)}>
+        <SelectInput value={courseId} onChange={e => setCourseId(e.target.value)}>
           <option value="">Selecciona curso</option>
-          {cursosGrouped.map(({ group, options }) => (
-            <optgroup key={group} label={group}>
-              {options.map(o => (
-                <option key={o} value={o}>{o}</option>
-              ))}
-            </optgroup>
+          {courses.map(c => (
+            <option key={c.id_curso} value={c.id_curso}>{c.curso}</option>
           ))}
         </SelectInput>
+        <TextInput
+          type="tel"
+          placeholder="Teléfono"
+          value={phone}
+          onChange={e => setPhone(e.target.value)}
+        />
+        <TextInput
+          type="tel"
+          placeholder="Repite teléfono"
+          value={phoneConfirm}
+          onChange={e => setPhoneConfirm(e.target.value)}
+        />
+        <TextInput
+          type="text"
+          placeholder="NIF"
+          value={nif}
+          onChange={e => setNif(e.target.value)}
+        />
+        <TextInput
+          type="text"
+          placeholder="Dirección"
+          value={address}
+          onChange={e => setAddress(e.target.value)}
+        />
+        <TextInput
+          type="text"
+          placeholder="Distrito"
+          value={district}
+          onChange={e => setDistrict(e.target.value)}
+        />
+        <TextInput
+          type="text"
+          placeholder="Barrio (opcional)"
+          value={barrio}
+          onChange={e => setBarrio(e.target.value)}
+        />
+        <TextInput
+          type="text"
+          placeholder="Código postal (opcional)"
+          value={postalCode}
+          onChange={e => setPostalCode(e.target.value)}
+        />
+        <TextInput
+          type="text"
+          placeholder="Ciudad"
+          value={city}
+          onChange={e => setCity(e.target.value)}
+        />
         <PrimaryButton onClick={addChild} disabled={saving}>
           {saving ? 'Guardando...' : 'Guardar'}
         </PrimaryButton>
