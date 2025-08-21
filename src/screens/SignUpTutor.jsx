@@ -367,15 +367,15 @@ export default function SignUpTutor() {
     if (!ciudad) missing.push('Ciudad');
     if (!curso || !idCurso) missing.push('Curso');
     if (!nifTutor) missing.push('NIF');
-    if (!direccionTutor) missing.push('Dirección facturación');
-    if (!distritoTutor) missing.push('Distrito facturación');
-    if (!barrioTutor) missing.push('Barrio facturación');
+    if (!direccionTutor) missing.push('Dirección del tutor');
+    if (!distritoTutor) missing.push('Ciudad');
+    if (!barrioTutor) missing.push('Barrio, Localidad, Distrito...');
     if (!codigoPostalTutor) missing.push('Código postal facturación');
     if (!nifAlumno) missing.push('NIF del Alumno');
     if (!telefonoHijo) missing.push('Teléfono del Alumno');
-    if (!confirmTelefonoHijo) missing.push('Repite Teléfono del Alumno');
-    if (!direccionAlumno) missing.push('Dirección del Alumno');
-    if (!distritoAlumno) missing.push('Distrito del Alumno');
+    if (!confirmTelefonoHijo) missing.push('Repitir Teléfono');
+    if (!direccionAlumno) missing.push('Dirección lugar clase');
+    if (!distritoAlumno) missing.push('Barrio, Localidad, Distrito...');
     if (!nombreHijo) missing.push('Nombre del Alumno');
     if (!apellidoHijo) missing.push('Apellidos del Alumno');
     if (!fechaNacHijo) missing.push('Fecha Nacimiento del Alumno');
@@ -628,7 +628,7 @@ export default function SignUpTutor() {
                     onChange={e => setDireccionTutor(e.target.value)}
                     placeholder=" "
                   />
-                  <label className="fl-label">Dirección facturación</label>
+                  <label className="fl-label">Dirección del tutor</label>
                 </div>
               </Field>
               <Field>
@@ -640,7 +640,7 @@ export default function SignUpTutor() {
                     onChange={e => setDistritoTutor(e.target.value)}
                     placeholder=" "
                   />
-                  <label className="fl-label">Distrito facturación</label>
+                  <label className="fl-label">Ciudad</label>
                 </div>
               </Field>
               <Field>
@@ -652,7 +652,7 @@ export default function SignUpTutor() {
                     onChange={e => setBarrioTutor(e.target.value)}
                     placeholder=" "
                   />
-                  <label className="fl-label">Barrio facturación</label>
+                  <label className="fl-label">Barrio, Localidad, Distrito...</label>
                 </div>
               </Field>
               <Field>
@@ -686,24 +686,6 @@ export default function SignUpTutor() {
                 />
                 {telefonoError && <ErrorText>{telefonoError}</ErrorText>}
               </Field>
-              <Field ref={cityRef}>
-                <label>Ciudad</label>
-                <DropdownContainer>
-                  <DropdownHeader onClick={() => setCityOpen(o => !o)}>
-                    {ciudad || 'Selecciona ciudad'} <Arrow open={cityOpen} />
-                  </DropdownHeader>
-                  {cityOpen && (
-                    <DropdownList>
-                      {cities.map((c,i)=>(
-                        <DropdownItem key={i} onClick={()=>{setCiudad(c);setCityOpen(false)}}>
-                          {c}
-                        </DropdownItem>
-                      ))}
-                    </DropdownList>
-                  )}
-                </DropdownContainer>
-              </Field>
-
               <h3 style={{gridColumn:'1 / -1',marginTop:'1rem',marginBottom:'0.5rem',color:'#034640'}}>Datos del alumno</h3>
               <Field ref={courseRef}>
                 <label>Curso del alumno</label>
@@ -775,7 +757,7 @@ export default function SignUpTutor() {
                 />
               </Field>
               <Field>
-                <label>Repite Teléfono del Alumno</label>
+                <label>Repitir Teléfono</label>
                 <PhoneInput
                   country={'es'}
                   value={confirmTelefonoHijo}
@@ -793,7 +775,7 @@ export default function SignUpTutor() {
                     onChange={e => setDireccionAlumno(e.target.value)}
                     placeholder=" "
                   />
-                  <label className="fl-label">Dirección del Alumno</label>
+                  <label className="fl-label">Dirección lugar clase</label>
                 </div>
               </Field>
               <Field>
@@ -805,8 +787,25 @@ export default function SignUpTutor() {
                     onChange={e => setDistritoAlumno(e.target.value)}
                     placeholder=" "
                   />
-                  <label className="fl-label">Distrito del Alumno</label>
+                  <label className="fl-label">Barrio, Localidad, Distrito...</label>
                 </div>
+              </Field>
+              <Field ref={cityRef}>
+                <label>Ciudad</label>
+                <DropdownContainer>
+                  <DropdownHeader onClick={() => setCityOpen(o => !o)}>
+                    {ciudad || 'Selecciona ciudad'} <Arrow open={cityOpen} />
+                  </DropdownHeader>
+                  {cityOpen && (
+                    <DropdownList>
+                      {cities.map((c,i)=>(
+                        <DropdownItem key={i} onClick={()=>{setCiudad(c);setCityOpen(false)}}>
+                          {c}
+                        </DropdownItem>
+                      ))}
+                    </DropdownList>
+                  )}
+                </DropdownContainer>
               </Field>
               <Field>
                 <label>Género</label>
