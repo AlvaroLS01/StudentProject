@@ -166,7 +166,8 @@ const Input = styled.input`
 
 const ModalActions = styled.div`
   display: flex;
-  justify-content: space-around;
+  justify-content: center;
+  gap: 1rem;
 `;
 
 const ModalButton = styled.button`
