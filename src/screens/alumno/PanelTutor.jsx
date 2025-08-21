@@ -199,7 +199,7 @@ export default function PanelTutor() {
                 active={view === 'mis-alumnos'}
                 onClick={() => handleMenuClick('mis-alumnos')}
               >
-                Mis alumnos
+                Alumnos
               </Button>
             </MenuItem>
           )}

@@ -18,6 +18,13 @@ const CloseButton = styled.button`
   cursor: pointer;
 `;
 
+const Form = styled.div`
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+`;
+
 
 export default function AddChildModal({ open, onClose }) {
   const { childList, setChildList, setSelectedChild } = useChild();
@@ -128,86 +135,88 @@ export default function AddChildModal({ open, onClose }) {
       <Modal onClick={e => e.stopPropagation()}>
         <CloseButton onClick={onClose}>✕</CloseButton>
         <ModalTitle>Añadir alumno</ModalTitle>
-        <TextInput
-          type="text"
-          placeholder="Nombre"
-          value={name}
-          onChange={e => setName(e.target.value)}
-        />
-        <TextInput
-          type="text"
-          placeholder="Apellidos"
-          value={lastName}
-          onChange={e => setLastName(e.target.value)}
-        />
-        <SelectInput value={gender} onChange={e => setGender(e.target.value)}>
-          <option value="">Género</option>
-          <option value="Masculino">Masculino</option>
-          <option value="Femenino">Femenino</option>
-          <option value="Otro">Otro</option>
-        </SelectInput>
-        <TextInput
-          type="date"
-          value={date}
-          onChange={e => setDate(e.target.value)}
-        />
-        <SelectInput value={courseId} onChange={e => setCourseId(e.target.value)}>
-          <option value="">Selecciona curso</option>
-          {courses.map(c => (
-            <option key={c.id_curso} value={c.id_curso}>{c.curso}</option>
-          ))}
-        </SelectInput>
-        <TextInput
-          type="tel"
-          placeholder="Teléfono"
-          value={phone}
-          onChange={e => setPhone(e.target.value)}
-        />
-        <TextInput
-          type="tel"
-          placeholder="Repite teléfono"
-          value={phoneConfirm}
-          onChange={e => setPhoneConfirm(e.target.value)}
-        />
-        <TextInput
-          type="text"
-          placeholder="NIF"
-          value={nif}
-          onChange={e => setNif(e.target.value)}
-        />
-        <TextInput
-          type="text"
-          placeholder="Dirección"
-          value={address}
-          onChange={e => setAddress(e.target.value)}
-        />
-        <TextInput
-          type="text"
-          placeholder="Distrito"
-          value={district}
-          onChange={e => setDistrict(e.target.value)}
-        />
-        <TextInput
-          type="text"
-          placeholder="Barrio (opcional)"
-          value={barrio}
-          onChange={e => setBarrio(e.target.value)}
-        />
-        <TextInput
-          type="text"
-          placeholder="Código postal (opcional)"
-          value={postalCode}
-          onChange={e => setPostalCode(e.target.value)}
-        />
-        <TextInput
-          type="text"
-          placeholder="Ciudad"
-          value={city}
-          onChange={e => setCity(e.target.value)}
-        />
-        <PrimaryButton onClick={addChild} disabled={saving}>
-          {saving ? 'Guardando...' : 'Guardar'}
-        </PrimaryButton>
+        <Form>
+          <TextInput
+            type="text"
+            placeholder="Nombre"
+            value={name}
+            onChange={e => setName(e.target.value)}
+          />
+          <TextInput
+            type="text"
+            placeholder="Apellidos"
+            value={lastName}
+            onChange={e => setLastName(e.target.value)}
+          />
+          <SelectInput value={gender} onChange={e => setGender(e.target.value)}>
+            <option value="">Género</option>
+            <option value="Masculino">Masculino</option>
+            <option value="Femenino">Femenino</option>
+            <option value="Otro">Otro</option>
+          </SelectInput>
+          <TextInput
+            type="date"
+            value={date}
+            onChange={e => setDate(e.target.value)}
+          />
+          <SelectInput value={courseId} onChange={e => setCourseId(e.target.value)}>
+            <option value="">Selecciona curso</option>
+            {courses.map(c => (
+              <option key={c.id_curso} value={c.id_curso}>{c.curso}</option>
+            ))}
+          </SelectInput>
+          <TextInput
+            type="tel"
+            placeholder="Teléfono"
+            value={phone}
+            onChange={e => setPhone(e.target.value)}
+          />
+          <TextInput
+            type="tel"
+            placeholder="Repite teléfono"
+            value={phoneConfirm}
+            onChange={e => setPhoneConfirm(e.target.value)}
+          />
+          <TextInput
+            type="text"
+            placeholder="NIF"
+            value={nif}
+            onChange={e => setNif(e.target.value)}
+          />
+          <TextInput
+            type="text"
+            placeholder="Dirección"
+            value={address}
+            onChange={e => setAddress(e.target.value)}
+          />
+          <TextInput
+            type="text"
+            placeholder="Distrito"
+            value={district}
+            onChange={e => setDistrict(e.target.value)}
+          />
+          <TextInput
+            type="text"
+            placeholder="Barrio (opcional)"
+            value={barrio}
+            onChange={e => setBarrio(e.target.value)}
+          />
+          <TextInput
+            type="text"
+            placeholder="Código postal (opcional)"
+            value={postalCode}
+            onChange={e => setPostalCode(e.target.value)}
+          />
+          <TextInput
+            type="text"
+            placeholder="Ciudad"
+            value={city}
+            onChange={e => setCity(e.target.value)}
+          />
+          <PrimaryButton onClick={addChild} disabled={saving} style={{ gridColumn: '1 / -1' }}>
+            {saving ? 'Guardando...' : 'Guardar'}
+          </PrimaryButton>
+        </Form>
       </Modal>
     </Overlay>
   );
