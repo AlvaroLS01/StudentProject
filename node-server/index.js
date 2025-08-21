@@ -253,12 +253,12 @@ app.post('/profesor', async (req, res) => {
     genero,
     telefono,
     correo_electronico,
-    NIF,
+    NIF = null,
     direccion_facturacion,
-    IBAN,
-    carrera,
-    curso,
-    experiencia,
+    IBAN = null,
+    carrera = null,
+    curso = null,
+    experiencia = null,
     password,
   } = req.body;
   try {

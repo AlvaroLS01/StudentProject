@@ -81,7 +81,11 @@ const ErrorText = styled.p`
 export default function CompleteTeacherProfileModal({ open, onClose, userData }) {
   const { refreshUserData } = useAuth();
   const [docSelect, setDocSelect] = useState(
-    userData?.docType === 'DNI' ? 'DNI' : 'Otro'
+    userData?.docType
+      ? userData.docType === 'DNI'
+        ? 'DNI'
+        : 'Otro'
+      : ''
   );
   const [docTypeOther, setDocTypeOther] = useState(
     userData?.docType && userData?.docType !== 'DNI' ? userData.docType : ''
@@ -152,6 +156,7 @@ export default function CompleteTeacherProfileModal({ open, onClose, userData })
             onChange={e => setDocSelect(e.target.value)}
             disabled={!!userData?.docNumber}
           >
+            <option value="">Seleccione tipo de documento</option>
             <option value="DNI">DNI</option>
             <option value="Otro">Otro</option>
           </SelectInput>
@@ -172,7 +177,7 @@ export default function CompleteTeacherProfileModal({ open, onClose, userData })
             type="text"
             value={docNumber}
             onChange={e => setDocNumber(e.target.value)}
-            disabled={!!userData?.docNumber}
+            disabled={!!userData?.docNumber || !docSelect}
           />
           {dniError && <ErrorText>{dniError}</ErrorText>}
         </Field>
