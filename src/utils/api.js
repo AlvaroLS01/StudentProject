@@ -79,3 +79,18 @@ export async function createPuja(data) {
   });
   return handleResponse(res);
 }
+
+export async function selectPuja(id) {
+  const res = await fetch(`${API_URL}/puja/${id}/select`, { method: 'POST' });
+  return handleResponse(res);
+}
+
+export async function acceptPuja(id) {
+  const res = await fetch(`${API_URL}/puja/${id}/accept`, { method: 'POST' });
+  return handleResponse(res);
+}
+
+export async function confirmPuja(id) {
+  const res = await fetch(`${API_URL}/puja/${id}/confirm`, { method: 'POST' });
+  return handleResponse(res);
+}

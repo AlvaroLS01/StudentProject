@@ -409,6 +409,88 @@ app.post('/puja', async (req, res) => {
   }
 });
 
+// Selecciona una puja por parte de la administración
+app.post('/puja/:id/select', async (req, res) => {
+  const { id } = req.params;
+  let client;
+  try {
+    client = await db.connect();
+    await client.query('BEGIN');
+    const selRes = await client.query(
+      'UPDATE student_project.puja SET estado_puja=$1 WHERE id_puja=$2 RETURNING id_oferta',
+      ['espera_profesor', id]
+    );
+    if (selRes.rowCount === 0) throw new Error('Puja no encontrada');
+    const id_oferta = selRes.rows[0].id_oferta;
+    await client.query(
+      'UPDATE student_project.puja SET estado_puja=$1 WHERE id_oferta=$2 AND id_puja<>$3',
+      ['no_seleccionado', id_oferta, id]
+    );
+    await client.query('COMMIT');
+    res.json({ message: 'Puja seleccionada' });
+  } catch (err) {
+    if (client) await client.query('ROLLBACK');
+    console.error(err);
+    res.status(500).json({ error: 'Error seleccionando puja' });
+  } finally {
+    if (client) client.release();
+  }
+});
+
+// Aceptación de la puja por parte del profesor
+app.post('/puja/:id/accept', async (req, res) => {
+  const { id } = req.params;
+  try {
+    const result = await db.query(
+      'UPDATE student_project.puja SET estado_puja=$1 WHERE id_puja=$2',
+      ['espera_tutor', id]
+    );
+    if (result.rowCount === 0) return res.status(404).json({ error: 'Puja no encontrada' });
+    res.json({ message: 'Puja aceptada por el profesor' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Error actualizando puja' });
+  }
+});
+
+// Confirmación de la puja por parte del tutor y creación del enlace
+app.post('/puja/:id/confirm', async (req, res) => {
+  const { id } = req.params;
+  let client;
+  try {
+    client = await db.connect();
+    await client.query('BEGIN');
+    const pujaRes = await client.query(
+      'UPDATE student_project.puja SET estado_puja=$1 WHERE id_puja=$2 RETURNING id_oferta, id_profesor',
+      ['enlace_creado', id]
+    );
+    if (pujaRes.rowCount === 0) throw new Error('Puja no encontrada');
+    const { id_oferta, id_profesor } = pujaRes.rows[0];
+    const alumRes = await client.query(
+      'SELECT id_alumno FROM student_project.oferta WHERE id_oferta=$1',
+      [id_oferta]
+    );
+    if (alumRes.rowCount === 0) throw new Error('Oferta no encontrada');
+    const id_alumno = alumRes.rows[0].id_alumno;
+    await client.query(
+      'INSERT INTO student_project.enlace_clases (id_alumno, id_profesor, id_puja, id_oferta) VALUES ($1,$2,$3,$4)',
+      [id_alumno, id_profesor, id, id_oferta]
+    );
+    await client.query(
+      'UPDATE student_project.oferta SET estado=$1 WHERE id_oferta=$2',
+      ['enlace_creado', id_oferta]
+    );
+    await client.query('COMMIT');
+    res.json({ message: 'Enlace creado' });
+  } catch (err) {
+    if (client) await client.query('ROLLBACK');
+    console.error(err);
+    res.status(500).json({ error: 'Error confirmando puja' });
+  } finally {
+    if (client) client.release();
+  }
+});
+
 app.post('/send-email', async (req, res) => {
   const { email, name } = req.body;
 
