@@ -507,9 +507,14 @@ export default function Clases() {
               </Card>
             ))}
             {solicitudes.map(s => {
-              const estado = s.estado === 'pendiente'
-                ? (s.offers === 0 ? 'En búsqueda de profesor' : 'En selección de profesor')
-                : 'Profesor asignado';
+              let estado;
+              if (s.estado === 'pendiente') {
+                estado = s.offers === 0 ? 'En búsqueda de profesor' : 'En selección de profesor';
+              } else if (s.estado === 'en_proceso') {
+                estado = 'Esperando respuesta del profesor';
+              } else {
+                estado = 'Profesor asignado';
+              }
               return (
                 <Card key={s.id}>
                   <InfoGrid>

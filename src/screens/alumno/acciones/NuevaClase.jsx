@@ -492,7 +492,7 @@ export default function NuevaClase() {
         fecha_inicio: startDate,
         fecha_fin: endDate,
         disponibilidad: Array.from(selectedSlots).join(','),
-        estado: 'En búsqueda de profesor',
+        estado: 'pendiente',
         numero_horas: parseInt(horasSemana, 10),
         modalidad,
         tipo: tipoClase,
@@ -527,7 +527,7 @@ export default function NuevaClase() {
         precioPadres,
         precioProfesores,
         notas,
-        estado: 'En búsqueda de profesor',
+        estado: 'pendiente',
         ofertaId: ofertaRes.id,
         createdAt: serverTimestamp()
       });
