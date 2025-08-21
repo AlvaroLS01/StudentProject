@@ -460,6 +460,7 @@ export default function MisAlumnos() {
     const precioPad = parseFloat(data.precioPadres || 0);
 
     // Guardamos la propuesta en subcolección 'clases_asignadas'
+    const modalidadStore = modalidad === 'presencial' ? 'Presencial' : 'Online';
     await addDoc(
       collection(db, 'clases_union', selectedUnion.id, 'clases_asignadas'),
       {
@@ -468,7 +469,7 @@ export default function MisAlumnos() {
         fecha: fechaClase,
         duracion: durNum,
         asignatura: asignMateria,
-        modalidad,
+        modalidad: modalidadStore,
         precioProfesor: precioProf,
         precioPadres: precioPad,
         precioTotalProfesor: +(precioProf * durNum).toFixed(2),

@@ -624,7 +624,7 @@ export default function Ofertas() {
     const matchAsign = filterAsignatura
       ? (c.asignaturas ? c.asignaturas.includes(filterAsignatura) : c.asignatura === filterAsignatura)
       : true;
-    const matchModalidad = filterModalidad ? c.modalidad === filterModalidad : true;
+    const matchModalidad = filterModalidad ? (c.modalidad || '').toLowerCase() === filterModalidad.toLowerCase() : true;
     const matchTipo = filterTipoClase ? c.tipoClase === filterTipoClase : true;
     const matchCurso = filterCurso ? c.curso === filterCurso : true;
     return matchAsign && matchModalidad && matchTipo && matchCurso;
@@ -716,12 +716,12 @@ export default function Ofertas() {
                       Todas
                     </DropdownItem>
                     <DropdownItem
-                      onClick={() => { setFilterModalidad('online'); setOpenModalidadFiltro(false); }}
+                      onClick={() => { setFilterModalidad('Online'); setOpenModalidadFiltro(false); }}
                     >
                       Online
                     </DropdownItem>
                     <DropdownItem
-                      onClick={() => { setFilterModalidad('presencial'); setOpenModalidadFiltro(false); }}
+                      onClick={() => { setFilterModalidad('Presencial'); setOpenModalidadFiltro(false); }}
                     >
                       Presencial
                     </DropdownItem>
@@ -799,7 +799,7 @@ export default function Ofertas() {
                   <Label>Modalidad:</Label>{' '}
                   <Value>{c.modalidad.charAt(0).toUpperCase() + c.modalidad.slice(1)}</Value>
                 </div>
-                {c.modalidad === 'presencial' && (
+                {c.modalidad && c.modalidad.toLowerCase() === 'presencial' && (
                   <div>
                     <Label>Zona:</Label>{' '}
                     <Value>{c.zona || '—'}</Value>
