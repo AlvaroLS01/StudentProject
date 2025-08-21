@@ -470,7 +470,6 @@ export default function NuevaClase() {
     setTipoClase('individual');
     setModalidad('online');
     setCiudad('');
-    setZona('');
     setStartDate(getToday());
     setEndDate('');
     setNoEndDate(false);
