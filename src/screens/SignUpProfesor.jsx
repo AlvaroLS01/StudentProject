@@ -301,15 +301,10 @@ export default function SignUpProfesor() {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [modalOpen, setModalOpen]     = useState(false);
   const [submitting, setSubmitting] = useState(false);
-  const [nif, setNif] = useState('');
   const [direccionFacturacion, setDireccionFacturacion] = useState('');
   const [distrito, setDistrito] = useState('');
   const [barrio, setBarrio] = useState('');
   const [codigoPostal, setCodigoPostal] = useState('');
-  const [iban, setIban] = useState('');
-  const [carrera, setCarrera] = useState('');
-  const [cursoEstudios, setCursoEstudios] = useState('');
-  const [experiencia, setExperiencia] = useState('');
   const navigate = useNavigate();
   const { show } = useNotification();
   const ref = useRef();
@@ -382,15 +377,10 @@ export default function SignUpProfesor() {
     if (!telefono) missing.push('Teléfono');
     if (!confirmTelefono) missing.push('Repite Teléfono');
     if (!ciudad) missing.push('Ciudad');
-    if (!nif) missing.push('NIF');
     if (!direccionFacturacion) missing.push('Dirección facturación');
     if (!distrito) missing.push('Distrito');
     if (!barrio) missing.push('Barrio');
     if (!codigoPostal) missing.push('Código Postal');
-    if (!iban) missing.push('IBAN');
-    if (!carrera) missing.push('Carrera');
-    if (!cursoEstudios) missing.push('Curso');
-    if (!experiencia) missing.push('Experiencia');
     if (!emailVerified) missing.push('Verificación de correo');
     if (missing.length) {
       show('Faltan: ' + missing.join(', '), 'error');
@@ -429,15 +419,15 @@ export default function SignUpProfesor() {
         ciudad,
         rol: 'profesor',
         createdAt: new Date(),
-        NIF: nif,
+        NIF: null,
         direccion: direccionFacturacion,
         distrito,
         barrio,
         codigo_postal: codigoPostal,
-        IBAN: iban,
-        carrera,
-        curso: cursoEstudios,
-        experiencia,
+        IBAN: null,
+        carrera: null,
+        curso: null,
+        experiencia: null,
       });
       const genero = salutation === 'Sr.' ? 'Masculino' : 'Femenino';
       await registerProfesor({
@@ -446,16 +436,16 @@ export default function SignUpProfesor() {
         genero,
         telefono,
         correo_electronico: email,
-        NIF: nif,
+        NIF: null,
         direccion_facturacion: direccionFacturacion,
         distrito,
         barrio,
         codigo_postal: codigoPostal,
         ciudad,
-        IBAN: iban,
-        carrera,
-        curso: cursoEstudios,
-        experiencia,
+        IBAN: null,
+        carrera: null,
+        curso: null,
+        experiencia: null,
         password,
       });
       await sendWelcomeEmail({ email, name: nombre });
@@ -613,18 +603,6 @@ export default function SignUpProfesor() {
                   <input
                     className="form-control fl-input"
                     type="text"
-                    value={nif}
-                    onChange={e => setNif(e.target.value)}
-                    placeholder=" "
-                  />
-                  <label className="fl-label">NIF</label>
-                </div>
-              </Field>
-              <Field>
-                <div className="fl-field">
-                  <input
-                    className="form-control fl-input"
-                    type="text"
                     value={direccionFacturacion}
                     onChange={e => setDireccionFacturacion(e.target.value)}
                     placeholder=" "
@@ -666,54 +644,6 @@ export default function SignUpProfesor() {
                     placeholder=" "
                   />
                   <label className="fl-label">Código Postal</label>
-                </div>
-              </Field>
-              <Field>
-                <div className="fl-field">
-                  <input
-                    className="form-control fl-input"
-                    type="text"
-                    value={iban}
-                    onChange={e => setIban(e.target.value)}
-                    placeholder=" "
-                  />
-                  <label className="fl-label">IBAN</label>
-                </div>
-              </Field>
-              <Field>
-                <div className="fl-field">
-                  <input
-                    className="form-control fl-input"
-                    type="text"
-                    value={carrera}
-                    onChange={e => setCarrera(e.target.value)}
-                    placeholder=" "
-                  />
-                  <label className="fl-label">Carrera</label>
-                </div>
-              </Field>
-              <Field>
-                <div className="fl-field">
-                  <input
-                    className="form-control fl-input"
-                    type="text"
-                    value={cursoEstudios}
-                    onChange={e => setCursoEstudios(e.target.value)}
-                    placeholder=" "
-                  />
-                  <label className="fl-label">Curso</label>
-                </div>
-              </Field>
-              <Field style={{ gridColumn: '1 / -1' }}>
-                <div className="fl-field">
-                  <input
-                    className="form-control fl-input"
-                    type="text"
-                    value={experiencia}
-                    onChange={e => setExperiencia(e.target.value)}
-                    placeholder=" "
-                  />
-                  <label className="fl-label">Experiencia</label>
                 </div>
               </Field>
               <Field style={{ gridColumn: '1 / -1' }} ref={ref}>
