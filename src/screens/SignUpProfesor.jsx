@@ -8,6 +8,7 @@ import { sendWelcomeEmail, sendVerificationCode } from '../utils/email';
 import { fetchCities, registerProfesor } from '../utils/api';
 import PhoneInput from 'react-phone-input-2';
 import 'react-phone-input-2/lib/style.css';
+import { Overlay, Modal, ModalText, ModalActions, ModalButton } from '../components/ModalStyles';
 
 // Firebase (inicializado en firebaseConfig.js)
 import { auth, db } from '../firebase/firebaseConfig';
@@ -239,45 +240,6 @@ const Button = styled.button`
 `;
 
 // Popup overlay y modal
-const Overlay = styled.div`
-  position: fixed;
-  top: 0; left: 0; right: 0; bottom: 0;
-  background: rgba(0,0,0,0.4);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 100;
-`;
-const Modal = styled.div`
-  background: #fff;
-  border-radius: 10px;
-  padding: 2rem;
-  max-width: 400px;
-  text-align: center;
-  box-shadow: 0 12px 36px rgba(0,0,0,0.2);
-`;
-const ModalText = styled.p`
-  margin-bottom: 1.5rem;
-  font-size: 1.1rem;
-  color: #014F40;
-`;
-const ModalActions = styled.div`
-  display: flex;
-  justify-content: space-around;
-  gap: 1.5rem;
-`;
-const ModalButton = styled.button`
-  padding: 0.8rem 1.5rem;
-  border: none;
-  border-radius: 6px;
-  font-size: 1rem;
-  cursor: pointer;
-  transition: background 0.3s;
-  ${props => props.primary
-    ? `background: #046654; color: #fff; &:hover { background: #034640; }`
-    : `background: #eee; color: #333; &:hover { background: #ddd; }`
-  }
-`;
 
 export default function SignUpProfesor() {
   const [email, setEmail]             = useState('');

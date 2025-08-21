@@ -18,6 +18,7 @@ import {
   getDoc
 } from 'firebase/firestore';
 import { createPuja } from '../../../utils/api';
+import { Overlay, Modal, ModalText, ModalActions, ModalButton } from '../../../components/ModalStyles';
 
 // Animación de fade-in al desplegar
 const fadeDown = keyframes`
@@ -319,59 +320,6 @@ const RequestButton = styled.button`
 `;
 
 // Modal de confirmación con estilo profesional
-const Overlay = styled.div`
-  position: fixed; inset: 0;
-  background: rgba(0, 0, 0, 0.4);
-  display: flex; align-items: center; justify-content: center;
-  z-index: 100;
-`;
-const Modal = styled.div`
-  background: #ffffff;
-  border-radius: 12px;
-  padding: 2rem;
-  max-width: 440px;
-  width: 90%;
-  text-align: left;
-  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.15);
-`;
-const ModalText = styled.div`
-  font-size: 1rem;
-  color: #014F40;
-  margin-bottom: 1.5rem;
-  line-height: 1.5;
-`;
-const ModalActions = styled.div`
-  display: flex;
-  justify-content: space-around;
-  gap: 1rem;
-`;
-const ModalButton = styled.button`
-  flex: 1;
-  padding: 0.75rem;
-  border: none;
-  border-radius: 8px;
-  font-size: 1rem;
-  cursor: pointer;
-  transition: background 0.2s, box-shadow 0.2s;
-  ${p => p.primary
-    ? `
-      background: #006D5B;
-      color: #fff;
-      &:hover {
-        background: #005047;
-        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.1);
-      }
-    `
-    : `
-      background: #f0f0f0;
-      color: #333;
-      &:hover {
-        background: #e0e0e0;
-        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.05);
-      }
-    `
-  }
-`;
 
 // Calendario pequeño para selección de franjas
 const SmallCalendarContainer = styled.div`

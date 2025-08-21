@@ -2,30 +2,7 @@ import React, { useState } from 'react';
 import styled from 'styled-components';
 import { resetPassword } from '../utils/password';
 import logo from '../assets/logonavbar.png';
-
-const Overlay = styled.div`
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0,0,0,0.4);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1500;
-`;
-
-const Modal = styled.div`
-  background: #fff;
-  border-radius: 10px;
-  padding: 2rem 1.5rem;
-  width: 100%;
-  max-width: 420px;
-  text-align: center;
-  box-shadow: 0 12px 36px rgba(0,0,0,0.2);
-  position: relative;
-`;
+import { Overlay, Modal, ModalTitle } from './ModalStyles';
 
 const CloseButton = styled.button`
   position: absolute;
@@ -42,10 +19,6 @@ const Logo = styled.img`
   margin: 0 auto 1rem;
 `;
 
-const Title = styled.h2`
-  margin: 0 0 1rem;
-  color: #014F40;
-`;
 
 const Input = styled.input`
   width: 100%;
@@ -121,7 +94,7 @@ export default function PasswordChangeModal({ open, onClose, token }) {
       <Modal onClick={e => e.stopPropagation()}>
         <CloseButton onClick={onClose}>✕</CloseButton>
         <Logo src={logo} alt="Student Project" />
-        <Title>Cambiar contraseña</Title>
+        <ModalTitle>Cambiar contraseña</ModalTitle>
         {error && <ErrorText>{error}</ErrorText>}
         {success && <SuccessText>{success}</SuccessText>}
         <form onSubmit={handleSubmit}>

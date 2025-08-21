@@ -14,6 +14,7 @@ import {
   doc
 } from 'firebase/firestore';
 import { fetchCities, fetchCursos, fetchAsignaturas, createOferta, fetchPagos } from '../../../utils/api';
+import { Overlay, Modal, ModalText, ModalActions, ModalButton } from '../../../components/ModalStyles';
 
 // Animación fade-in
 const fadeIn = keyframes`
@@ -228,41 +229,7 @@ const SlotCell = styled.div`
   opacity: ${p => (p.disabled ? 0.6 : 1)};
   pointer-events: ${p => (p.disabled ? 'none' : 'auto')};
 `;
-const Overlay = styled.div`
-  position: fixed; inset: 0;
-  background: rgba(0,0,0,0.4);
-  display: flex; align-items: center; justify-content: center;
-  z-index: 100;
-`;
-const Modal = styled.div`
-  background: #fff;
-  border-radius: 8px;
-  padding: 1.5rem;
-  max-width: 320px;
-  text-align: center;
-`;
-const ModalText = styled.p`
-  font-size: 1rem;
-  margin-bottom: 1rem;
-  color: #014F40;
-`;
-const ModalActions = styled.div`
-  display: flex;
-  justify-content: space-around;
-`;
-const ModalButton = styled.button`
-  padding: 0.6rem 1.2rem;
-  border: none;
-  border-radius: 6px;
-  font-size: 0.9rem;
-  cursor: pointer;
-  opacity: ${p => (p.disabled ? 0.6 : 1)};
-  pointer-events: ${p => (p.disabled ? 'none' : 'auto')};
-  ${p => p.primary
-    ? `background: #006D5B; color: #fff;`
-    : `background: #f0f0f0; color: #333;`
-  }
-`;
+
 
 // Utilidad para obtener la fecha de hoy en formato YYYY-MM-DD
 const getToday = () => new Date().toISOString().split('T')[0];

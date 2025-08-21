@@ -6,29 +6,7 @@ import { doc, updateDoc } from 'firebase/firestore';
 import { useChild } from '../ChildContext';
 import { useAuth } from '../AuthContext';
 import { fetchCursos, registerAlumno } from '../utils/api';
-
-const Overlay = styled.div`
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0,0,0,0.4);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1500;
-`;
-
-const Modal = styled.div`
-  background: #fff;
-  border-radius: 10px;
-  padding: 2rem 1.5rem;
-  width: 100%;
-  max-width: 420px;
-  box-shadow: 0 12px 36px rgba(0,0,0,0.2);
-  position: relative;
-`;
+import { Overlay, Modal, ModalTitle } from './ModalStyles';
 
 const CloseButton = styled.button`
   position: absolute;
@@ -38,11 +16,6 @@ const CloseButton = styled.button`
   border: none;
   font-size: 1.25rem;
   cursor: pointer;
-`;
-
-const Title = styled.h2`
-  margin: 0 0 1rem;
-  color: #014F40;
 `;
 
 
@@ -154,7 +127,7 @@ export default function AddChildModal({ open, onClose }) {
     <Overlay onClick={onClose}>
       <Modal onClick={e => e.stopPropagation()}>
         <CloseButton onClick={onClose}>✕</CloseButton>
-        <Title>Añadir alumno</Title>
+        <ModalTitle>Añadir alumno</ModalTitle>
         <TextInput
           type="text"
           placeholder="Nombre"
