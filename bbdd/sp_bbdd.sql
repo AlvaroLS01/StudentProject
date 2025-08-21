@@ -232,7 +232,7 @@ CREATE TABLE IF NOT EXISTS student_project.puja
 (
     id_puja serial PRIMARY KEY,
     fecha_puja date NOT NULL,
-    estado_puja VARCHAR(100),
+    estado_puja VARCHAR(100) DEFAULT 'pendiente',
 	id_profesor INT NOT NULL REFERENCES student_project.profesor(id_profesor)
     ON DELETE RESTRICT
     ON UPDATE CASCADE,
@@ -254,13 +254,37 @@ CREATE TABLE IF NOT EXISTS student_project.puja_asignatura
     id_asignatura INT  NOT NULL,
     precio numeric NOT NULL,
     PRIMARY KEY (id_puja, id_asignatura),
-	FOREIGN KEY (id_asignatura) REFERENCES student_project.asignatura(id_asignatura)
+        FOREIGN KEY (id_asignatura) REFERENCES student_project.asignatura(id_asignatura)
     ON DELETE RESTRICT
-    ON UPDATE CASCADE,		
-	FOREIGN KEY (id_puja) REFERENCES student_project.puja(id_puja)
+    ON UPDATE CASCADE,
+        FOREIGN KEY (id_puja) REFERENCES student_project.puja(id_puja)
     ON DELETE RESTRICT
-    ON UPDATE CASCADE		
+    ON UPDATE CASCADE
 );
+
+
+-- -----------------------------------------------------
+-- Table `student_project`.`enlace_clases`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS student_project.enlace_clases
+(
+    id_enlace serial PRIMARY KEY,
+    id_alumno INT NOT NULL REFERENCES student_project.alumno(id_alumno)
+        ON DELETE RESTRICT
+        ON UPDATE CASCADE,
+    id_profesor INT NOT NULL REFERENCES student_project.profesor(id_profesor)
+        ON DELETE RESTRICT
+        ON UPDATE CASCADE,
+    id_puja INT NOT NULL REFERENCES student_project.puja(id_puja)
+        ON DELETE RESTRICT
+        ON UPDATE CASCADE,
+    id_oferta INT NOT NULL REFERENCES student_project.oferta(id_oferta)
+        ON DELETE RESTRICT
+        ON UPDATE CASCADE
+);
+
+COMMENT ON TABLE student_project.enlace_clases
+    IS 'Enlaces entre profesores y alumnos asociados a una oferta y puja.';
 
 
 -- -----------------------------------------------------

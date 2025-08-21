@@ -609,12 +609,12 @@ export default function Ofertas() {
     await setDoc(doc(db, 'usuarios', prof.uid, 'ofertas', offerRef.id), {
       classId: clase.id,
       createdAt: serverTimestamp(),
-      estado: 'oferta'
+      estado: 'pendiente'
     });
 
     await createPuja({
       fecha_puja: new Date().toISOString().slice(0,10),
-      estado_puja: 'oferta',
+      estado_puja: 'pendiente',
       profesor_email: prof.email,
       id_oferta: clase.ofertaId,
       asignaturas: selectedSubs,
