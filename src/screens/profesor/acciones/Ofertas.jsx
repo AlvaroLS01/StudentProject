@@ -4,7 +4,6 @@ import styled, { keyframes } from 'styled-components';
 import { useNotification } from '../../../NotificationContext';
 import { auth, db } from '../../../firebase/firebaseConfig';
 import InfoGrid from '../../../components/InfoGrid';
-import ProgressBar from '../../../components/ProgressBar';
 import { useAuth } from '../../../AuthContext';
 import CompleteTeacherProfileModal from '../../../components/CompleteTeacherProfileModal';
 import {
@@ -359,12 +358,6 @@ const SlotCell = styled.div`
   transition: background 0.2s, border 0.2s;
 `;
 
-const getProgressData = c => {
-  return c.offers === 0
-    ? { percent: 25, color: '#e53e3e' }
-    : { percent: 50, color: '#dd6b20' };
-};
-
 export default function Ofertas() {
   // Datos de perfil y clases
   const { userData } = useAuth();
@@ -417,10 +410,12 @@ export default function Ofertas() {
       const disponibles = [];
       for (const d of snap2.docs) {
         const data = d.data();
-        const offersSnap = await getDocs(collection(db, 'clases', d.id, 'ofertas'));
-        const hasOffer = offersSnap.docs.some(docu => docu.data().profesorId === u.uid);
-        if (!hasOffer) {
-          disponibles.push({ id: d.id, offers: offersSnap.size, ...data });
+        const offersSnap = await getDocs(
+          query(collection(db, 'clases', d.id, 'ofertas'),
+                where('profesorId', '==', u.uid))
+        );
+        if (offersSnap.empty) {
+          disponibles.push({ id: d.id, ...data });
         }
       }
       setClases(disponibles);
@@ -847,10 +842,6 @@ export default function Ofertas() {
                 </SubjectChip>
               ))}
             </div>
-
-            {c.estado === 'pendiente' && (
-              <ProgressBar {...getProgressData(c)} />
-            )}
 
               <Controls>
                 <ShowScheduleText onClick={() => toggleExpand(c.id)}>
