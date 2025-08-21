@@ -186,6 +186,66 @@ app.post('/tutor', async (req, res) => {
   }
 });
 
+app.post('/alumno', async (req, res) => {
+  const { tutor_email, alumno } = req.body;
+  let client;
+  try {
+    client = await db.connect();
+    await client.query('BEGIN');
+
+    if (alumno.telefono !== alumno.telefonoConfirm) {
+      throw new Error('Teléfonos no coinciden');
+    }
+
+    const cityRes = await client.query(
+      'SELECT id_ciudad FROM student_project.ciudad WHERE LOWER(nombre)=LOWER($1)',
+      [alumno.ciudad]
+    );
+    let id_ciudad;
+    if (cityRes.rowCount > 0) {
+      id_ciudad = cityRes.rows[0].id_ciudad;
+    } else {
+      const insertedCity = await client.query(
+        `INSERT INTO student_project.ciudad (nombre, id_grupo)
+         VALUES ($1, (SELECT id_grupo FROM student_project.grupo WHERE nombre='A'))
+         RETURNING id_ciudad`,
+        [alumno.ciudad]
+      );
+      id_ciudad = insertedCity.rows[0].id_ciudad;
+    }
+
+    const ubic = await client.query(
+      'INSERT INTO student_project.ubicacion (Distrito, Barrio, Codigo_postal, id_ciudad) VALUES ($1,$2,$3,$4) RETURNING id_ubicacion',
+      [alumno.distrito, alumno.barrio || null, alumno.codigo_postal || null, id_ciudad]
+    );
+    const id_ubicacion = ubic.rows[0].id_ubicacion;
+
+    await client.query(
+      'INSERT INTO student_project.alumno (nombre, apellidos, direccion, NIF, telefono, genero, correo_tutor, id_curso, id_ubicacion) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)',
+      [
+        alumno.nombre,
+        alumno.apellidos,
+        alumno.direccion,
+        alumno.NIF,
+        alumno.telefono,
+        alumno.genero,
+        tutor_email,
+        alumno.id_curso,
+        id_ubicacion,
+      ]
+    );
+
+    await client.query('COMMIT');
+    res.json({ status: 'ok' });
+  } catch (err) {
+    if (client) await client.query('ROLLBACK');
+    console.error(err);
+    res.status(500).json({ error: err.message || 'Error creando alumno' });
+  } finally {
+    if (client) client.release();
+  }
+});
+
 app.post('/profesor', async (req, res) => {
   const {
     nombre,

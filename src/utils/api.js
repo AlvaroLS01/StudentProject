@@ -44,6 +44,15 @@ export async function registerTutor(data) {
   return handleResponse(res);
 }
 
+export async function registerAlumno(data) {
+  const res = await fetch(`${API_URL}/alumno`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  });
+  return handleResponse(res);
+}
+
 export async function registerProfesor(data) {
   const res = await fetch(`${API_URL}/profesor`, {
     method: 'POST',
