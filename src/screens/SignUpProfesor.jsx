@@ -543,7 +543,11 @@ export default function SignUpProfesor() {
                   />
                   <VerifyButton type="button" onClick={handleCheckCode} status={checkStatus}>Comprobar</VerifyButton>
                 </VerificationRow>
-                {emailVerified && <p style={{color:'#046654',fontSize:'0.9rem'}}>Correo verificado</p>}
+                {emailVerified && (
+                  <p style={{ color: '#046654', fontSize: '0.9rem', textAlign: 'center' }}>
+                    Correo verificado
+                  </p>
+                )}
               </Field>
             </FormColumn>
             <Button onClick={() => setStep(2)} disabled={!emailVerified || !password || !confirmPassword || password !== confirmPassword}>
