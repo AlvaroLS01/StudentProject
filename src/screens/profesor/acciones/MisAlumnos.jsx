@@ -313,6 +313,7 @@ export default function MisAlumnos() {
   const { show } = useNotification();
   const [selectedUnion, setSelectedUnion] = useState(null);
   const [fechaClase, setFechaClase] = useState('');
+  const [horaClase, setHoraClase] = useState('');
   const [duracion, setDuracion] = useState('');
   const [asignMateria, setAsignMateria] = useState('');
   const [modalidad, setModalidad] = useState('online');
@@ -320,6 +321,12 @@ export default function MisAlumnos() {
   const [requestedAsignaturas, setRequestedAsignaturas] = useState([]);
   const scrollRef = useRef();
   const navigate = useNavigate();
+
+  const timeOptions = Array.from({ length: 48 }, (_, i) => {
+    const h = String(Math.floor(i / 2)).padStart(2, '0');
+    const m = i % 2 === 0 ? '00' : '30';
+    return `${h}:${m}`;
+    });
 
   // Bloquea el scroll de la página cuando el chat está abierto
   useEffect(() => {
@@ -430,6 +437,7 @@ export default function MisAlumnos() {
     setOpenProposalModal(true);
     const today = new Date().toISOString().slice(0, 10);
     setFechaClase(today);
+    setHoraClase(timeOptions[0]);
     setDuracion('');
     setAsignMateria('');
     setModalidad('online');
@@ -448,8 +456,8 @@ export default function MisAlumnos() {
 
   // 6. Envía la propuesta de clase
   const submitProposal = async () => {
-    if (!fechaClase || !duracion || !asignMateria) {
-      show('Rellena todos los campos de la propuesta de clase', 'error');
+    if (!fechaClase || !horaClase || !duracion || !asignMateria) {
+      show('Rellena todos los campos de la clase', 'error');
       return;
     }
     const durNum = parseFloat(duracion);
@@ -467,6 +475,7 @@ export default function MisAlumnos() {
         profesorId: auth.currentUser.uid,
         alumnoId: selectedUnion.alumnoId,
         fecha: fechaClase,
+        hora: horaClase,
         duracion: durNum,
         asignatura: asignMateria,
         modalidad: modalidadStore,
@@ -582,11 +591,11 @@ export default function MisAlumnos() {
                         <div>
                           {item.estado === 'aceptada'
                             ? 'Clase confirmada'
-                            : `He añadido una clase de ${item.duracion} horas, ¿es correcto?`}
+                            : 'He añadido una clase, ¿es correcto?'}
                         </div>
                         <div>
                           <strong>{item.asignatura}</strong> para el{' '}
-                          <strong>{item.fecha}</strong> ({item.duracion}h)
+                          <strong>{item.fecha}</strong> a las <strong>{item.hora}</strong> ({item.duracion}h)
                         </div>
                         {item.estado === 'pendiente' && (
                           <CancelButton onClick={() => cancelProposal(item)}>
@@ -638,7 +647,7 @@ export default function MisAlumnos() {
         <Overlay onClick={() => setOpenProposalModal(false)}>
           <ProposalModal onClick={e => e.stopPropagation()}>
             <ProposalHeader>
-              Proponer nueva clase a {selectedUnion.alumnoNombre}{' '}
+              Registrar clase para {selectedUnion.alumnoNombre}{' '}
               {selectedUnion.alumnoApellidos?.split(' ')[0]}
               {selectedUnion.padreNombre ? ` (${selectedUnion.padreNombre})` : ''}
             </ProposalHeader>
@@ -649,6 +658,12 @@ export default function MisAlumnos() {
                 value={fechaClase}
                 onChange={e => setFechaClase(e.target.value)}
               />
+              <Label>Hora:</Label>
+              <Select value={horaClase} onChange={e => setHoraClase(e.target.value)}>
+                {timeOptions.map(t => (
+                  <option key={t} value={t}>{t}</option>
+                ))}
+              </Select>
               <Label>Duración (horas):</Label>
               <InputNumber
                 type="number"
@@ -687,7 +702,7 @@ export default function MisAlumnos() {
                 Cancelar
               </ModalButton>
               <ModalButton primary onClick={submitProposal}>
-                Enviar propuesta
+                Registrar clase
               </ModalButton>
             </ModalActions>
           </ProposalModal>
