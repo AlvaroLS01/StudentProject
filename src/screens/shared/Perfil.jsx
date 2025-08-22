@@ -15,7 +15,6 @@ import {
 } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import cameraIcon from '../../assets/icons/camara.png';
-import { getProgressData, getRoleTitle, levelThresholds } from '../../utils/levels';
 import {
   BarChart,
   Bar,
@@ -189,31 +188,6 @@ const InlineInput = styled.input`
   border-radius: 4px;
 `;
 
-const ProgressWrapper = styled.div`
-  margin-bottom: 2rem;
-`;
-
-const ProgressLabel = styled.div`
-  font-weight: 600;
-  color: #014F40;
-  margin-bottom: 0.25rem;
-`;
-
-const ProgressBarBackground = styled.div`
-  width: 100%;
-  height: 16px;
-  background: #e6e8eb;
-  border-radius: 8px;
-  overflow: hidden;
-`;
-
-const ProgressBarFill = styled.div`
-  height: 100%;
-  background: #02c37e;
-  width: ${({ percent }) => percent}%;
-  transition: width 0.3s ease;
-`;
-
 const ChartContainer = styled.div`
   width: 100%;
   height: 300px;
@@ -287,8 +261,10 @@ export default function Perfil() {
   }, [searchParams]);
 
   const isOwnProfile = auth.currentUser && auth.currentUser.uid === userId;
-  const progressInfo = getProgressData(metrics.totalClases);
-  const levelName = getRoleTitle(role, progressInfo.level);
+  const experienceMessage =
+    metrics.totalClases < 50
+      ? 'Menos de 50 clases con Student Project'
+      : `${metrics.totalClases} clases con Student Project`;
 
   const handleSave = async () => {
     await updateDoc(doc(db, 'usuarios', userId), {
@@ -733,17 +709,9 @@ export default function Perfil() {
           </Section>
         )}
 
-        <ProgressWrapper>
-          <ProgressLabel>
-            Nivel {progressInfo.level} - {levelName}
-          </ProgressLabel>
-          <ProgressBarBackground>
-            <ProgressBarFill percent={progressInfo.progress} />
-          </ProgressBarBackground>
-          <div style={{ fontSize: '0.85rem', color: '#666', marginTop: '0.25rem' }}>
-            {metrics.totalClases}/{levelThresholds[levelThresholds.length - 1]} clases
-          </div>
-        </ProgressWrapper>
+        <div style={{ textAlign: 'center', marginBottom: '2rem', color: '#014F40', fontWeight: 600 }}>
+          {experienceMessage}
+        </div>
 
         {/* Métricas generales */}
         <Section>
