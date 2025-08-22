@@ -5,7 +5,7 @@ import { auth, db } from '../firebase/firebaseConfig';
 import { doc, updateDoc } from 'firebase/firestore';
 import { useChild } from '../ChildContext';
 import { useAuth } from '../AuthContext';
-import { fetchCursos, registerAlumno } from '../utils/api';
+import { fetchCursos, fetchCities, registerAlumno } from '../utils/api';
 import { Overlay, Modal, ModalTitle } from './ModalStyles';
 
 const CloseButton = styled.button`
@@ -20,7 +20,7 @@ const CloseButton = styled.button`
 
 const Form = styled.div`
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 1rem;
   margin-top: 1rem;
 `;
@@ -32,22 +32,21 @@ export default function AddChildModal({ open, onClose }) {
   const [name, setName] = useState('');
   const [lastName, setLastName] = useState('');
   const [gender, setGender] = useState('');
-  const [date, setDate] = useState('');
   const [courseId, setCourseId] = useState('');
   const [courses, setCourses] = useState([]);
+  const [cities, setCities] = useState([]);
   const [phone, setPhone] = useState('');
   const [phoneConfirm, setPhoneConfirm] = useState('');
   const [nif, setNif] = useState('');
   const [address, setAddress] = useState('');
   const [district, setDistrict] = useState('');
   const [city, setCity] = useState('');
-  const [barrio, setBarrio] = useState('');
-  const [postalCode, setPostalCode] = useState('');
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     if (open) {
       fetchCursos().then(setCourses).catch(console.error);
+      fetchCities().then(setCities).catch(console.error);
     }
   }, [open]);
 
@@ -56,7 +55,6 @@ export default function AddChildModal({ open, onClose }) {
       !name ||
       !lastName ||
       !gender ||
-      !date ||
       !courseId ||
       !phone ||
       phone !== phoneConfirm ||
@@ -80,26 +78,21 @@ export default function AddChildModal({ open, onClose }) {
           genero: gender,
           id_curso: courseId,
           distrito: district,
-          barrio,
-          codigo_postal: postalCode,
           ciudad: city,
         }
       });
 
-      const courseName = courses.find(c => c.id_curso === parseInt(courseId))?.curso || '';
+        const courseName = courses.find(c => c.id_curso === parseInt(courseId))?.nombre || '';
       const nuevo = {
         id: Date.now().toString(),
         nombre: name,
         apellidos: lastName,
         genero: gender,
-        fechaNacimiento: date,
         curso: courseName,
         telefono: phone,
         NIF: nif,
         direccion: address,
         distrito: district,
-        barrio,
-        codigo_postal: postalCode,
         ciudad: city,
         photoURL: userData?.photoURL || auth.currentUser.photoURL || ''
       };
@@ -110,7 +103,6 @@ export default function AddChildModal({ open, onClose }) {
       setName('');
       setLastName('');
       setGender('');
-      setDate('');
       setCourseId('');
       setPhone('');
       setPhoneConfirm('');
@@ -118,8 +110,6 @@ export default function AddChildModal({ open, onClose }) {
       setAddress('');
       setDistrict('');
       setCity('');
-      setBarrio('');
-      setPostalCode('');
     } catch (err) {
       console.error(err);
     } finally {
@@ -154,16 +144,11 @@ export default function AddChildModal({ open, onClose }) {
             <option value="Femenino">Femenino</option>
             <option value="Otro">Otro</option>
           </SelectInput>
-          <TextInput
-            type="date"
-            value={date}
-            onChange={e => setDate(e.target.value)}
-          />
           <SelectInput value={courseId} onChange={e => setCourseId(e.target.value)}>
             <option value="">Selecciona curso</option>
-            {courses.map(c => (
-              <option key={c.id_curso} value={c.id_curso}>{c.curso}</option>
-            ))}
+              {courses.map(c => (
+                <option key={c.id_curso} value={c.id_curso}>{c.nombre}</option>
+              ))}
           </SelectInput>
           <TextInput
             type="tel"
@@ -195,24 +180,12 @@ export default function AddChildModal({ open, onClose }) {
             value={district}
             onChange={e => setDistrict(e.target.value)}
           />
-          <TextInput
-            type="text"
-            placeholder="Barrio (opcional)"
-            value={barrio}
-            onChange={e => setBarrio(e.target.value)}
-          />
-          <TextInput
-            type="text"
-            placeholder="Código postal (opcional)"
-            value={postalCode}
-            onChange={e => setPostalCode(e.target.value)}
-          />
-          <TextInput
-            type="text"
-            placeholder="Ciudad"
-            value={city}
-            onChange={e => setCity(e.target.value)}
-          />
+          <SelectInput value={city} onChange={e => setCity(e.target.value)}>
+            <option value="">Selecciona ciudad</option>
+            {cities.map(c => (
+              <option key={c.id_ciudad} value={c.nombre}>{c.nombre}</option>
+            ))}
+          </SelectInput>
           <PrimaryButton onClick={addChild} disabled={saving} style={{ gridColumn: '1 / -1' }}>
             {saving ? 'Guardando...' : 'Guardar'}
           </PrimaryButton>

@@ -287,7 +287,6 @@ export default function SignUpTutor() {
   const [distritoAlumno, setDistritoAlumno] = useState('');
   const [nombreHijo, setNombreHijo] = useState('');
   const [apellidoHijo, setApellidoHijo] = useState('');
-  const [fechaNacHijo, setFechaNacHijo] = useState('');
   const [generoHijo, setGeneroHijo] = useState('Masculino');
   const [modalOpen, setModalOpen]   = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -378,7 +377,6 @@ export default function SignUpTutor() {
     if (!distritoAlumno) missing.push('Barrio, Localidad, Distrito...');
     if (!nombreHijo) missing.push('Nombre del Alumno');
     if (!apellidoHijo) missing.push('Apellidos del Alumno');
-    if (!fechaNacHijo) missing.push('Fecha Nacimiento del Alumno');
     if (!generoHijo) missing.push('Género del Alumno');
     if (!emailVerified) missing.push('Verificación de correo');
     if (missing.length) {
@@ -435,7 +433,6 @@ export default function SignUpTutor() {
             nombre: nombreHijo,
             apellidos: apellidoHijo,
             genero: generoHijo,
-            fechaNacimiento: fechaNacHijo,
             curso,
             telefono: telefonoHijo,
             NIF: nifAlumno,
@@ -813,18 +810,6 @@ export default function SignUpTutor() {
                   <option value="Masculino">Masculino</option>
                   <option value="Femenino">Femenino</option>
                 </select>
-              </Field>
-              <Field>
-                <div className="fl-field">
-                  <input
-                    className="form-control fl-input"
-                    type="date"
-                    value={fechaNacHijo}
-                    onChange={e=>setFechaNacHijo(e.target.value)}
-                    placeholder=" "
-                  />
-                  <label className="fl-label">Fecha Nacimiento del Alumno</label>
-                </div>
               </Field>
               <p style={{gridColumn: '1 / -1', fontSize:'0.85rem', color:'#555'}}>
                 Podrás añadir más alumnos desde la pestaña "Mi cuenta".
