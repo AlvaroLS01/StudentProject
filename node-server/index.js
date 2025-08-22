@@ -370,7 +370,7 @@ app.post('/profesor', async (req, res) => {
     genero,
     telefono,
     correo_electronico,
-    NIF = null,
+    NIF,
     direccion_facturacion,
     IBAN = null,
     carrera = null,
@@ -378,16 +378,34 @@ app.post('/profesor', async (req, res) => {
     experiencia = null,
     password,
   } = req.body;
+  if (!nombre || !apellidos || !genero || !telefono || !correo_electronico || !NIF || !direccion_facturacion || !password) {
+    return res.status(400).json({ error: 'Datos obligatorios faltantes' });
+  }
+
+  const clamp = (val, max) => (val && val.length > max ? val.slice(0, max) : val);
   try {
     const hashed = await bcrypt.hash(password, 10);
     const result = await db.query(
       'INSERT INTO student_project.profesor (nombre, apellidos, genero, telefono, correo_electronico, "NIF", direccion_facturacion, "IBAN", carrera, curso, experiencia, password) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12) RETURNING id_profesor',
-      [nombre, apellidos, genero, telefono, correo_electronico, NIF, direccion_facturacion, IBAN, carrera, curso, experiencia, hashed]
+      [
+        clamp(nombre, 100),
+        clamp(apellidos, 100),
+        clamp(genero, 100),
+        clamp(telefono, 25),
+        clamp(correo_electronico, 100),
+        clamp(NIF, 100),
+        clamp(direccion_facturacion, 100),
+        clamp(IBAN, 100),
+        clamp(carrera, 100),
+        clamp(curso, 100),
+        clamp(experiencia, 1000),
+        hashed,
+      ]
     );
     res.json({ id: result.rows[0].id_profesor });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: "Error creando profesor" });
+    res.status(500).json({ error: 'Error creando profesor' });
   }
 });
 
@@ -864,9 +882,24 @@ app.post('/accept-class', async (req, res) => {
     studentName,
   } = req.body;
 
-  if (!teacherEmail) {
-    return res.status(400).json({ error: 'Falta correo del profesor' });
+  if (
+    !fecha_clase ||
+    !hora_clase ||
+    !modalidad_clase ||
+    precio_total_clase == null ||
+    beneficio_clase == null ||
+    duracion_clase == null ||
+    !fecha_registro_clase ||
+    !id_asignatura ||
+    !id_ubicacion ||
+    !id_profesor ||
+    !id_alumno ||
+    !teacherEmail
+  ) {
+    return res.status(400).json({ error: 'Datos incompletos para la clase' });
   }
+
+  const clamp = (val, max) => (val && val.length > max ? val.slice(0, max) : val);
 
   let client;
   try {
@@ -878,7 +911,7 @@ app.post('/accept-class', async (req, res) => {
       [
         fecha_clase,
         hora_clase,
-        modalidad_clase,
+        clamp(modalidad_clase, 100),
         precio_total_clase,
         beneficio_clase,
         duracion_clase,
