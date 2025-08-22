@@ -369,3 +369,15 @@ INSERT INTO student_project.ciudad (nombre, id_grupo) VALUES
     ('Malaga',    (SELECT id_grupo FROM student_project.grupo WHERE nombre = 'B')),
     ('Valencia',  (SELECT id_grupo FROM student_project.grupo WHERE nombre = 'B'))
 ON CONFLICT (nombre) DO NOTHING;
+-- -----------------------------------------------------
+-- Table `student_project`.`saldo_usuario`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS student_project.saldo_usuario (
+    user_id VARCHAR(100) NOT NULL,
+    rol VARCHAR(20) NOT NULL,
+    saldo numeric NOT NULL DEFAULT 0,
+    PRIMARY KEY (user_id, rol)
+);
+
+COMMENT ON TABLE student_project.saldo_usuario
+    IS 'Saldo acumulado por usuario para pagos a liquidar.';

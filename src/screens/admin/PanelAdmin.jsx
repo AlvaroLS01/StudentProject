@@ -10,9 +10,11 @@ import {
 import { db } from '../../firebase/firebaseConfig';
 
 // Importa tu componente de gestión de clases para admin
+
 import GestionClases from './acciones/GestionClases';
 import Facturacion   from './acciones/Facturacion';
 import Usuarios      from './acciones/Usuarios';
+import Pagos        from './acciones/Pagos';
 
 const Container = styled.div`
   display: flex;
@@ -219,6 +221,8 @@ export default function PanelAdmin() {
         return <GestionClases />;
       case 'facturacion':
         return <Facturacion />;
+      case 'pagos':
+        return <Pagos />;
       case 'usuarios':
         return <Usuarios />;
       default:
@@ -245,6 +249,14 @@ export default function PanelAdmin() {
               onClick={() => setView('facturacion')}
             >
               Facturación
+            </Button>
+          </MenuItem>
+          <MenuItem>
+            <Button
+              active={view === 'pagos'}
+              onClick={() => setView('pagos')}
+            >
+              Pagos
             </Button>
           </MenuItem>
           <MenuItem>

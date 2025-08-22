@@ -21,6 +21,7 @@ import {
   onSnapshot
 } from 'firebase/firestore';
 import { acceptClassByStudent, rejectPendingClass } from '../../../utils/classWorkflow';
+import { registerTransaction } from "../../../utils/api";
 
 const fadeIn = keyframes`
   from { opacity: 0; transform: translateY(-10px); }
@@ -266,6 +267,12 @@ export default function Clases() {
         senderId: clase.profesorId,
         text: `He añadido una clase, ${clase.fecha}`,
         createdAt: serverTimestamp()
+      });
+      await registerTransaction({
+        alumnoId: auth.currentUser.uid,
+        profesorId: clase.profesorId,
+        montoTutor: clase.precioTotalPadres,
+        montoProfesor: clase.precioTotalProfesor,
       });
       setClases(prev => prev.map(c =>
         c.id === clase.id ? { ...c, estado: 'aceptada', confirmada: true } : c
