@@ -116,6 +116,10 @@ const NameLink = styled.span`
   }
 `;
 
+const OfferDetails = styled.div`
+  margin-top: 0.75rem;
+`;
+
 // Para mostrar la tabla de disponibilidad
 const ScheduleContainer = styled.div`
   margin-top: 1rem;
@@ -175,6 +179,7 @@ export default function GestionClases() {
   const [clases, setClases] = useState([]);
   const [loading, setLoading] = useState(true);
   const [expandedOfferId, setExpandedOfferId] = useState(null);
+  const [expandedScheduleOfferId, setExpandedScheduleOfferId] = useState(null);
   const [expandedClassId, setExpandedClassId] = useState(null);
   const [confirmModal, setConfirmModal] = useState(false);
   const [offerToConfirm, setOfferToConfirm] = useState(null);
@@ -415,7 +420,13 @@ export default function GestionClases() {
                 <SectionTitle>Ofertas recibidas:</SectionTitle>
                 {c.ofertas.map(o => (
                   <OfferCard key={o.id}>
-                    <OfferHeader>
+                    <OfferHeader
+                      onClick={() =>
+                        setExpandedOfferId(
+                          expandedOfferId === o.id ? null : o.id
+                        )
+                      }
+                    >
                       <div>
                         <Label>Oferta profesor:</Label>{' '}
                         <NameLink
@@ -429,7 +440,22 @@ export default function GestionClases() {
                         <br />
                         <Label>Precio:</Label>{' '}
                         <Value>€{o.precio}</Value>
-                        <br />
+                      </div>
+                      <AcceptText
+                        onClick={e => {
+                          e.stopPropagation();
+                          setOfferToConfirm(o);
+                          setClassToConfirm(c);
+                          setConfirmModal(true);
+                        }}
+                      >
+                        Aceptar oferta
+                      </AcceptText>
+                    </OfferHeader>
+
+                    {/* Alternar visibilidad de la tabla */}
+                    {expandedOfferId === o.id && (
+                      <OfferDetails>
                         <Label>Asignaturas prof.:</Label>{' '}
                         <Value>{o.asignaturas ? o.asignaturas.join(', ') : (c.asignaturas ? c.asignaturas.join(', ') : c.asignatura)}</Value>
                         {(() => {
@@ -498,60 +524,50 @@ export default function GestionClases() {
                             )}
                           </>
                         )}
-                      </div>
-                      <AcceptText
-                        onClick={() => {
-                          setOfferToConfirm(o);
-                          setClassToConfirm(c);
-                          setConfirmModal(true);
-                        }}
-                      >
-                        Aceptar oferta
-                      </AcceptText>
-                    </OfferHeader>
 
-                    {/* Alternar visibilidad de la tabla */}
-                    <ShowScheduleText
-                      onClick={() =>
-                        setExpandedOfferId(
-                          expandedOfferId === o.id ? null : o.id
-                        )
-                      }
-                    >
-                      {expandedOfferId === o.id
-                        ? 'Ocultar horarios'
-                        : 'Mostrar horarios'}
-                    </ShowScheduleText>
+                        <ShowScheduleText
+                          onClick={() =>
+                            setExpandedScheduleOfferId(
+                              expandedScheduleOfferId === o.id ? null : o.id
+                            )
+                          }
+                        >
+                          {expandedScheduleOfferId === o.id
+                            ? 'Ocultar horarios'
+                            : 'Mostrar horarios'}
+                        </ShowScheduleText>
 
-                    {expandedOfferId === o.id && (
-                      <>
-                        <SectionTitle>Comparativa de horarios:</SectionTitle>
-                        <ScheduleContainer>
-                          <ScheduleGrid>
-                            <HeaderCell>Hora</HeaderCell>
-                            {daysOfWeek.map(d => (
-                              <HeaderCell key={d}>{d}</HeaderCell>
-                            ))}
-                            {hours.map(h => (
-                              <React.Fragment key={h}>
-                                <HourLabel>{`${h}.00–${h + 1}.00`}</HourLabel>
-                                {daysOfWeek.map(d => {
-                                  const key = `${d}-${h}`;
-                                  const studentHas = c.schedule.includes(key);
-                                  const profHas = o.schedule?.includes(key);
-                                  return (
-                                    <SlotCell
-                                      key={key}
-                                      student={studentHas ? 1 : 0}
-                                      prof={profHas ? 1 : 0}
-                                    />
-                                  );
-                                })}
-                              </React.Fragment>
-                            ))}
-                          </ScheduleGrid>
-                        </ScheduleContainer>
-                      </>
+                        {expandedScheduleOfferId === o.id && (
+                          <>
+                            <SectionTitle>Comparativa de horarios:</SectionTitle>
+                            <ScheduleContainer>
+                              <ScheduleGrid>
+                                <HeaderCell>Hora</HeaderCell>
+                                {daysOfWeek.map(d => (
+                                  <HeaderCell key={d}>{d}</HeaderCell>
+                                ))}
+                                {hours.map(h => (
+                                  <React.Fragment key={h}>
+                                    <HourLabel>{`${h}.00–${h + 1}.00`}</HourLabel>
+                                    {daysOfWeek.map(d => {
+                                      const key = `${d}-${h}`;
+                                      const studentHas = c.schedule.includes(key);
+                                      const profHas = o.schedule?.includes(key);
+                                      return (
+                                        <SlotCell
+                                          key={key}
+                                          student={studentHas ? 1 : 0}
+                                          prof={profHas ? 1 : 0}
+                                        />
+                                      );
+                                    })}
+                                  </React.Fragment>
+                                ))}
+                              </ScheduleGrid>
+                            </ScheduleContainer>
+                          </>
+                        )}
+                      </OfferDetails>
                     )}
                   </OfferCard>
                 ))}
