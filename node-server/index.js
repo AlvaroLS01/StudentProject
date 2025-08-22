@@ -111,18 +111,36 @@ app.get('/pagos', async (_req, res) => {
   }
 });
 app.post('/transaccion', async (req, res) => {
-  const { alumnoId, profesorId, montoTutor, montoProfesor } = req.body;
-  if (!alumnoId || !profesorId) {
+  const {
+    alumnoId,
+    profesorId,
+    tutorId: tutorIdReq,
+    tutorEmail,
+    alumnoNombre,
+    asignatura,
+    modalidad,
+    fecha,
+    hora,
+    duracion,
+    montoTutor,
+    montoProfesor,
+  } = req.body;
+
+  const tutorId = tutorIdReq || alumnoId;
+  if (!tutorId || !profesorId) {
     return res.status(400).json({ error: 'Datos incompletos' });
   }
+
   let client;
   try {
     client = await db.connect();
     await client.query('BEGIN');
     const fdb = admin.firestore();
-    const alumnoSnap = await fdb.collection('usuarios').doc(alumnoId).get();
-    const tutorId = alumnoSnap.exists ? alumnoSnap.data().tutorId : null;
-    if (!tutorId) throw new Error('Tutor no encontrado para alumno');
+
+    const profSnap = await fdb.collection('usuarios').doc(profesorId).get();
+    const profesorEmail = profSnap.exists ? profSnap.data().email : null;
+    if (!profesorEmail) throw new Error('Correo del profesor no encontrado');
+
     await client.query(
       `INSERT INTO student_project.saldo_usuario (user_id, rol, saldo)
        VALUES ($1,'tutor',$2)
@@ -135,15 +153,84 @@ app.post('/transaccion', async (req, res) => {
        ON CONFLICT (user_id, rol) DO UPDATE SET saldo = saldo + EXCLUDED.saldo`,
       [profesorId, montoProfesor || 0]
     );
+
+    let id_profesor = null;
+    let id_alumno = null;
+    let id_ubicacion = null;
+    let id_asignatura = null;
+
+    const pr = await client.query(
+      'SELECT id_profesor FROM student_project.profesor WHERE correo_electronico=$1',
+      [profesorEmail]
+    );
+    if (pr.rowCount > 0) id_profesor = pr.rows[0].id_profesor;
+
+    if (tutorEmail && alumnoNombre) {
+      const ar = await client.query(
+        'SELECT id_alumno, id_ubicacion FROM student_project.alumno WHERE correo_tutor=$1 AND LOWER(nombre)=LOWER($2)',
+        [tutorEmail, alumnoNombre]
+      );
+      if (ar.rowCount > 0) {
+        id_alumno = ar.rows[0].id_alumno;
+        id_ubicacion = ar.rows[0].id_ubicacion;
+      }
+    }
+
+    if (asignatura) {
+      const asr = await client.query(
+        'SELECT id_asignatura FROM student_project.asignatura WHERE LOWER(nombre_asignatura)=LOWER($1)',
+        [asignatura]
+      );
+      if (asr.rowCount > 0) id_asignatura = asr.rows[0].id_asignatura;
+    }
+
+    if (
+      id_profesor &&
+      id_alumno &&
+      id_ubicacion &&
+      id_asignatura &&
+      fecha &&
+      hora &&
+      modalidad
+    ) {
+      await client.query(
+        `INSERT INTO student_project.clase (
+          fecha_clase, hora_clase, modalidad_clase, precio_total_clase, beneficio_clase,
+          duracion_clase, fecha_registro_clase, id_asignatura, id_ubicacion, id_profesor, id_alumno)
+         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)`,
+        [
+          fecha,
+          hora,
+          modalidad,
+          Math.abs(montoTutor || 0),
+          (montoTutor || 0) - (montoProfesor || 0),
+          duracion || 0,
+          new Date().toISOString().slice(0, 10),
+          id_asignatura,
+          id_ubicacion,
+          id_profesor,
+          id_alumno,
+        ]
+      );
+    }
+
     await client.query('COMMIT');
-    await fdb.collection('balances').doc(tutorId).set({
-      rol: 'tutor',
-      saldo: admin.firestore.FieldValue.increment(-Math.abs(montoTutor || 0))
-    }, { merge: true });
-    await fdb.collection('balances').doc(profesorId).set({
-      rol: 'profesor',
-      saldo: admin.firestore.FieldValue.increment(montoProfesor || 0)
-    }, { merge: true });
+
+    await fdb.collection('balances').doc(tutorId).set(
+      {
+        rol: 'tutor',
+        saldo: admin.firestore.FieldValue.increment(-Math.abs(montoTutor || 0)),
+      },
+      { merge: true }
+    );
+    await fdb.collection('balances').doc(profesorId).set(
+      {
+        rol: 'profesor',
+        saldo: admin.firestore.FieldValue.increment(montoProfesor || 0),
+      },
+      { merge: true }
+    );
+
     res.json({ message: 'Transacción registrada' });
   } catch (err) {
     if (client) await client.query('ROLLBACK');

@@ -265,12 +265,19 @@ export default function Clases() {
       });
       await addDoc(collection(db, 'clases_union', clase.unionId, 'chats'), {
         senderId: clase.profesorId,
-        text: `He añadido una clase, ${clase.fecha}`,
+        text: `He añadido una clase, ${clase.fecha} a las ${clase.hora}`,
         createdAt: serverTimestamp()
       });
       await registerTransaction({
-        alumnoId: auth.currentUser.uid,
+        tutorId: auth.currentUser.uid,
+        tutorEmail: auth.currentUser.email,
+        alumnoNombre: selectedChild ? selectedChild.nombre : '',
         profesorId: clase.profesorId,
+        asignatura: clase.asignatura,
+        modalidad: clase.modalidad,
+        fecha: clase.fecha,
+        hora: clase.hora,
+        duracion: clase.duracion,
         montoTutor: clase.precioTotalPadres,
         montoProfesor: clase.precioTotalProfesor,
       });
