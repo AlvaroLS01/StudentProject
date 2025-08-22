@@ -88,6 +88,51 @@ Envía un `POST` a `http://localhost:3001/send-assignment-email` con un cuerpo c
 El campo `recipient` puede ser `teacher`, `student` o `both` para indicar a quién se envía la notificación.
 Se utilizará para avisar al profesor cuando la administración lo seleccione y al alumno cuando el profesor acepte la solicitud.
 
+### Notificar clase al tutor
+
+Permite avisar al tutor cuando el profesor propone una clase para su alumno:
+
+```bash
+POST http://localhost:3001/notify-tutor-class
+{
+  "tutorEmail": "tutor@ejemplo.com",
+  "tutorName": "Nombre Tutor",
+  "teacherName": "Nombre Profesor",
+  "studentName": "Nombre Alumno",
+  "classDate": "2024-01-01",
+  "classTime": "17:00"
+}
+```
+
+Se enviará un correo al tutor indicando la fecha y hora de la clase para que la confirme entrando en el chat con el profesor.
+
+### Registrar aceptación de clase
+
+Cuando el tutor confirma la clase se debe registrar en la base de datos:
+
+```bash
+POST http://localhost:3001/accept-class
+{
+  "fecha_clase": "2024-01-01",
+  "hora_clase": "17:00",
+  "modalidad_clase": "Online",
+  "precio_total_clase": 0,
+  "beneficio_clase": 0,
+  "duracion_clase": 1,
+  "fecha_registro_clase": "2024-01-01",
+  "id_asignatura": 1,
+  "id_ubicacion": 1,
+  "id_profesor": 1,
+  "id_alumno": 1,
+  "teacherEmail": "profesor@ejemplo.com",
+  "teacherName": "Nombre Profesor",
+  "studentName": "Nombre Alumno"
+}
+```
+
+El servidor insertará estos datos en la tabla `student_project.clase` y enviará
+un correo al profesor indicando que el alumno ha aceptado la clase.
+
 ### Sincronización con Google Sheets
 
 Para registrar usuarios y clases en una hoja de cálculo debes especificar

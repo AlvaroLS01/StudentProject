@@ -680,6 +680,109 @@ app.post('/send-assignment-email', async (req, res) => {
   }
 });
 
+app.post('/notify-tutor-class', async (req, res) => {
+  const {
+    tutorEmail,
+    tutorName,
+    teacherName,
+    studentName,
+    classDate,
+    classTime,
+  } = req.body;
+
+  if (!tutorEmail) {
+    return res.status(400).json({ error: 'Falta correo del tutor' });
+  }
+
+  const html = `
+      <p>Hola ${tutorName || 'tutor'}, el profesor ${teacherName || 'profesor'} ha añadido una clase para el alumno ${studentName || ''}.</p>
+      <p>Fecha y hora: ${classDate || ''} a las ${classTime || ''}.</p>
+      <p>Por favor, entra en el chat con el profesor para aceptarla.</p>
+    `;
+
+  try {
+    await transporter.sendMail({
+      from: `"Student Project" <${process.env.EMAIL_USER || 'alvaro@studentproject.es'}>`,
+      to: tutorEmail,
+      subject: 'Nueva clase pendiente de confirmar',
+      html,
+    });
+    res.json({ message: 'Correo enviado al tutor' });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Error enviando correo' });
+  }
+});
+
+app.post('/accept-class', async (req, res) => {
+  const {
+    fecha_clase,
+    hora_clase,
+    modalidad_clase,
+    precio_total_clase,
+    beneficio_clase,
+    duracion_clase,
+    fecha_registro_clase,
+    id_asignatura,
+    id_ubicacion,
+    id_profesor,
+    id_alumno,
+    teacherEmail,
+    teacherName,
+    studentName,
+  } = req.body;
+
+  if (!teacherEmail) {
+    return res.status(400).json({ error: 'Falta correo del profesor' });
+  }
+
+  let client;
+  try {
+    client = await db.connect();
+    await client.query(
+      `INSERT INTO student_project.clase
+        (fecha_clase, hora_clase, modalidad_clase, precio_total_clase, beneficio_clase, duracion_clase, fecha_registro_clase, id_asignatura, id_ubicacion, id_profesor, id_alumno)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)`,
+      [
+        fecha_clase,
+        hora_clase,
+        modalidad_clase,
+        precio_total_clase,
+        beneficio_clase,
+        duracion_clase,
+        fecha_registro_clase,
+        id_asignatura,
+        id_ubicacion,
+        id_profesor,
+        id_alumno,
+      ]
+    );
+  } catch (err) {
+    console.error(err);
+    if (client) client.release();
+    return res.status(500).json({ error: 'Error registrando la clase' });
+  }
+
+  if (client) client.release();
+
+  try {
+    const html = `
+      <p>Hola ${teacherName || 'profesor'}, el alumno ${studentName || ''} ha aceptado la clase programada para el ${fecha_clase || ''} a las ${hora_clase || ''}.</p>
+      <p>La clase se ha registrado correctamente en la base de datos.</p>
+    `;
+    await transporter.sendMail({
+      from: `"Student Project" <${process.env.EMAIL_USER || 'alvaro@studentproject.es'}>`,
+      to: teacherEmail,
+      subject: 'Clase aceptada por el alumno',
+      html,
+    });
+    res.json({ message: 'Clase aceptada y correo enviado al profesor' });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Clase registrada pero error enviando correo al profesor' });
+  }
+});
+
 app.post('/request-password-reset', async (req, res) => {
   const { email } = req.body;
   if (!email) return res.status(400).json({ error: 'Email requerido' });
