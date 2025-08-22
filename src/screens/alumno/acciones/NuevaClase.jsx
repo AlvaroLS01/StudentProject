@@ -243,6 +243,7 @@ export default function NuevaClase() {
   const [tipoClase, setTipoClase]         = useState('individual');
   const [modalidad, setModalidad]         = useState('online');
   const [ciudad, setCiudad]               = useState('');
+  const [zona, setZona]                   = useState('');
   const [cityGroups, setCityGroups]       = useState({});
   const [startDate, setStartDate]         = useState(getToday());
   const [endDate, setEndDate]             = useState('');
@@ -261,6 +262,7 @@ export default function NuevaClase() {
   const [confirmModal, setConfirmModal]         = useState(false);
   const [submitting, setSubmitting]             = useState(false);
   const [successModal, setSuccessModal]         = useState(false);
+  const [presencialModal, setPresencialModal]   = useState(false);
 
   const [errors, setErrors] = useState({});
 
@@ -272,6 +274,7 @@ export default function NuevaClase() {
   const asignRef = useRef();
   const cursoRef = useRef();
   const cityRef  = useRef();
+  const zonaRef  = useRef();
   const datesRef = useRef();
   const horasRef = useRef();
   const scheduleRef = useRef();
@@ -429,6 +432,10 @@ export default function NuevaClase() {
       newErrors.ciudad = true;
       firstRef = firstRef || cityRef;
     }
+    if (modalidad === 'presencial' && !zona) {
+      newErrors.zona = true;
+      firstRef = firstRef || zonaRef;
+    }
     if (!startDate || !endDate) {
       newErrors.fechas = true;
       firstRef = firstRef || datesRef;
@@ -448,6 +455,7 @@ export default function NuevaClase() {
       asignaturas: 'Asignaturas',
       curso: 'Curso',
       ciudad: 'Ciudad',
+      zona: 'Zona / Barrio',
       fechas: 'Fechas',
       horas: 'Horas por semana',
       horario: 'Horario'
@@ -470,6 +478,7 @@ export default function NuevaClase() {
     setTipoClase('individual');
     setModalidad('online');
     setCiudad('');
+    setZona('');
     setStartDate(getToday());
     setEndDate('');
     setNoEndDate(false);
@@ -503,6 +512,7 @@ export default function NuevaClase() {
         alumno_nombre: alumnoNombre,
         alumno_apellidos: alumnoApellidos,
         asignaturas,
+        zona: modalidad === 'presencial' ? zona : '',
         anotaciones: notas,
       });
 
@@ -518,6 +528,7 @@ export default function NuevaClase() {
         tipoClase,
         modalidad: modalidadStore,
         ciudad,
+        zona: modalidad === 'presencial' ? zona : '',
         fechaInicio: startDate,
         fechaFin: endDate,
         horasSemana: parseInt(horasSemana, 10),
@@ -665,7 +676,7 @@ export default function NuevaClase() {
                   checked={modalidad === 'presencial'}
                   onChange={e => {
                     setModalidad(e.target.value);
-                    alert('Si se elige presencial, la dirección usada será la del alumno');
+                    setPresencialModal(true);
                   }}
                 /> Presencial
               </label>
@@ -694,7 +705,17 @@ export default function NuevaClase() {
             </DropdownContainer>
           </Field>
 
-          {/* Zona / Barrio eliminado para modalidad presencial */}
+          {/* Zona / Barrio */}
+          {modalidad === 'presencial' && (
+            <Field ref={zonaRef} error={errors.zona}>
+              <label>Zona / Barrio *</label>
+              <input
+                type="text"
+                value={zona}
+                onChange={e => { setZona(e.target.value); setErrors(prev => ({ ...prev, zona:false })); }}
+              />
+            </Field>
+          )}
 
           {/* Fecha de inicio y fecha de fin por día */}
           <Field ref={datesRef} error={errors.fechas} style={{ gridColumn: '1 / -1' }}>
@@ -798,6 +819,17 @@ export default function NuevaClase() {
         </FormGrid>
 
         <Button onClick={handleSubmit}>Solicitar clase</Button>
+
+        {presencialModal && (
+          <Overlay onClick={() => setPresencialModal(false)}>
+            <Modal onClick={e => e.stopPropagation()}>
+              <ModalText>Si se elige presencial, la dirección usada será la del alumno</ModalText>
+              <ModalActions>
+                <ModalButton primary onClick={() => setPresencialModal(false)}>Entendido</ModalButton>
+              </ModalActions>
+            </Modal>
+          </Overlay>
+        )}
 
         {confirmModal && (
           <Overlay>
