@@ -267,6 +267,8 @@ export default function SignUpProfesor() {
   const [distrito, setDistrito] = useState('');
   const [barrio, setBarrio] = useState('');
   const [codigoPostal, setCodigoPostal] = useState('');
+  const [curso, setCurso] = useState('');
+  const [experiencia, setExperiencia] = useState('');
   const navigate = useNavigate();
   const { show } = useNotification();
   const ref = useRef();
@@ -343,6 +345,8 @@ export default function SignUpProfesor() {
     if (!distrito) missing.push('Distrito');
     if (!barrio) missing.push('Barrio');
     if (!codigoPostal) missing.push('Código Postal');
+    if (!curso) missing.push('Curso');
+    if (experiencia === '') missing.push('Años de experiencia');
     if (!emailVerified) missing.push('Verificación de correo');
     if (missing.length) {
       show('Faltan: ' + missing.join(', '), 'error');
@@ -388,8 +392,8 @@ export default function SignUpProfesor() {
         codigo_postal: codigoPostal,
         IBAN: null,
         carrera: null,
-        curso: null,
-        experiencia: null,
+        curso,
+        experiencia: Number(experiencia),
       });
       const genero = salutation === 'Sr.' ? 'Masculino' : 'Femenino';
       await registerProfesor({
@@ -406,8 +410,8 @@ export default function SignUpProfesor() {
         ciudad,
         IBAN: null,
         carrera: null,
-        curso: null,
-        experiencia: null,
+        curso,
+        experiencia: Number(experiencia),
         password,
       });
       await sendWelcomeEmail({ email, name: nombre });
@@ -606,6 +610,30 @@ export default function SignUpProfesor() {
                     placeholder=" "
                   />
                   <label className="fl-label">Código Postal</label>
+                </div>
+              </Field>
+              <Field>
+                <div className="fl-field">
+                  <input
+                    className="form-control fl-input"
+                    type="text"
+                    value={curso}
+                    onChange={e => setCurso(e.target.value)}
+                    placeholder=" "
+                  />
+                  <label className="fl-label">¿En qué curso estás?</label>
+                </div>
+              </Field>
+              <Field>
+                <div className="fl-field">
+                  <input
+                    className="form-control fl-input"
+                    type="number"
+                    value={experiencia}
+                    onChange={e => setExperiencia(e.target.value)}
+                    placeholder=" "
+                  />
+                  <label className="fl-label">Años de experiencia</label>
                 </div>
               </Field>
               <Field style={{ gridColumn: '1 / -1' }} ref={ref}>
