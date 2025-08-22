@@ -231,7 +231,14 @@ app.post('/tutor', async (req, res) => {
       ]
     );
 
-    if (alumno.telefono !== alumno.telefonoConfirm) {
+    const telefonoAlumno = alumno.telefono && alumno.telefono.trim() !== ''
+      ? alumno.telefono
+      : tutor.telefono;
+    if (
+      alumno.telefono &&
+      alumno.telefonoConfirm &&
+      alumno.telefono !== alumno.telefonoConfirm
+    ) {
       throw new Error('Teléfonos no coinciden');
     }
 
@@ -265,7 +272,7 @@ app.post('/tutor', async (req, res) => {
         alumno.apellidos,
         alumno.direccion,
         alumno.NIF,
-        alumno.telefono,
+        telefonoAlumno,
         alumno.genero,
         tutor.correo_electronico,
         alumno.id_curso,
@@ -290,9 +297,21 @@ app.post('/alumno', async (req, res) => {
   try {
     client = await db.connect();
     await client.query('BEGIN');
-
-    if (alumno.telefono !== alumno.telefonoConfirm) {
+    if (
+      alumno.telefono &&
+      alumno.telefonoConfirm &&
+      alumno.telefono !== alumno.telefonoConfirm
+    ) {
       throw new Error('Teléfonos no coinciden');
+    }
+
+    let telefonoAlumno = alumno.telefono && alumno.telefono.trim() !== '' ? alumno.telefono : null;
+    if (!telefonoAlumno) {
+      const tutorRes = await client.query(
+        'SELECT telefono FROM student_project.tutor WHERE correo_electronico=$1',
+        [tutor_email]
+      );
+      telefonoAlumno = tutorRes.rows[0]?.telefono || null;
     }
 
     const cityRes = await client.query(
@@ -325,7 +344,7 @@ app.post('/alumno', async (req, res) => {
         alumno.apellidos,
         alumno.direccion,
         alumno.NIF,
-        alumno.telefono,
+        telefonoAlumno,
         alumno.genero,
         tutor_email,
         alumno.id_curso,

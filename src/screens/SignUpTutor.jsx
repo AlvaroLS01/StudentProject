@@ -371,8 +371,7 @@ export default function SignUpTutor() {
     if (!barrioTutor) missing.push('Barrio, Localidad, Distrito...');
     if (!codigoPostalTutor) missing.push('Código postal facturación');
     if (!nifAlumno) missing.push('NIF del Alumno');
-    if (!telefonoHijo) missing.push('Teléfono del Alumno');
-    if (!confirmTelefonoHijo) missing.push('Repitir Teléfono');
+    if (telefonoHijo && !confirmTelefonoHijo) missing.push('Repitir Teléfono del Alumno');
     if (!direccionAlumno) missing.push('Dirección lugar clase');
     if (!distritoAlumno) missing.push('Barrio, Localidad, Distrito...');
     if (!nombreHijo) missing.push('Nombre del Alumno');
@@ -391,7 +390,7 @@ export default function SignUpTutor() {
       setTelefonoError('Los números no coinciden');
       return;
     }
-    if (telefonoHijo !== confirmTelefonoHijo) {
+    if (telefonoHijo && telefonoHijo !== confirmTelefonoHijo) {
       setTelefonoHijoError('Los números no coinciden');
       return;
     }
@@ -434,7 +433,7 @@ export default function SignUpTutor() {
             apellidos: apellidoHijo,
             genero: generoHijo,
             curso,
-            telefono: telefonoHijo,
+            telefono: telefonoHijo || telefono,
             NIF: nifAlumno,
             direccion: direccionAlumno,
             distrito: distritoAlumno,
@@ -466,8 +465,8 @@ export default function SignUpTutor() {
           distrito: distritoAlumno,
           ciudad,
           NIF: nifAlumno,
-          telefono: telefonoHijo,
-          telefonoConfirm: confirmTelefonoHijo,
+          telefono: telefonoHijo || null,
+          telefonoConfirm: confirmTelefonoHijo || null,
           genero: generoHijo,
           id_curso: idCurso,
         }

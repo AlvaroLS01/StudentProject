@@ -54,48 +54,48 @@ export default function AddChildModal({ open, onClose }) {
     if (
       !name ||
       !lastName ||
-      !gender ||
-      !courseId ||
-      !phone ||
-      phone !== phoneConfirm ||
-      !nif ||
-      !address ||
-      !district ||
-      !city ||
-      saving
-    ) return;
+        !gender ||
+        !courseId ||
+        (phone && phone !== phoneConfirm) ||
+        !nif ||
+        !address ||
+        !district ||
+        !city ||
+        saving
+      ) return;
     setSaving(true);
     try {
-      await registerAlumno({
-        tutor_email: userData?.email || auth.currentUser.email,
-        alumno: {
-          nombre: name,
-          apellidos: lastName,
-          direccion: address,
-          NIF: nif,
-          telefono: phone,
-          telefonoConfirm: phoneConfirm,
-          genero: gender,
-          id_curso: courseId,
-          distrito: district,
-          ciudad: city,
-        }
-      });
+        await registerAlumno({
+          tutor_email: userData?.email || auth.currentUser.email,
+          alumno: {
+            nombre: name,
+            apellidos: lastName,
+            direccion: address,
+            NIF: nif,
+            telefono: phone || null,
+            telefonoConfirm: phoneConfirm || null,
+            genero: gender,
+            id_curso: courseId,
+            distrito: district,
+            ciudad: city,
+          }
+        });
 
         const courseName = courses.find(c => c.id_curso === parseInt(courseId))?.nombre || '';
-      const nuevo = {
-        id: Date.now().toString(),
-        nombre: name,
-        apellidos: lastName,
-        genero: gender,
-        curso: courseName,
-        telefono: phone,
-        NIF: nif,
-        direccion: address,
-        distrito: district,
-        ciudad: city,
-        photoURL: userData?.photoURL || auth.currentUser.photoURL || ''
-      };
+        const finalPhone = phone || userData?.telefono || '';
+        const nuevo = {
+          id: Date.now().toString(),
+          nombre: name,
+          apellidos: lastName,
+          genero: gender,
+          curso: courseName,
+          telefono: finalPhone,
+          NIF: nif,
+          direccion: address,
+          distrito: district,
+          ciudad: city,
+          photoURL: userData?.photoURL || auth.currentUser.photoURL || ''
+        };
       const nuevos = [...childList, nuevo];
       await updateDoc(doc(db, 'usuarios', auth.currentUser.uid), { alumnos: nuevos });
       setChildList(nuevos.filter(c => !c.disabled));
