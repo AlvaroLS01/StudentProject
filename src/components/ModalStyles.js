@@ -20,6 +20,8 @@ export const Modal = styled.div`
   padding: 2rem 1.5rem;
   width: 100%;
   max-width: 480px;
+  max-height: 90vh;
+  overflow-y: auto;
   box-shadow: 0 20px 40px rgba(0,0,0,0.2);
   animation: slideDown 0.3s ease forwards;
   position: relative;
