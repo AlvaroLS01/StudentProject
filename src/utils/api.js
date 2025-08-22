@@ -62,6 +62,15 @@ export async function registerProfesor(data) {
   return handleResponse(res);
 }
 
+export async function updateProfesor(data) {
+  const res = await fetch(`${API_URL}/profesor`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  });
+  return handleResponse(res);
+}
+
 export async function createOferta(data) {
   const res = await fetch(`${API_URL}/oferta`, {
     method: 'POST',
