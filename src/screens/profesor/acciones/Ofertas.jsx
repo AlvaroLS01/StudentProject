@@ -39,6 +39,19 @@ function formatSpanishDate(date) {
   return `${day} de ${month}`;
 }
 
+// Devuelve texto relativo en horas/días desde la creación
+function timeSince(ts) {
+  if (!ts) return '';
+  const date = ts.toDate ? ts.toDate() : new Date(ts);
+  const diffMs = Date.now() - date.getTime();
+  const hours = Math.floor(diffMs / (1000 * 60 * 60));
+  if (hours < 24) {
+    return `Hace ${hours} hora${hours !== 1 ? 's' : ''}`;
+  }
+  const days = Math.floor(hours / 24);
+  return `Hace ${days} día${days !== 1 ? 's' : ''}`;
+}
+
 // Helper: calcula semanas aproximadas entre dos fechas (YYYY-MM-DD)
 function calculateWeeks(startStr, endStr) {
   if (!startStr || !endStr) return 0;
@@ -257,6 +270,11 @@ const HeaderLeft = styled.div`
   display: flex;
   flex-direction: column;
 `;
+const TimeInfo = styled.span`
+  font-size: 0.875rem;
+  color: #666;
+  margin-bottom: 0.25rem;
+`;
 const StudentName = styled.span`
   font-size: 1.25rem;
   font-weight: 700;
@@ -423,6 +441,11 @@ export default function Ofertas() {
           disponibles.push({ id: d.id, offers: offersSnap.size, ...data });
         }
       }
+      disponibles.sort((a, b) => {
+        const aTime = a.createdAt?.toMillis ? a.createdAt.toMillis() : 0;
+        const bTime = b.createdAt?.toMillis ? b.createdAt.toMillis() : 0;
+        return aTime - bTime;
+      });
       setClases(disponibles);
     })();
   }, []);
@@ -782,6 +805,7 @@ export default function Ofertas() {
             <Card key={c.id}>
               <CardHeader>
                 <HeaderLeft>
+                  <TimeInfo>{timeSince(c.createdAt)}</TimeInfo>
                   <StudentName>
                     {shortStudentName(c.alumnoNombre)}
                   </StudentName>

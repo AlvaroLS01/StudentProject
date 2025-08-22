@@ -185,7 +185,7 @@ COMMENT ON TABLE student_project.profesor
 CREATE TABLE IF NOT EXISTS student_project.oferta
 (
     id_oferta serial PRIMARY KEY,
-    fecha_oferta date NOT NULL,
+    fecha_oferta timestamp NOT NULL,
     fecha_inicio date NOT NULL,
     fecha_fin date NOT NULL,
     disponibilidad VARCHAR(1000000) NOT NULL,

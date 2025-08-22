@@ -487,7 +487,7 @@ export default function NuevaClase() {
     try {
       const modalidadStore = modalidad === 'presencial' ? 'Presencial' : 'Online';
       const ofertaRes = await createOferta({
-        fecha_oferta: new Date().toISOString().slice(0,10),
+        fecha_oferta: new Date().toISOString(),
         fecha_inicio: startDate,
         fecha_fin: endDate,
         disponibilidad: Array.from(selectedSlots).join(','),
