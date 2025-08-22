@@ -94,3 +94,26 @@ export async function confirmPuja(id) {
   const res = await fetch(`${API_URL}/puja/${id}/confirm`, { method: 'POST' });
   return handleResponse(res);
 }
+
+export async function registerTransaction(data) {
+  const res = await fetch(`${API_URL}/transaccion`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  });
+  return handleResponse(res);
+}
+
+export async function fetchBalances(role) {
+  const res = await fetch(`${API_URL}/balances?role=${role}`);
+  return handleResponse(res);
+}
+
+export async function liquidarBalance(userId, role, email) {
+  const res = await fetch(`${API_URL}/balances/${userId}/liquidar`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ role, email }),
+  });
+  return handleResponse(res);
+}
