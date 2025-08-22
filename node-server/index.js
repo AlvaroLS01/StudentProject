@@ -568,13 +568,17 @@ app.post('/puja/:id/select', async (req, res) => {
     await client.query('BEGIN');
     const selRes = await client.query(
       'UPDATE student_project.puja SET estado_puja=$1 WHERE id_puja=$2 RETURNING id_oferta',
-      ['espera_profesor', id]
+      ['ganadora', id]
     );
     if (selRes.rowCount === 0) throw new Error('Puja no encontrada');
     const id_oferta = selRes.rows[0].id_oferta;
     await client.query(
       'UPDATE student_project.puja SET estado_puja=$1 WHERE id_oferta=$2 AND id_puja<>$3',
-      ['no_seleccionado', id_oferta, id]
+      ['no_seleccionada', id_oferta, id]
+    );
+    await client.query(
+      'UPDATE student_project.oferta SET estado=$1 WHERE id_oferta=$2',
+      ['espera_profesor', id_oferta]
     );
     await client.query('COMMIT');
     res.json({ message: 'Puja seleccionada' });
@@ -590,16 +594,28 @@ app.post('/puja/:id/select', async (req, res) => {
 // Aceptación de la puja por parte del profesor
 app.post('/puja/:id/accept', async (req, res) => {
   const { id } = req.params;
+  let client;
   try {
-    const result = await db.query(
-      'UPDATE student_project.puja SET estado_puja=$1 WHERE id_puja=$2',
-      ['espera_tutor', id]
+    client = await db.connect();
+    await client.query('BEGIN');
+    const pujaRes = await client.query(
+      'SELECT id_oferta FROM student_project.puja WHERE id_puja=$1 AND estado_puja=$2',
+      [id, 'ganadora']
     );
-    if (result.rowCount === 0) return res.status(404).json({ error: 'Puja no encontrada' });
+    if (pujaRes.rowCount === 0) throw new Error('Puja no encontrada');
+    const id_oferta = pujaRes.rows[0].id_oferta;
+    await client.query(
+      'UPDATE student_project.oferta SET estado=$1 WHERE id_oferta=$2',
+      ['espera_tutor', id_oferta]
+    );
+    await client.query('COMMIT');
     res.json({ message: 'Puja aceptada por el profesor' });
   } catch (err) {
+    if (client) await client.query('ROLLBACK');
     console.error(err);
     res.status(500).json({ error: 'Error actualizando puja' });
+  } finally {
+    if (client) client.release();
   }
 });
 
@@ -611,8 +627,8 @@ app.post('/puja/:id/confirm', async (req, res) => {
     client = await db.connect();
     await client.query('BEGIN');
     const pujaRes = await client.query(
-      'UPDATE student_project.puja SET estado_puja=$1 WHERE id_puja=$2 RETURNING id_oferta, id_profesor',
-      ['enlace_creado', id]
+      'SELECT id_oferta, id_profesor FROM student_project.puja WHERE id_puja=$1 AND estado_puja=$2',
+      [id, 'ganadora']
     );
     if (pujaRes.rowCount === 0) throw new Error('Puja no encontrada');
     const { id_oferta, id_profesor } = pujaRes.rows[0];
