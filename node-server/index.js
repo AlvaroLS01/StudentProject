@@ -391,6 +391,21 @@ app.post('/profesor', async (req, res) => {
   }
 });
 
+app.put('/profesor', async (req, res) => {
+  const { correo_electronico, NIF = null, IBAN = null, carrera = null, curso = null, experiencia = null } = req.body;
+  if (!correo_electronico) return res.status(400).json({ error: 'Falta correo del profesor' });
+  try {
+    await db.query(
+      'UPDATE student_project.profesor SET "NIF"=$1, "IBAN"=$2, carrera=$3, curso=$4, experiencia=$5 WHERE correo_electronico=$6',
+      [NIF, IBAN, carrera, curso, experiencia, correo_electronico]
+    );
+    res.json({ message: 'Profesor actualizado' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Error actualizando profesor' });
+  }
+});
+
 app.post('/oferta', async (req, res) => {
   const {
     fecha_oferta,

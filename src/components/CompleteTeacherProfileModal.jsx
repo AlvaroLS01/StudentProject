@@ -4,6 +4,7 @@ import { TextInput, SelectInput, PrimaryButton } from './FormElements';
 import { auth, db } from '../firebase/firebaseConfig';
 import { doc, updateDoc } from 'firebase/firestore';
 import { useAuth } from '../AuthContext';
+import { updateProfesor } from '../utils/api';
 import { Overlay, Modal, ModalTitle } from './ModalStyles';
 
 const DNI_LETTERS = 'TRWAGMYFPDXBNJZSQVHLCKE';
@@ -68,6 +69,7 @@ export default function CompleteTeacherProfileModal({ open, onClose, userData })
   const [studyTime, setStudyTime] = useState(userData?.studyTime || '');
   const [finished, setFinished] = useState(userData?.careerFinished || false);
   const [iban, setIban] = useState(userData?.iban || '');
+  const [experience, setExperience] = useState(userData?.experiencia || '');
   const [saving, setSaving] = useState(false);
   const [dniError, setDniError] = useState('');
   const [ibanError, setIbanError] = useState('');
@@ -98,7 +100,7 @@ export default function CompleteTeacherProfileModal({ open, onClose, userData })
 
   const save = async () => {
     const finalDocType = docSelect === 'DNI' ? 'DNI' : docTypeOther.trim();
-    if (!finalDocType || !docNumber || !studies || !iban) return;
+    if (!finalDocType || !docNumber || !studies || (!finished && !studyTime) || !experience || !iban) return;
     if (docSelect === 'DNI' && dniError) return;
     if (ibanError) return;
     if (saving) return;
@@ -111,6 +113,19 @@ export default function CompleteTeacherProfileModal({ open, onClose, userData })
       careerFinished: finished,
       status: 'estudia',
       iban,
+      NIF: docNumber,
+      IBAN: iban,
+      carrera: studies,
+      curso: studyTime,
+      experiencia: Number(experience),
+    });
+    await updateProfesor({
+      correo_electronico: auth.currentUser.email,
+      NIF: docNumber,
+      IBAN: iban,
+      carrera: studies,
+      curso: studyTime,
+      experiencia: Number(experience),
     });
     await refreshUserData();
     setSaving(false);
@@ -180,6 +195,14 @@ export default function CompleteTeacherProfileModal({ open, onClose, userData })
               onChange={e => setFinished(e.target.checked)}
             />{' '}Carrera finalizada
           </label>
+        </Field>
+        <Field>
+          <label>Años de experiencia</label>
+          <TextInput
+            type="number"
+            value={experience}
+            onChange={e => setExperience(e.target.value)}
+          />
         </Field>
         <Field>
           <label>IBAN o número de cuenta</label>
