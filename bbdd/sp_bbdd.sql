@@ -319,6 +319,16 @@ COMMENT ON TABLE student_project.clase
     IS 'Información referente a las clases.';
 
 -- -----------------------------------------------------
+-- Seed data for cursos y asignaturas
+-- -----------------------------------------------------
+INSERT INTO student_project.curso (nombre) VALUES ('1º Bachillerato');
+
+INSERT INTO student_project.asignatura (nombre_asignatura) VALUES
+    ('Lengua'),
+    ('Matemáticas'),
+    ('Inglés');
+
+-- -----------------------------------------------------
 -- Seed data for grupos y ciudades
 -- -----------------------------------------------------
 INSERT INTO student_project.grupo (nombre) VALUES ('A'), ('B')
