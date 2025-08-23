@@ -283,6 +283,7 @@ export default function SignUpTutor() {
   const [telefonoHijo, setTelefonoHijo] = useState('');
   const [confirmTelefonoHijo, setConfirmTelefonoHijo] = useState('');
   const [telefonoHijoError, setTelefonoHijoError] = useState('');
+  const [telefonoHijoPropio, setTelefonoHijoPropio] = useState(false);
   const [direccionAlumno, setDireccionAlumno] = useState('');
   const [distritoAlumno, setDistritoAlumno] = useState('');
   const [nombreHijo, setNombreHijo] = useState('');
@@ -371,7 +372,10 @@ export default function SignUpTutor() {
     if (!barrioTutor) missing.push('Barrio, Localidad, Distrito...');
     if (!codigoPostalTutor) missing.push('Código postal facturación');
     if (!nifAlumno) missing.push('NIF del Alumno');
-    if (telefonoHijo && !confirmTelefonoHijo) missing.push('Repitir Teléfono del Alumno');
+    if (telefonoHijoPropio) {
+      if (!telefonoHijo) missing.push('Teléfono del Alumno');
+      if (!confirmTelefonoHijo) missing.push('Repitir Teléfono del Alumno');
+    }
     if (!direccionAlumno) missing.push('Dirección lugar clase');
     if (!distritoAlumno) missing.push('Barrio, Localidad, Distrito...');
     if (!nombreHijo) missing.push('Nombre del Alumno');
@@ -390,7 +394,7 @@ export default function SignUpTutor() {
       setTelefonoError('Los números no coinciden');
       return;
     }
-    if (telefonoHijo && telefonoHijo !== confirmTelefonoHijo) {
+    if (telefonoHijoPropio && telefonoHijo !== confirmTelefonoHijo) {
       setTelefonoHijoError('Los números no coinciden');
       return;
     }
@@ -433,7 +437,7 @@ export default function SignUpTutor() {
             apellidos: apellidoHijo,
             genero: generoHijo,
             curso,
-            telefono: telefonoHijo || telefono,
+            telefono: telefonoHijoPropio ? telefonoHijo : telefono,
             NIF: nifAlumno,
             direccion: direccionAlumno,
             distrito: distritoAlumno,
@@ -465,8 +469,8 @@ export default function SignUpTutor() {
           distrito: distritoAlumno,
           ciudad,
           NIF: nifAlumno,
-          telefono: telefonoHijo || null,
-          telefonoConfirm: confirmTelefonoHijo || null,
+          telefono: telefonoHijoPropio ? telefonoHijo : null,
+          telefonoConfirm: telefonoHijoPropio ? confirmTelefonoHijo : null,
           genero: generoHijo,
           id_curso: idCurso,
         }
@@ -744,12 +748,30 @@ export default function SignUpTutor() {
                 </div>
               </Field>
               <Field>
+                <label>
+                  <input
+                    type="checkbox"
+                    checked={telefonoHijoPropio}
+                    onChange={e => {
+                      setTelefonoHijoPropio(e.target.checked);
+                      if (!e.target.checked) {
+                        setTelefonoHijo('');
+                        setConfirmTelefonoHijo('');
+                        setTelefonoHijoError('');
+                      }
+                    }}
+                  />{' '}
+                  Número propio
+                </label>
+              </Field>
+              <Field>
                 <label>Teléfono del Alumno</label>
                 <PhoneInput
                   country={'es'}
                   value={telefonoHijo}
                   onChange={value => { setTelefonoHijo(value); setTelefonoHijoError(''); }}
                   inputStyle={{ width: '100%' }}
+                  disabled={!telefonoHijoPropio}
                 />
               </Field>
               <Field>
@@ -759,6 +781,7 @@ export default function SignUpTutor() {
                   value={confirmTelefonoHijo}
                   onChange={value => { setConfirmTelefonoHijo(value); setTelefonoHijoError(''); }}
                   inputStyle={{ width: '100%' }}
+                  disabled={!telefonoHijoPropio}
                 />
                 {telefonoHijoError && <ErrorText>{telefonoHijoError}</ErrorText>}
               </Field>
