@@ -457,7 +457,7 @@ app.post('/profesor', async (req, res) => {
     genero,
     telefono,
     correo_electronico,
-    NIF,
+    NIF = null,
     direccion_facturacion,
     IBAN = null,
     carrera = null,
@@ -465,7 +465,7 @@ app.post('/profesor', async (req, res) => {
     experiencia = null,
     password,
   } = req.body;
-  if (!nombre || !apellidos || !genero || !telefono || !correo_electronico || !NIF || !direccion_facturacion || !password) {
+  if (!nombre || !apellidos || !genero || !telefono || !correo_electronico || !direccion_facturacion || !password) {
     return res.status(400).json({ error: 'Datos obligatorios faltantes' });
   }
 
