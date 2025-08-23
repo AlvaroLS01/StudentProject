@@ -196,7 +196,6 @@ export default function Clases() {
               unionId: docu.id,
               profesorId: union.profesorId,
               profesorNombre: union.profesorNombre,
-              alumnoNombre: union.alumnoNombre,
               profesorFoto,
               curso,
               ...data
@@ -270,13 +269,9 @@ export default function Clases() {
         createdAt: serverTimestamp()
       });
       await registerTransaction({
-        alumnoId: selectedChild ? selectedChild.id : auth.currentUser.uid,
         tutorId: auth.currentUser.uid,
         tutorEmail: auth.currentUser.email,
-        alumnoNombre:
-          selectedChild
-            ? selectedChild.nombre
-            : clase.alumnoNombre || auth.currentUser.displayName || '',
+        alumnoNombre: selectedChild ? selectedChild.nombre : '',
         profesorId: clase.profesorId,
         asignatura: clase.asignatura,
         modalidad: clase.modalidad,
