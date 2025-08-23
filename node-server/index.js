@@ -142,15 +142,15 @@ app.post('/transaccion', async (req, res) => {
     if (!profesorEmail) throw new Error('Correo del profesor no encontrado');
 
     await client.query(
-      `INSERT INTO student_project.saldo_usuario (user_id, rol, saldo)
+      `INSERT INTO student_project.saldo_usuario AS su (user_id, rol, saldo)
        VALUES ($1,'tutor',$2)
-       ON CONFLICT (user_id, rol) DO UPDATE SET saldo = saldo + EXCLUDED.saldo`,
+       ON CONFLICT (user_id, rol) DO UPDATE SET saldo = su.saldo + EXCLUDED.saldo`,
       [tutorId, -Math.abs(montoTutor || 0)]
     );
     await client.query(
-      `INSERT INTO student_project.saldo_usuario (user_id, rol, saldo)
+      `INSERT INTO student_project.saldo_usuario AS su (user_id, rol, saldo)
        VALUES ($1,'profesor',$2)
-       ON CONFLICT (user_id, rol) DO UPDATE SET saldo = saldo + EXCLUDED.saldo`,
+       ON CONFLICT (user_id, rol) DO UPDATE SET saldo = su.saldo + EXCLUDED.saldo`,
       [profesorId, montoProfesor || 0]
     );
 
