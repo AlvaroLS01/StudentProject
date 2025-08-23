@@ -591,10 +591,10 @@ export default function MisAlumnos() {
                         <div>
                           {item.estado === 'aceptada'
                             ? 'Clase confirmada'
-                            : 'He añadido una clase, ¿es correcto?'}
+                            : 'Has añadido una clase de'}
                         </div>
                         <div>
-                          <strong>{item.asignatura}</strong> para el{' '}
+                          <strong>{item.asignatura}</strong> el{' '}
                           <strong>{item.fecha}</strong> a las <strong>{item.hora}</strong> ({item.duracion}h)
                         </div>
                         {item.estado === 'pendiente' && (

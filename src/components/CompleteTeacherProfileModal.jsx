@@ -179,7 +179,7 @@ export default function CompleteTeacherProfileModal({ open, onClose, userData })
         </Field>
         {!finished && (
           <Field>
-            <label>¿En qué año estás?</label>
+            <label>¿En qué curso estás?</label>
             <TextInput
               type="text"
               value={studyTime}

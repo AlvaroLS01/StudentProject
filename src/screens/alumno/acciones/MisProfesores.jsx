@@ -359,7 +359,7 @@ export default function MisProfesores() {
         collection(db, 'clases_union', chatUnionId, 'chats'),
         {
           senderId: union.profesorId,
-          text: `He añadido una clase, ${proposal.fecha}`,
+          text: `Clase confirmada de ${proposal.asignatura} el dia ${proposal.fecha}`,
           createdAt: serverTimestamp()
         }
       );
@@ -478,8 +478,8 @@ export default function MisProfesores() {
                       <Sender>{mine ? 'Tú (Propuesta)' : 'Profesor (Propuesta)'}</Sender>
                       <Bubble mine={mine}>
                         <div>
-                          <strong>{item.asignatura}</strong> para el{' '}
-                          <strong>{item.fecha}</strong> {item.hora} ({item.duracion}h)
+                          El profesor ha añadido una clase de <strong> {item.asignatura}</strong> el{' '}
+                          <strong>{item.fecha}</strong> a las <strong>{item.hora}</strong> ({item.duracion}h)
                         </div>
                         <div>Coste: €{(item.precioTotalPadres || 0).toFixed(2)}</div>
                         <AcceptButton onClick={() => acceptProposal(item)}>
