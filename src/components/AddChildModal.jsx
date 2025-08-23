@@ -37,6 +37,7 @@ export default function AddChildModal({ open, onClose }) {
   const [cities, setCities] = useState([]);
   const [phone, setPhone] = useState('');
   const [phoneConfirm, setPhoneConfirm] = useState('');
+  const [ownPhone, setOwnPhone] = useState(false);
   const [nif, setNif] = useState('');
   const [address, setAddress] = useState('');
   const [district, setDistrict] = useState('');
@@ -56,7 +57,7 @@ export default function AddChildModal({ open, onClose }) {
       !lastName ||
         !gender ||
         !courseId ||
-        (phone && phone !== phoneConfirm) ||
+        (ownPhone && (!phone || phone !== phoneConfirm)) ||
         !nif ||
         !address ||
         !district ||
@@ -72,8 +73,8 @@ export default function AddChildModal({ open, onClose }) {
             apellidos: lastName,
             direccion: address,
             NIF: nif,
-            telefono: phone || null,
-            telefonoConfirm: phoneConfirm || null,
+            telefono: ownPhone ? phone : null,
+            telefonoConfirm: ownPhone ? phoneConfirm : null,
             genero: gender,
             id_curso: courseId,
             distrito: district,
@@ -82,7 +83,7 @@ export default function AddChildModal({ open, onClose }) {
         });
 
         const courseName = courses.find(c => c.id_curso === parseInt(courseId))?.nombre || '';
-        const finalPhone = phone || userData?.telefono || '';
+        const finalPhone = ownPhone ? phone : userData?.telefono || '';
         const nuevo = {
           id: Date.now().toString(),
           nombre: name,
@@ -106,6 +107,7 @@ export default function AddChildModal({ open, onClose }) {
       setCourseId('');
       setPhone('');
       setPhoneConfirm('');
+      setOwnPhone(false);
       setNif('');
       setAddress('');
       setDistrict('');
@@ -150,18 +152,37 @@ export default function AddChildModal({ open, onClose }) {
                 <option key={c.id_curso} value={c.id_curso}>{c.nombre}</option>
               ))}
           </SelectInput>
-          <TextInput
-            type="tel"
-            placeholder="Teléfono"
-            value={phone}
-            onChange={e => setPhone(e.target.value)}
-          />
-          <TextInput
-            type="tel"
-            placeholder="Repite teléfono"
-            value={phoneConfirm}
-            onChange={e => setPhoneConfirm(e.target.value)}
-          />
+          <label style={{ display: 'flex', alignItems: 'center' }}>
+            <input
+              type="checkbox"
+              checked={ownPhone}
+              onChange={e => {
+                setOwnPhone(e.target.checked);
+                if (!e.target.checked) {
+                  setPhone('');
+                  setPhoneConfirm('');
+                }
+              }}
+              style={{ marginRight: '0.5rem' }}
+            />
+            Número propio
+          </label>
+          {ownPhone && (
+            <>
+              <TextInput
+                type="tel"
+                placeholder="Teléfono"
+                value={phone}
+                onChange={e => setPhone(e.target.value)}
+              />
+              <TextInput
+                type="tel"
+                placeholder="Repite teléfono"
+                value={phoneConfirm}
+                onChange={e => setPhoneConfirm(e.target.value)}
+              />
+            </>
+          )}
           <TextInput
             type="text"
             placeholder="NIF"
