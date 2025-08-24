@@ -408,7 +408,7 @@ export default function Perfil() {
         setFormData({
           ciudad: data.ciudad || '',
           studies: data.studies || '',
-          studyTime: data.studyTime || '',
+          studyTime: data.careerFinished ? '4' : data.studyTime || '',
           careerFinished: data.careerFinished || false,
           job: data.job || '',
           status: data.status || '',
@@ -652,15 +652,21 @@ export default function Perfil() {
                           setFormData({ ...formData, studyTime: e.target.value })
                         }
                         placeholder="Tiempo estudiando"
+                        disabled={formData.careerFinished}
                       />
                       <label style={{ display: 'block', marginTop: '0.5rem' }}>
                         <input
                           className="form-control"
                           type="checkbox"
                           checked={formData.careerFinished}
-                          onChange={e =>
-                            setFormData({ ...formData, careerFinished: e.target.checked })
-                          }
+                          onChange={e => {
+                            const checked = e.target.checked;
+                            setFormData({
+                              ...formData,
+                              careerFinished: checked,
+                              studyTime: checked ? '4' : ''
+                            });
+                          }}
                         />{' '}Carrera finalizada
                       </label>
                       <InlineInput

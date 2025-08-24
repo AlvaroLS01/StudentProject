@@ -192,7 +192,11 @@ export default function CompleteTeacherProfileModal({ open, onClose, userData })
             <input className="form-control"
               type="checkbox"
               checked={finished}
-              onChange={e => setFinished(e.target.checked)}
+              onChange={e => {
+                const checked = e.target.checked;
+                setFinished(checked);
+                setStudyTime(checked ? '4' : '');
+              }}
             />{' '}Carrera finalizada
           </label>
         </Field>
