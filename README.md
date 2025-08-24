@@ -151,7 +151,7 @@ The server uses Nodemailer with the credentials from `.env` to send the welcome 
 It also exposes endpoints for password resets:
 `/request-password-reset` and `/reset-password`. The client URLs are configured
 via `REACT_APP_PASSWORD_RESET_API` and `REACT_APP_CHANGE_PASSWORD_API` in `.env`.
-There is a third endpoint `/send-assignment-email` used to avisar a profesores y alumnos cuando se forma una clase. Configure `REACT_APP_EMAIL_API` with its URL if necessary.
+There is a third endpoint `/send-assignment-email` used to avisar a profesores y tutores cuando se forma una clase. Configure `REACT_APP_EMAIL_API` with its URL if necessary.
 
 Adicionalmente el servidor permite escribir datos en Google Sheets mediante los
 endpoints `/sheet/user` y `/sheet/class`. Debes indicar `SPREADSHEET_ID` y la

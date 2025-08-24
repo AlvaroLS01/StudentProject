@@ -867,8 +867,10 @@ app.post('/send-assignment-email', async (req, res) => {
   const {
     teacherEmail,
     teacherName,
+    teacherCareer,
     studentEmail,
     studentName,
+    tutorName,
     schedule = [],
     recipient = 'both',
   } = req.body;
@@ -916,14 +918,15 @@ app.post('/send-assignment-email', async (req, res) => {
 
   if (['student', 'both'].includes(recipient) && studentEmail) {
     const html = `
-      <p>Hola ${studentName || 'alumno'}, el profesor ${teacherName || ''} ha aceptado impartir tu clase.</p>
-      <p>Debes aceptarlo en la sección <strong>Mis clases</strong>. Una vez aceptado podréis coordinar la clase.</p>
+      <p>Hola ${tutorName || 'tutor'},</p>
+      <p>¡El profesor <strong>${teacherName || ''}</strong>${teacherCareer ? `, estudiante de <strong>${teacherCareer}</strong>` : ''}, ha aceptado impartir la clase a <strong>${studentName || ''}</strong>!</p>
+      <p>Está esperando tu confirmación para coordinar vuestra primera clase. Confírmalo en la sección <strong>Mis clases</strong> y comienza esta nueva aventura académica.</p>
     `;
     emails.push(
       transporter.sendMail({
         from,
         to: studentEmail,
-        subject: 'Profesor asignado',
+        subject: '¡Tu profesor te espera!',
         html,
       })
     );
