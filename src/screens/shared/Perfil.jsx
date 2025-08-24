@@ -26,9 +26,10 @@ import {
   ResponsiveContainer,
 } from 'recharts';
 import { useChild } from '../../ChildContext';
-import { TextInput, SelectInput, PrimaryButton } from '../../components/FormElements';
+import { SelectInput } from '../../components/FormElements';
 import InfoGrid from '../../components/InfoGrid';
 import { fetchCities, updateTutorCity } from '../../utils/api';
+import AddChildModal from '../../components/AddChildModal';
 
 // Animación de fade-in
 const fadeIn = keyframes`
@@ -110,12 +111,6 @@ const ChildImg = styled.img`
   margin-right: 1rem;
 `;
 
-const AddChildForm = styled.div`
-  margin-top: 1rem;
-  background: #f7faf9;
-  padding: 1rem;
-  border-radius: 8px;
-`;
 
 const ProfileHeader = styled.div`
   display: flex;
@@ -225,25 +220,6 @@ const Value = styled.span`
   color: #333;
 `;
 
-const cursosGrouped = [
-  {
-    group: 'Primaria',
-    options: [
-      '1º Primaria',
-      '2º Primaria',
-      '3º Primaria',
-      '4º Primaria',
-      '5º Primaria',
-      '6º Primaria',
-    ],
-  },
-  { group: 'ESO', options: ['1º ESO', '2º ESO', '3º ESO', '4º ESO'] },
-  {
-    group: 'Bachillerato',
-    options: ['1º Bachillerato', '2º Bachillerato'],
-  },
-];
-
 export default function Perfil() {
   const { userId } = useParams();
   const [searchParams] = useSearchParams();
@@ -271,11 +247,6 @@ export default function Perfil() {
   });
   const [chartData, setChartData] = useState([]); // datos para gráficas mensuales
   const [showAddChild, setShowAddChild] = useState(false);
-  const [childName, setChildName] = useState('');
-  const [childDate, setChildDate] = useState('');
-  const [childCourse, setChildCourse] = useState('');
-  const [childAvatar, setChildAvatar] = useState('');
-  const [savingChild, setSavingChild] = useState(false);
   const [cities, setCities] = useState([]);
 
   const { setChildList, setSelectedChild } = useChild();
@@ -370,30 +341,12 @@ export default function Perfil() {
     setShowAvatarPicker(false);
   };
 
-  const addChild = async () => {
-    if (!childName || !childDate || !childCourse || !childAvatar || savingChild || !isOwnProfile) return;
-    setSavingChild(true);
-    const nuevo = {
-      id: Date.now().toString(),
-      nombre: childName,
-      fechaNacimiento: childDate,
-      curso: childCourse,
-      ciudad: formData.ciudad,
-      photoURL: childAvatar,
-    };
-    const nuevos = [...(profile.alumnos || []), nuevo];
-    await updateDoc(doc(db, 'usuarios', userId), { alumnos: nuevos });
-    setProfile(p => ({ ...p, alumnos: nuevos }));
+  const handleChildAdded = nuevo => {
+    setProfile(p => ({ ...p, alumnos: [...(p.alumnos || []), nuevo] }));
     if (auth.currentUser && auth.currentUser.uid === userId) {
-      setChildList(nuevos.filter(c => !c.disabled));
+      setChildList(prev => [...prev, nuevo]);
       setSelectedChild(nuevo);
     }
-    setChildName('');
-    setChildDate('');
-    setChildCourse('');
-    setChildAvatar('');
-    setShowAddChild(false);
-    setSavingChild(false);
   };
 
   // 1) Cargar datos de perfil y determinar rol/uniones
@@ -563,6 +516,7 @@ export default function Perfil() {
   }
 
   return (
+    <>
     <Page>
       <Container>
         <Title>{profile.nombre} {profile.apellido}</Title>
@@ -787,49 +741,7 @@ export default function Perfil() {
             )}
 
             {isOwnProfile && (
-              <>
-                {!showAddChild && (
-                  <EditButton onClick={() => setShowAddChild(true)}>Añadir alumno</EditButton>
-                )}
-                {showAddChild && (
-                  <AddChildForm>
-                    <div>
-                      <TextInput type="text" placeholder="Nombre" value={childName} onChange={e => setChildName(e.target.value)} />
-                    </div>
-                    <div>
-                      <TextInput type="date" value={childDate} onChange={e => setChildDate(e.target.value)} />
-                    </div>
-                    <div>
-                      <SelectInput value={childCourse} onChange={e => setChildCourse(e.target.value)}>
-                        <option value="">Selecciona curso</option>
-                        {cursosGrouped.map(({ group, options }) => (
-                          <optgroup key={group} label={group}>
-                            {options.map((c) => (
-                              <option key={c} value={c}>{c}</option>
-                            ))}
-                          </optgroup>
-                        ))}
-                      </SelectInput>
-                    </div>
-                    <div style={{ gridColumn: '1 / -1' }}>
-                      <p style={{ marginBottom: '0.5rem' }}>Selecciona avatar</p>
-                      <AvatarGrid>
-                        {avatars.map((a) => (
-                          <AvatarOption
-                            key={a.name}
-                            src={a.src}
-                            onClick={() => setChildAvatar(a.src)}
-                            style={{
-                              borderColor: childAvatar === a.src ? '#006D5B' : 'transparent',
-                            }}
-                          />
-                        ))}
-                      </AvatarGrid>
-                    </div>
-                    <PrimaryButton onClick={addChild} disabled={savingChild}>Guardar</PrimaryButton>
-                  </AddChildForm>
-                )}
-              </>
+              <EditButton onClick={() => setShowAddChild(true)}>Añadir alumno</EditButton>
             )}
           </Section>
         )}
@@ -906,5 +818,7 @@ export default function Perfil() {
 
       </Container>
     </Page>
+    <AddChildModal open={showAddChild} onClose={() => setShowAddChild(false)} onAdded={handleChildAdded} />
+    </>
   );
 }
