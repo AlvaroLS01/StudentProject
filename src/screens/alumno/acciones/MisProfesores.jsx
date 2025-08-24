@@ -274,7 +274,6 @@ export default function MisProfesores() {
     setChatUnionId(null);
     setMessages([]);
     setProposals([]);
-    setModifications([]);
   }, [selectedChild]);
 
   // 2. Escucha los mensajes del chat activo
