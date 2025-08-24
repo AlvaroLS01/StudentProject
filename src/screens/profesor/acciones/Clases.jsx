@@ -207,14 +207,12 @@ export default function ClasesProfesor({ only }) {
       const promises = snap.docs.map(async docu => {
         const union = docu.data();
         let alumnoFoto = '';
-        let alumnoApellido = '';
         let curso = '';
         try {
           const alumSnap = await getDoc(doc(db, 'usuarios', union.alumnoId));
           if (alumSnap.exists()) {
             const d = alumSnap.data();
             alumnoFoto = d.photoURL || '';
-            alumnoApellido = d.apellido || '';
           }
           const classSnap = await getDoc(doc(db, 'clases', union.claseId));
           if (classSnap.exists()) curso = classSnap.data().curso || '';
@@ -232,7 +230,7 @@ export default function ClasesProfesor({ only }) {
               id: d.id,
               unionId: docu.id,
               alumnoId: union.alumnoId,
-              alumno: `${union.alumnoNombre} ${alumnoApellido}`.trim(),
+              alumno: union.alumnoNombre,
               alumnoFoto,
               curso,
               ...data
