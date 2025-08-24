@@ -267,6 +267,8 @@ export default function MisClases() {
   const sortedClases = React.useMemo(() => {
     const arr = [...clases];
     arr.sort((a, b) => {
+      if (a.estado === 'pendiente' && b.estado !== 'pendiente') return -1;
+      if (a.estado !== 'pendiente' && b.estado === 'pendiente') return 1;
       if (sortBy === 'profesor') {
         return a.profesorNombre.localeCompare(b.profesorNombre);
       }

@@ -184,6 +184,8 @@ export default function ClasesProfesor({ only }) {
   const sortedClases = useMemo(() => {
     const arr = [...clases];
     arr.sort((a, b) => {
+      if (a.estado === 'pendiente' && b.estado !== 'pendiente') return -1;
+      if (a.estado !== 'pendiente' && b.estado === 'pendiente') return 1;
       if (sortBy === 'alumno') {
         return a.alumno.localeCompare(b.alumno);
       }
