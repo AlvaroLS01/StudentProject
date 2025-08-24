@@ -31,6 +31,7 @@ import { SelectInput } from '../../components/FormElements';
 import InfoGrid from '../../components/InfoGrid';
 import { fetchCities, updateTutorCity } from '../../utils/api';
 import { useAuth } from '../../AuthContext';
+import { Overlay, Modal, ModalTitle } from '../../components/ModalStyles';
 
 // Animación de fade-in
 const fadeIn = keyframes`
@@ -98,6 +99,7 @@ const ChildList = styled.ul`
 const ChildItem = styled.li`
   display: flex;
   align-items: center;
+  justify-content: space-between;
   background: #f7faf9;
   border-radius: 8px;
   padding: 0.75rem 1rem;
@@ -238,6 +240,8 @@ export default function Perfil() {
   const [unions, setUnions] = useState([]); // todas las uniones del usuario
   const [acceptedClasses, setAcceptedClasses] = useState([]); // solo las clases aceptadas
   const [showAvatarPicker, setShowAvatarPicker] = useState(false);
+  const [childAvatarPicker, setChildAvatarPicker] = useState(null);
+  const [childAvatarChanges, setChildAvatarChanges] = useState({});
   const [metrics, setMetrics] = useState({
     totalHoras: 0,
     totalGanado: 0,
@@ -274,7 +278,11 @@ export default function Perfil() {
     const cityChanged = profile.ciudad !== formData.ciudad;
     let nuevosAlumnos = profile.alumnos;
     if (role === 'tutor' && profile.alumnos) {
-      nuevosAlumnos = profile.alumnos.map(a => ({ ...a, ciudad: formData.ciudad }));
+      nuevosAlumnos = profile.alumnos.map(a => ({
+        ...a,
+        ciudad: formData.ciudad,
+        photoURL: childAvatarChanges[a.id] || a.photoURL,
+      }));
       updates.alumnos = nuevosAlumnos;
     }
     await updateDoc(doc(db, 'usuarios', userId), updates);
@@ -296,6 +304,7 @@ export default function Perfil() {
       );
     }
     setShowAvatarPicker(false);
+    setChildAvatarChanges({});
     setIsEditing(false);
   };
 
@@ -329,6 +338,17 @@ export default function Perfil() {
         prev && prev.id === childId ? nuevos.find(c => c.id === childId) : prev
       );
     }
+  };
+
+  const handleChildAvatarSelect = (childId, url) => {
+    setChildAvatarChanges(prev => ({ ...prev, [childId]: url }));
+    setProfile(p => ({
+      ...p,
+      alumnos: (p.alumnos || []).map(ch =>
+        ch.id === childId ? { ...ch, photoURL: url } : ch
+      ),
+    }));
+    setChildAvatarPicker(null);
   };
 
   const handleAvatarSelect = async url => {
@@ -706,28 +726,39 @@ export default function Perfil() {
               <ChildList>
                 {profile.alumnos.map(h => (
                   <ChildItem key={h.id}>
-                    <div style={{ position: 'relative', marginRight: '1rem' }}>
-                      {h.photoURL && <ChildImg src={h.photoURL} alt="foto" />}
-                      {isOwnProfile && isEditing && (
-                        <>
-                          <HiddenFileInput
-                            id={`child-photo-${h.id}`}
-                            type="file"
-                            onChange={e => handleChildPhotoChange(h.id, e.target.files[0])}
-                          />
-                          <PhotoLabel htmlFor={`child-photo-${h.id}`}>
-                            <CameraOverlay
-                              src={cameraIcon}
-                              hasPhoto={!!h.photoURL}
+                    <div style={{ display: 'flex', alignItems: 'center' }}>
+                      <div style={{ position: 'relative', marginRight: '1rem' }}>
+                        {h.photoURL && <ChildImg src={h.photoURL} alt="foto" />}
+                        {isOwnProfile && isEditing && (
+                          <>
+                            <HiddenFileInput
+                              id={`child-photo-${h.id}`}
+                              type="file"
+                              onChange={e => handleChildPhotoChange(h.id, e.target.files[0])}
                             />
-                          </PhotoLabel>
-                        </>
-                      )}
+                            <PhotoLabel htmlFor={`child-photo-${h.id}`}>
+                              <CameraOverlay
+                                src={cameraIcon}
+                                hasPhoto={!!h.photoURL}
+                              />
+                            </PhotoLabel>
+                          </>
+                        )}
+                      </div>
+                      <div>
+                        <div>{h.nombre}</div>
+                        <div style={{ fontSize: '0.8rem', color: '#555' }}>{h.curso}</div>
+                      </div>
                     </div>
-                    <div>
-                      <div>{h.nombre}</div>
-                      <div style={{ fontSize: '0.8rem', color: '#555' }}>{h.curso}</div>
-                    </div>
+                    {isOwnProfile && isEditing && (
+                      <EditButton
+                        type="button"
+                        style={{ marginTop: 0 }}
+                        onClick={() => setChildAvatarPicker(h.id)}
+                      >
+                        Cambiar avatar
+                      </EditButton>
+                    )}
                   </ChildItem>
                 ))}
               </ChildList>
@@ -803,10 +834,33 @@ export default function Perfil() {
                 )}
               </BarChart>
             </ResponsiveContainer>
-          </ChartContainer>
-        </Section>
+      </ChartContainer>
+    </Section>
 
-      </Container>
-    </Page>
-  );
+    </Container>
+    {childAvatarPicker && (
+      <Overlay onClick={() => setChildAvatarPicker(null)}>
+        <Modal onClick={e => e.stopPropagation()}>
+          <ModalTitle>Selecciona avatar</ModalTitle>
+          <AvatarGrid>
+            {avatars.map(a => (
+              <AvatarOption
+                key={a.name}
+                src={a.src}
+                alt={a.name}
+                onClick={() => handleChildAvatarSelect(childAvatarPicker, a.src)}
+                style={{
+                  borderColor:
+                    childAvatarChanges[childAvatarPicker] === a.src
+                      ? '#006D5B'
+                      : 'transparent',
+                }}
+              />
+            ))}
+          </AvatarGrid>
+        </Modal>
+      </Overlay>
+    )}
+  </Page>
+);
 }
