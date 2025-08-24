@@ -33,8 +33,8 @@ const Fill = styled.div`
     rgba(255,255,255,0) 100%
   );
   background-size: 40px 100%;
-  animation: ${shimmer} 3.5s linear infinite;
-  transition: width 3.5s ease;
+  animation: ${shimmer} 35s linear infinite;
+  transition: width 0.6s ease;
   border-radius: 8px;
 `;
 
