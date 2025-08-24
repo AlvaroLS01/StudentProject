@@ -169,7 +169,6 @@ const EditButton = styled.button`
   padding: 0.5rem 1rem;
   cursor: pointer;
   margin-top: 0.5rem;
-  margin-right: 0.5rem;
   &:hover {
     background: #005047;
   }
