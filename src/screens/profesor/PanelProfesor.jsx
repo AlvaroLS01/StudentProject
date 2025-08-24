@@ -123,8 +123,8 @@ export default function PanelProfesor() {
               active={view === 'ofertas'}
               onClick={() => setView('ofertas')}
             >
-              <Icon src={iconClasesDisponibles} alt="Clases disponibles" />
-              Clases disponibles
+              <Icon src={iconClasesDisponibles} alt="Ofertas disponibles" />
+              Ofertas disponibles
             </Button>
           </MenuItem>
           <MenuItem>
