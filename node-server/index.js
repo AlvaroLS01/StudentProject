@@ -265,15 +265,17 @@ app.post('/transaccion', async (req, res) => {
       const totalTutor = Math.abs(montoTutor || 0);
       const totalProfesor = Math.abs(montoProfesor || 0);
       await client.query(
-        `INSERT INTO student_project.saldo_usuario AS su (user_id, rol, saldo)
+        `INSERT INTO student_project.saldo_usuario (user_id, rol, saldo)
          VALUES ($1,'tutor',$2)
-         ON CONFLICT (user_id, rol) DO UPDATE SET saldo = su.saldo + EXCLUDED.saldo`,
+         ON CONFLICT (user_id, rol) DO UPDATE
+         SET saldo = student_project.saldo_usuario.saldo + EXCLUDED.saldo`,
         [tutorId, -totalTutor]
       );
       await client.query(
-        `INSERT INTO student_project.saldo_usuario AS su (user_id, rol, saldo)
+        `INSERT INTO student_project.saldo_usuario (user_id, rol, saldo)
          VALUES ($1,'profesor',$2)
-         ON CONFLICT (user_id, rol) DO UPDATE SET saldo = su.saldo + EXCLUDED.saldo`,
+         ON CONFLICT (user_id, rol) DO UPDATE
+         SET saldo = student_project.saldo_usuario.saldo + EXCLUDED.saldo`,
         [profesorId, totalProfesor]
       );
     }
