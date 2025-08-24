@@ -97,7 +97,7 @@ export default function AddChildModal({ open, onClose }) {
           direccion: address,
           distrito: district,
           ciudad: city,
-          photoURL: userData?.photoURL || auth.currentUser.photoURL || ''
+          photoURL: ''
         };
       const nuevos = [...childList, nuevo];
       await updateDoc(doc(db, 'usuarios', auth.currentUser.uid), { alumnos: nuevos });
