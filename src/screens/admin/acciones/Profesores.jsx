@@ -10,6 +10,7 @@ import {
   doc,
   updateDoc
 } from 'firebase/firestore';
+import { formatDate } from '../../../utils/formatDate';
 
 const fadeIn = keyframes`
   from { opacity: 0; transform: translateY(-10px); }
@@ -169,7 +170,7 @@ export default function Profesores() {
               classes.map((cl) => (
                 <ClassCard key={cl.id}>
                   <p><strong>Alumno:</strong> {cl.alumnoNombre} {cl.alumnoApellidos}</p>
-                  <p><strong>Fecha:</strong> {cl.fecha} {cl.hora}</p>
+                  <p><strong>Fecha:</strong> {formatDate(cl.fecha)} {cl.hora}</p>
                   <p><strong>Asignatura:</strong> {cl.asignatura}</p>
                   <p><strong>Duración:</strong> {cl.duracion} h</p>
                 </ClassCard>

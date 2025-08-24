@@ -15,6 +15,7 @@ import GestionClases from './acciones/GestionClases';
 import Facturacion   from './acciones/Facturacion';
 import Usuarios      from './acciones/Usuarios';
 import Pagos        from './acciones/Pagos';
+import { formatDate } from '../../utils/formatDate';
 
 const Container = styled.div`
   display: flex;
@@ -144,7 +145,7 @@ export default function PanelAdmin() {
             data.asignatura ||
             classData.asignatura ||
             (classData.asignaturas || []).join(', '),
-          fecha: data.fecha || '',
+          fecha: data.fecha ? formatDate(data.fecha) : '',
           duracion: data.duracion || '',
           modalidad: data.modalidad || '',
           tipoClase: classData.tipoClase || '',

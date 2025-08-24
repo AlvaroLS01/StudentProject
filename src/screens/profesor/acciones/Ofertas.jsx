@@ -20,6 +20,7 @@ import {
 } from 'firebase/firestore';
 import { createPuja } from '../../../utils/api';
 import { Overlay, Modal, ModalText, ModalActions, ModalButton } from '../../../components/ModalStyles';
+import { formatDate } from '../../../utils/formatDate';
 
 // Animación de fade-in al desplegar
 const fadeDown = keyframes`
@@ -27,17 +28,6 @@ const fadeDown = keyframes`
   to   { opacity: 1; transform: translateY(0); }
 `;
 
-// Helper: formatea Date como "D de mes" en español
-function formatSpanishDate(date) {
-  if (!date) return '';
-  const months = [
-    'enero','febrero','marzo','abril','mayo','junio',
-    'julio','agosto','septiembre','octubre','noviembre','diciembre'
-  ];
-  const day = date.getDate();
-  const month = months[date.getMonth()];
-  return `${day} de ${month}`;
-}
 
 // Devuelve texto relativo en horas/días desde la creación
 function timeSince(ts) {
@@ -623,8 +613,8 @@ export default function Ofertas() {
     setInfoModal(true);
 
     // Construir el texto de notificación
-    const inicioTxt = clase.fechaInicio ? formatSpanishDate(new Date(clase.fechaInicio)) : '—';
-    const finTxt = clase.fechaFin ? formatSpanishDate(new Date(clase.fechaFin)) : '—';
+    const inicioTxt = clase.fechaInicio ? formatDate(clase.fechaInicio) : '—';
+    const finTxt = clase.fechaFin ? formatDate(clase.fechaFin) : '—';
     const duration = calculateWeeks(clase.fechaInicio, clase.fechaFin);
     const durTxt = `${duration} ${duration === 1 ? 'semana' : 'semanas'}`;
     const firstName = clase.alumnoNombre?.split(' ')[0] || '';
@@ -849,11 +839,11 @@ export default function Ofertas() {
                 )}
                 <div>
                   <Label>Fecha inicio:</Label>{' '}
-                  <Value>{inicioDate ? formatSpanishDate(inicioDate) : '—'}</Value>
+                  <Value>{inicioDate ? formatDate(inicioDate) : '—'}</Value>
                 </div>
                 <div>
                   <Label>Fecha fin:</Label>{' '}
-                  <Value>{finDate ? formatSpanishDate(finDate) : '—'}</Value>
+                  <Value>{finDate ? formatDate(finDate) : '—'}</Value>
                 </div>
                 <div>
                   <Label>Duración aprox.:</Label>{' '}
@@ -953,9 +943,9 @@ export default function Ofertas() {
                 ))}
                 <br/>
                 <strong>Fecha inicio:</strong>{' '}
-                {selected.fechaInicio ? formatSpanishDate(new Date(selected.fechaInicio)) : '—'}<br/>
+                {selected.fechaInicio ? formatDate(selected.fechaInicio) : '—'}<br/>
                 <strong>Fecha fin:</strong>{' '}
-                {selected.fechaFin ? formatSpanishDate(new Date(selected.fechaFin)) : '—'}<br/>
+                {selected.fechaFin ? formatDate(selected.fechaFin) : '—'}<br/>
                 <strong>Duración aprox.:</strong> {calculateWeeks(selected.fechaInicio, selected.fechaFin)} {calculateWeeks(selected.fechaInicio, selected.fechaFin) === 1 ? 'semana' : 'semanas'}<br/>
                 <strong>Horas/semana:</strong> {selected.horasSemana} <em>(aprox.)</em><br/><br/>
                 <strong>Horario de TÚ DISPONIBILIDAD:</strong><br/>

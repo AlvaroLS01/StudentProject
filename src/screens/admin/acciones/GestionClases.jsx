@@ -20,6 +20,7 @@ import { sendAssignmentEmails } from '../../../utils/email';
 import { registerPendingClass } from '../../../utils/classWorkflow';
 import { selectPuja } from '../../../utils/api';
 import { Overlay, Modal, ModalText, ModalActions, ModalButton } from '../../../components/ModalStyles';
+import { formatDate } from '../../../utils/formatDate';
 
 // Animación suave al cargar
 const fadeDown = keyframes`
@@ -344,25 +345,13 @@ export default function GestionClases() {
                 <div>
                   <Label>Fecha inicio:</Label>{' '}
                   <Value>
-                    {c.fechaInicio
-                      ? new Date(c.fechaInicio).toLocaleDateString('es-ES', {
-                          day: '2-digit',
-                          month: '2-digit',
-                          year: 'numeric'
-                        })
-                      : '—'}
+                    {c.fechaInicio ? formatDate(c.fechaInicio) : '—'}
                   </Value>
                 </div>
                 <div>
                   <Label>Fecha fin:</Label>{' '}
                   <Value>
-                    {c.fechaFin
-                      ? new Date(c.fechaFin).toLocaleDateString('es-ES', {
-                          day: '2-digit',
-                          month: '2-digit',
-                          year: 'numeric'
-                        })
-                      : '—'}
+                    {c.fechaFin ? formatDate(c.fechaFin) : '—'}
                   </Value>
                 </div>
                 <div>

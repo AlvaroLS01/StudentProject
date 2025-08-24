@@ -16,6 +16,7 @@ import {
   doc
 } from 'firebase/firestore';
 import { useNavigate } from 'react-router-dom';
+import { formatDate } from '../../../utils/formatDate';
 
 // Animación de entrada
 const fadeIn = keyframes`
@@ -595,7 +596,7 @@ export default function MisAlumnos() {
                         </div>
                         <div>
                           <strong>{item.asignatura}</strong> el{' '}
-                          <strong>{item.fecha}</strong> a las <strong>{item.hora}</strong> ({item.duracion}h)
+                          <strong>{formatDate(item.fecha)}</strong> a las <strong>{item.hora}</strong> ({item.duracion}h)
                         </div>
                         {item.estado === 'pendiente' && (
                           <CancelButton onClick={() => cancelProposal(item)}>
