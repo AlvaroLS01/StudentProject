@@ -24,6 +24,13 @@ export async function acceptClassByTeacher(recordId, studentEmail, pujaId) {
   const snap = await getDoc(ref);
   const data = snap.exists() ? snap.data() : {};
   await updateDoc(ref, { estado: 'espera_alumno', acceptedByTeacher: serverTimestamp() });
+  try {
+    if (data.claseId) {
+      await updateDoc(doc(db, 'clases', data.claseId), { estado: 'espera_alumno' });
+    }
+  } catch (err) {
+    console.error(err);
+  }
   let teacherCareer = '';
   try {
     if (data.profesorId) {
@@ -59,6 +66,13 @@ export async function acceptClassByStudent(recordId, data) {
     } catch (err) {
       console.error(err);
     }
+  }
+  try {
+    if (data.claseId) {
+      await updateDoc(doc(db, 'clases', data.claseId), { estado: 'profesor_asignado' });
+    }
+  } catch (err) {
+    console.error(err);
   }
   await addDoc(collection(db, 'clases_union'), {
     claseId: data.claseId,
