@@ -18,7 +18,7 @@ import {
   updateDoc,
   doc
 } from 'firebase/firestore';
-import { useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { formatDate } from '../../../utils/formatDate';
 
 // Animación de entrada
@@ -76,9 +76,10 @@ const Avatar = styled.img`
   margin-right: 1rem;
 `;
 
-const NameLink = styled.span`
+const NameLink = styled(Link)`
   color: #2c5282;
   font-weight: 600;
+  text-decoration: none;
   cursor: pointer;
   &:hover {
     text-decoration: underline;
@@ -207,7 +208,6 @@ export default function MisProfesores() {
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(true);
   const scrollRef = useRef();
-  const navigate = useNavigate();
   const { show } = useNotification();
   const { selectedChild } = useChild();
 
@@ -447,9 +447,9 @@ export default function MisProfesores() {
                   <Avatar src={u.profesorPhotoURL} alt="foto" />
                 )}
                 <NameLink
+                  to={`/perfil/${u.profesorId}`}
                   onClick={e => {
                     e.stopPropagation();
-                    navigate(`/perfil/${u.profesorId}`);
                   }}
                 >
                   {u.profesorNombre}

@@ -15,7 +15,7 @@ import {
   updateDoc,
   doc
 } from 'firebase/firestore';
-import { useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { formatDate } from '../../../utils/formatDate';
 
 // Animación de entrada
@@ -73,9 +73,10 @@ const Avatar = styled.img`
   margin-right: 1rem;
 `;
 
-const NameLink = styled.span`
+const NameLink = styled(Link)`
   color: #2c5282;
   font-weight: 600;
+  text-decoration: none;
   &:hover {
     text-decoration: underline;
   }
@@ -321,7 +322,6 @@ export default function MisAlumnos() {
   const [asignaturasList, setAsignaturasList] = useState([]);
   const [requestedAsignaturas, setRequestedAsignaturas] = useState([]);
   const scrollRef = useRef();
-  const navigate = useNavigate();
 
   const timeOptions = Array.from({ length: 48 }, (_, i) => {
     const h = String(Math.floor(i / 2)).padStart(2, '0');
@@ -548,9 +548,9 @@ export default function MisAlumnos() {
                 )}
                 <NameWrapper>
                   <NameLink
+                    to={`/perfil/${u.alumnoId}`}
                     onClick={e => {
                       e.stopPropagation();
-                      navigate(`/perfil/${u.alumnoId}`);
                     }}
                   >
                     {u.alumnoNombre} {u.alumnoApellidos?.split(' ')[0] || ''}
