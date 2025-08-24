@@ -622,6 +622,11 @@ app.post('/puja', async (req, res) => {
     );
     const pujaId = result.rows[0].id_puja;
 
+    await client.query(
+      'UPDATE student_project.oferta SET estado=$1 WHERE id_oferta=$2',
+      ['seleccion_profesor', id_oferta]
+    );
+
     for (const nombre of asignaturas) {
       const asRes = await client.query(
         'SELECT id_asignatura FROM student_project.asignatura WHERE LOWER(nombre_asignatura)=LOWER($1)',
@@ -731,7 +736,7 @@ app.post('/puja/:id/confirm', async (req, res) => {
     );
     await client.query(
       'UPDATE student_project.oferta SET estado=$1 WHERE id_oferta=$2',
-      ['enlace_creado', id_oferta]
+      ['profesor_asignado', id_oferta]
     );
     await client.query('COMMIT');
     res.json({ message: 'Enlace creado' });
