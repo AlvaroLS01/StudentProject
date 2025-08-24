@@ -20,6 +20,7 @@ import {
 } from 'firebase/firestore';
 import { Link } from 'react-router-dom';
 import { formatDate } from '../../../utils/formatDate';
+import { registerTransaction } from '../../../utils/api';
 
 // Animación de entrada
 const fadeIn = keyframes`
@@ -373,6 +374,25 @@ export default function MisProfesores() {
           createdAt: serverTimestamp()
         }
       );
+      try {
+        await registerTransaction({
+          tutorId: auth.currentUser.uid,
+          tutorEmail: auth.currentUser.email,
+          alumnoNombre: selectedChild ? selectedChild.nombre : '',
+          profesorId: union.profesorId,
+          asignatura: proposal.asignatura,
+          modalidad: proposal.modalidad,
+          fecha: proposal.fecha,
+          hora: proposal.hora,
+          duracion: proposal.duracion,
+          montoTutor: proposal.precioTotalPadres,
+          montoProfesor: proposal.precioTotalProfesor,
+        });
+        show('Clase confirmada', 'success');
+      } catch (err) {
+        console.error(err);
+        show('Error registrando la clase', 'error');
+      }
     }
   };
 
