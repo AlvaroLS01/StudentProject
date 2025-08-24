@@ -7,6 +7,8 @@ import { useChild } from '../ChildContext';
 import { useAuth } from '../AuthContext';
 import { fetchCursos, fetchCities, registerAlumno } from '../utils/api';
 import { Overlay, Modal, ModalTitle } from './ModalStyles';
+import PhoneInput from 'react-phone-input-2';
+import 'react-phone-input-2/lib/style.css';
 
 const CloseButton = styled.button`
   position: absolute;
@@ -169,17 +171,19 @@ export default function AddChildModal({ open, onClose }) {
           </label>
           {ownPhone && (
             <>
-              <TextInput
-                type="tel"
-                placeholder="Teléfono"
+              <PhoneInput
+                country={'es'}
                 value={phone}
-                onChange={e => setPhone(e.target.value)}
+                onChange={value => setPhone(value)}
+                inputStyle={{ width: '100%' }}
+                placeholder="Teléfono"
               />
-              <TextInput
-                type="tel"
-                placeholder="Repite teléfono"
+              <PhoneInput
+                country={'es'}
                 value={phoneConfirm}
-                onChange={e => setPhoneConfirm(e.target.value)}
+                onChange={value => setPhoneConfirm(value)}
+                inputStyle={{ width: '100%' }}
+                placeholder="Repite teléfono"
               />
             </>
           )}
