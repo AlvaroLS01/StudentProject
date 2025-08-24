@@ -377,18 +377,18 @@ export default function MisClases() {
               </InfoGrid>
               {c.estado === 'pendiente' && (
                 <div>
-                  <AcceptButton
-                    onClick={() => acceptProposal(c)}
-                    disabled={processingIds.has(c.id)}
-                  >
-                    Aceptar
-                  </AcceptButton>{' '}
                   <RejectButton
                     onClick={() => rejectProposal(c)}
                     disabled={processingIds.has(c.id)}
                   >
                     Rechazar
-                  </RejectButton>
+                  </RejectButton>{' '}
+                  <AcceptButton
+                    onClick={() => acceptProposal(c)}
+                    disabled={processingIds.has(c.id)}
+                  >
+                    Aceptar
+                  </AcceptButton>
                 </div>
               )}
               {c.modificacionPendiente && (
@@ -396,18 +396,18 @@ export default function MisClases() {
                   <p style={{ marginTop: '0.5rem' }}>
                     El profesor propone modificar esta clase.
                   </p>
-                  <AcceptButton
-                    onClick={() => acceptModification(c)}
-                    disabled={processingIds.has(c.id)}
-                  >
-                    Aceptar cambio
-                  </AcceptButton>{' '}
                   <RejectButton
                     onClick={() => rejectModification(c)}
                     disabled={processingIds.has(c.id)}
                   >
                     Rechazar cambio
-                  </RejectButton>
+                  </RejectButton>{' '}
+                  <AcceptButton
+                    onClick={() => acceptModification(c)}
+                    disabled={processingIds.has(c.id)}
+                  >
+                    Aceptar cambio
+                  </AcceptButton>
                 </div>
               )}
             </Card>
