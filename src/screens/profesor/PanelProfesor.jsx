@@ -8,13 +8,6 @@ import ClasesProfesor         from './acciones/Clases';
 import CalendarioProfesor     from './acciones/Calendario';
 import MisAlumnos             from './acciones/MisAlumnos';
 
-// icons
-import iconClasesDisponibles from '../../assets/icons/ofertas.png';
-import iconMisClases from '../../assets/icons/clases.png';
-import iconMisOfertas from '../../assets/icons/ofertas.png';
-import iconCalendario from '../../assets/icons/calendario.png';
-import iconMisAlumnos from '../../assets/icons/alumnos.png';
-
 const Container = styled.div`
   display: flex;
   min-height: 100vh;
@@ -54,9 +47,6 @@ const MenuItem = styled.li`
 `;
 
 const Button = styled.button`
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
   width: 100%;
   padding: 0.75rem 1rem;
   background: ${({ active }) => active ? '#ccf3e5' : 'transparent'};
@@ -70,11 +60,6 @@ const Button = styled.button`
   &:hover {
     background: #f1f8f6;
   }
-`;
-
-const Icon = styled.img`
-  width: 20px;
-  height: 20px;
 `;
 
 const Content = styled.div`
@@ -123,7 +108,6 @@ export default function PanelProfesor() {
               active={view === 'ofertas'}
               onClick={() => setView('ofertas')}
             >
-              <Icon src={iconClasesDisponibles} alt="Clases disponibles" />
               Clases disponibles
             </Button>
           </MenuItem>
@@ -132,7 +116,6 @@ export default function PanelProfesor() {
               active={view === 'misClases'}
               onClick={() => setView('misClases')}
             >
-              <Icon src={iconMisClases} alt="Mis clases" />
               Mis clases
             </Button>
           </MenuItem>
@@ -141,7 +124,6 @@ export default function PanelProfesor() {
               active={view === 'misOfertas'}
               onClick={() => setView('misOfertas')}
             >
-              <Icon src={iconMisOfertas} alt="Mis ofertas" />
               Mis ofertas
             </Button>
           </MenuItem>
@@ -150,7 +132,6 @@ export default function PanelProfesor() {
               active={view === 'calendario'}
               onClick={() => setView('calendario')}
             >
-              <Icon src={iconCalendario} alt="Calendario" />
               Calendario
             </Button>
           </MenuItem>
@@ -159,7 +140,6 @@ export default function PanelProfesor() {
               active={view === 'misAlumnos'}
               onClick={() => setView('misAlumnos')}
             >
-              <Icon src={iconMisAlumnos} alt="Mis alumnos" />
               Mis alumnos
             </Button>
           </MenuItem>
