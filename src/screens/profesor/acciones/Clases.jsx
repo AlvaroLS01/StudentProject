@@ -97,7 +97,6 @@ const Value = styled.span`
 `;
 
 const CancelButton = styled.button`
-  margin: 0.5rem auto 0;
   background: #e53e3e;
   color: #fff;
   border: none;
@@ -105,11 +104,16 @@ const CancelButton = styled.button`
   padding: 0.25rem 0.8rem;
   font-size: 0.85rem;
   cursor: pointer;
-  display: block;
-  width: fit-content;
   &:hover {
     background: #c53030;
   }
+`;
+
+const CardActions = styled.div`
+  margin-top: auto;
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
 `;
 
 
@@ -277,9 +281,11 @@ export default function ClasesProfesor({ only }) {
                   </div>
                 </InfoGrid>
                 {c.estado === 'pendiente' && (
-                  <CancelButton onClick={() => cancelPending(c)}>
-                    Cancelar propuesta
-                  </CancelButton>
+                  <CardActions>
+                    <CancelButton onClick={() => cancelPending(c)}>
+                      Cancelar propuesta
+                    </CancelButton>
+                  </CardActions>
                 )}
               </Card>
             ))}
