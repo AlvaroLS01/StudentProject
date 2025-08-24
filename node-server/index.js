@@ -267,13 +267,15 @@ app.post('/transaccion', async (req, res) => {
       await client.query(
         `INSERT INTO student_project.saldo_usuario AS su (user_id, rol, saldo)
          VALUES ($1,'tutor',$2)
-         ON CONFLICT (user_id, rol) DO UPDATE SET saldo = su.saldo + EXCLUDED.saldo`,
+         ON CONFLICT (user_id, rol) DO UPDATE
+         SET saldo = su.saldo + EXCLUDED.saldo`,
         [tutorId, -totalTutor]
       );
       await client.query(
         `INSERT INTO student_project.saldo_usuario AS su (user_id, rol, saldo)
          VALUES ($1,'profesor',$2)
-         ON CONFLICT (user_id, rol) DO UPDATE SET saldo = su.saldo + EXCLUDED.saldo`,
+         ON CONFLICT (user_id, rol) DO UPDATE
+         SET saldo = su.saldo + EXCLUDED.saldo`,
         [profesorId, totalProfesor]
       );
     }
@@ -1132,14 +1134,25 @@ app.post('/accept-class', async (req, res) => {
     return res.status(400).json({ error: 'Datos incompletos para la clase' });
   }
 
-  const clamp = (val, max) => (val && val.length > max ? val.slice(0, max) : val);
+  const clamp = (v, m) => (v && v.length > m ? v.slice(0, m) : v);
+  const fdb = admin.firestore();
+
+  async function getUidByEmail(email) {
+    if (!email) return null;
+    const snap = await fdb.collection('usuarios').where('email', '==', email).limit(1).get();
+    return snap.empty ? null : snap.docs[0].id;
+  }
 
   let client;
   try {
     client = await db.connect();
+    await client.query('BEGIN');
+
+    // 1) Registrar clase
     await client.query(
       `INSERT INTO student_project.clase
-        (fecha_clase, hora_clase, modalidad_clase, precio_total_clase, beneficio_clase, duracion_clase, fecha_registro_clase, id_asignatura, id_ubicacion, id_profesor, id_alumno)
+        (fecha_clase, hora_clase, modalidad_clase, precio_total_clase, beneficio_clase, duracion_clase,
+         fecha_registro_clase, id_asignatura, id_ubicacion, id_profesor, id_alumno)
        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)`,
       [
         fecha_clase,
@@ -1155,29 +1168,66 @@ app.post('/accept-class', async (req, res) => {
         id_alumno,
       ]
     );
-  } catch (err) {
-    console.error(err);
-    if (client) client.release();
-    return res.status(500).json({ error: 'Error registrando la clase' });
-  }
 
-  if (client) client.release();
+    // 2) Resolver emails → uid para saldo_usuario
+    const tutorEmailRes = await client.query(
+      `SELECT t.correo_electronico AS tutor_email
+         FROM student_project.alumno a
+         JOIN student_project.tutor t ON a.correo_tutor = t.correo_electronico
+        WHERE a.id_alumno = $1`,
+      [id_alumno]
+    );
+    const tutorEmail = tutorEmailRes.rows[0]?.tutor_email || null;
 
-  try {
+    const tutorUid = await getUidByEmail(tutorEmail);
+    const profesorUid = await getUidByEmail(teacherEmail);
+
+    // 3) Calcular importes
+    const totalTutor = Math.abs(Number(precio_total_clase) || 0);
+    const totalProfesor = Math.abs(
+      (Number(precio_total_clase) || 0) - (Number(beneficio_clase) || 0)
+    );
+
+    // 4) Actualizar saldos (solo si tenemos uid)
+    if (tutorUid) {
+      await client.query(
+        `INSERT INTO student_project.saldo_usuario AS su (user_id, rol, saldo)
+         VALUES ($1,'tutor',$2)
+         ON CONFLICT (user_id, rol) DO UPDATE
+         SET saldo = su.saldo + EXCLUDED.saldo`,
+        [tutorUid, -totalTutor]
+      );
+    }
+    if (profesorUid) {
+      await client.query(
+        `INSERT INTO student_project.saldo_usuario AS su (user_id, rol, saldo)
+         VALUES ($1,'profesor',$2)
+         ON CONFLICT (user_id, rol) DO UPDATE
+         SET saldo = su.saldo + EXCLUDED.saldo`,
+        [profesorUid, totalProfesor]
+      );
+    }
+
+    await client.query('COMMIT');
+
+    // 5) Notificar al profesor
     const html = `
       <p>Hola ${teacherName || 'profesor'}, el alumno ${studentName || ''} ha aceptado la clase programada para el ${fecha_clase || ''} a las ${hora_clase || ''}.</p>
-      <p>La clase se ha registrado correctamente en la base de datos.</p>
-    `;
+      <p>La clase se ha registrado correctamente.</p>`;
     await transporter.sendMail({
       from: `"Student Project" <${process.env.EMAIL_USER || 'alvaro@studentproject.es'}>`,
       to: teacherEmail,
       subject: 'Clase aceptada por el alumno',
       html,
     });
-    res.json({ message: 'Clase aceptada y correo enviado al profesor' });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: 'Clase registrada pero error enviando correo al profesor' });
+
+    res.json({ message: 'Clase aceptada, saldos actualizados y correo enviado' });
+  } catch (err) {
+    if (client) await client.query('ROLLBACK');
+    console.error(err);
+    res.status(500).json({ error: 'Error registrando la clase' });
+  } finally {
+    if (client) client.release();
   }
 });
 
