@@ -155,7 +155,7 @@ export default function MisSolicitudes() {
     if (processingIds.has(rec.id)) return;
     setProcessingIds(prev => new Set(prev).add(rec.id));
     try {
-      await rejectPendingClass(rec.id);
+      await rejectPendingClass(rec, 'tutor');
       setPendingAssignments(pa => pa.filter(r => r.id !== rec.id));
     } finally {
       setProcessingIds(prev => { const s = new Set(prev); s.delete(rec.id); return s; });

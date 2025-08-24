@@ -135,3 +135,12 @@ export async function liquidarBalance(userId, role, email) {
   });
   return handleResponse(res);
 }
+
+export async function cancelOffer({ offerId, pujaId, role }) {
+  const res = await fetch(`${API_URL}/cancel-offer`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ offerId, pujaId, role }),
+  });
+  return handleResponse(res);
+}
