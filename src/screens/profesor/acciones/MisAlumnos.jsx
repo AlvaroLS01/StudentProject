@@ -469,6 +469,11 @@ export default function MisAlumnos() {
       show('Rellena todos los campos de la clase', 'error');
       return;
     }
+    const todayStr = new Date().toISOString().slice(0, 10);
+    if (fechaClase > todayStr) {
+      show('La fecha de la clase no puede ser posterior a hoy', 'error');
+      return;
+    }
     const durNum = parseFloat(duracion);
     // Obtener precios de la clase principal
     const claseSnap = await getDoc(doc(db, 'clases', selectedUnion.claseId));
@@ -599,12 +604,18 @@ export default function MisAlumnos() {
                       <Bubble mine={mine}>
                         <div>
                           {item.estado === 'aceptada'
-                            ? 'Clase confirmada'
-                            : 'Has añadido una clase de'}
-                        </div>
-                        <div>
-                          <strong>{item.asignatura}</strong> el{' '}
-                          <strong>{formatDate(item.fecha)}</strong> a las <strong>{item.hora}</strong> ({item.duracion}h)
+                            ? (
+                                <>El alumno ha aceptado la clase del{' '}
+                                <strong>{formatDate(item.fecha)}</strong> a las{' '}
+                                <strong>{item.hora}</strong> de{' '}
+                                <strong>{item.asignatura}</strong> ({item.duracion}h)</>
+                              )
+                            : (
+                                <>Has añadido la clase del{' '}
+                                <strong>{formatDate(item.fecha)}</strong> a las{' '}
+                                <strong>{item.hora}</strong> de{' '}
+                                <strong>{item.asignatura}</strong> ({item.duracion}h)</>
+                              )}
                         </div>
                         {item.estado === 'pendiente' && (
                           <CancelButton onClick={() => cancelProposal(item)}>
@@ -665,6 +676,7 @@ export default function MisAlumnos() {
               <InputDate
                 type="date"
                 value={fechaClase}
+                max={new Date().toISOString().slice(0, 10)}
                 onChange={e => setFechaClase(e.target.value)}
               />
               <Label>Hora:</Label>
