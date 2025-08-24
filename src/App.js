@@ -85,10 +85,10 @@ function AppContent() {
           <Route element={<Layout />}>
             <Route element={<RedirectLoggedIn />}>
               <Route path="/home"             element={<Home />} />
-              <Route path="/reserva-tu-clase" element={<ReservaClase />} />
-              <Route path="/ser-profesor"     element={<SerProfesor />} />
-              <Route path="/quienes-somos"    element={<QuienesSomos />} />
             </Route>
+            <Route path="/reserva-tu-clase" element={<ReservaClase />} />
+            <Route path="/ser-profesor"     element={<SerProfesor />} />
+            <Route path="/quienes-somos"    element={<QuienesSomos />} />
 
             {/* Ruta de perfil con parámetro userId */}
             <Route path="/perfil/:userId"       element={<Perfil />} />
