@@ -28,7 +28,7 @@ import {
 import { useChild } from '../../ChildContext';
 import { TextInput, SelectInput, PrimaryButton } from '../../components/FormElements';
 import InfoGrid from '../../components/InfoGrid';
-import { fetchCities, updateTutorCity } from '../../utils/api';
+import { formatDate } from '../../utils/formatDate';
 
 // Animación de fade-in
 const fadeIn = keyframes`
@@ -274,9 +274,7 @@ export default function Perfil() {
   const [childName, setChildName] = useState('');
   const [childDate, setChildDate] = useState('');
   const [childCourse, setChildCourse] = useState('');
-  const [childAvatar, setChildAvatar] = useState('');
   const [savingChild, setSavingChild] = useState(false);
-  const [cities, setCities] = useState([]);
 
   const { setChildList, setSelectedChild } = useChild();
 
@@ -286,10 +284,6 @@ export default function Perfil() {
     }
   }, [searchParams]);
 
-  useEffect(() => {
-    fetchCities().then(setCities).catch(console.error);
-  }, []);
-
   const isOwnProfile = auth.currentUser && auth.currentUser.uid === userId;
   const experienceMessage =
     metrics.totalClases < 50
@@ -297,7 +291,7 @@ export default function Perfil() {
       : `${metrics.totalClases} clases con Student Project`;
 
   const handleSave = async () => {
-    const updates = {
+    await updateDoc(doc(db, 'usuarios', userId), {
       ciudad: formData.ciudad,
       studies: formData.studies,
       studyTime: formData.status === 'trabaja' ? 'Finalizado en tiempo' : formData.studyTime,
@@ -305,31 +299,17 @@ export default function Perfil() {
       job: formData.job,
       status: formData.status,
       iban: formData.iban,
-    };
-    const cityChanged = profile.ciudad !== formData.ciudad;
-    let nuevosAlumnos = profile.alumnos;
-    if (role === 'tutor' && profile.alumnos) {
-      nuevosAlumnos = profile.alumnos.map(a => ({ ...a, ciudad: formData.ciudad }));
-      updates.alumnos = nuevosAlumnos;
-    }
-    await updateDoc(doc(db, 'usuarios', userId), updates);
-    if (cityChanged && role === 'tutor' && profile.email) {
-      try {
-        await updateTutorCity(profile.email, formData.ciudad);
-      } catch (e) {
-        console.error(e);
-      }
-    }
+    });
     setProfile(p => ({
       ...p,
-      ...updates,
+      ciudad: formData.ciudad,
+      studies: formData.studies,
+      studyTime: formData.status === 'trabaja' ? 'Finalizado en tiempo' : formData.studyTime,
+      careerFinished: formData.careerFinished,
+      job: formData.job,
+      status: formData.status,
+      iban: formData.iban,
     }));
-    if (auth.currentUser && auth.currentUser.uid === userId && role === 'tutor') {
-      setChildList(nuevosAlumnos.filter(c => !c.disabled));
-      setSelectedChild(prev =>
-        prev ? nuevosAlumnos.find(c => c.id === prev.id) || prev : prev
-      );
-    }
     setShowAvatarPicker(false);
     setIsEditing(false);
   };
@@ -346,24 +326,6 @@ export default function Perfil() {
     setProfile(p => ({ ...p, photoURL: url }));
   };
 
-  const handleChildPhotoChange = async (childId, file) => {
-    if (!file) return;
-    const storageRef = ref(storage, `perfiles/${userId}/child_${childId}_${file.name}`);
-    await uploadBytes(storageRef, file);
-    const url = await getDownloadURL(storageRef);
-    const nuevos = (profile.alumnos || []).map(ch =>
-      ch.id === childId ? { ...ch, photoURL: url } : ch
-    );
-    await updateDoc(doc(db, 'usuarios', userId), { alumnos: nuevos });
-    setProfile(p => ({ ...p, alumnos: nuevos }));
-    if (auth.currentUser && auth.currentUser.uid === userId) {
-      setChildList(nuevos.filter(c => !c.disabled));
-      setSelectedChild(prev =>
-        prev && prev.id === childId ? nuevos.find(c => c.id === childId) : prev
-      );
-    }
-  };
-
   const handleAvatarSelect = async url => {
     await updateDoc(doc(db, 'usuarios', userId), { photoURL: url });
     setProfile(p => ({ ...p, photoURL: url }));
@@ -371,15 +333,15 @@ export default function Perfil() {
   };
 
   const addChild = async () => {
-    if (!childName || !childDate || !childCourse || !childAvatar || savingChild || !isOwnProfile) return;
+    if (!childName || !childDate || !childCourse || savingChild || !isOwnProfile) return;
     setSavingChild(true);
+    const photoURL = profile.photoURL || '';
     const nuevo = {
       id: Date.now().toString(),
       nombre: childName,
       fechaNacimiento: childDate,
       curso: childCourse,
-      ciudad: formData.ciudad,
-      photoURL: childAvatar,
+      photoURL,
     };
     const nuevos = [...(profile.alumnos || []), nuevo];
     await updateDoc(doc(db, 'usuarios', userId), { alumnos: nuevos });
@@ -391,7 +353,6 @@ export default function Perfil() {
     setChildName('');
     setChildDate('');
     setChildCourse('');
-    setChildAvatar('');
     setShowAddChild(false);
     setSavingChild(false);
   };
@@ -616,17 +577,13 @@ export default function Perfil() {
             {isOwnProfile && (
               isEditing ? (
                 <>
-                  <SelectInput
+                  <InlineInput
                     value={formData.ciudad}
                     onChange={e =>
                       setFormData({ ...formData, ciudad: e.target.value })
                     }
-                  >
-                    <option value="">Selecciona ciudad</option>
-                    {cities.map(c => (
-                      <option key={c.id_ciudad} value={c.nombre}>{c.nombre}</option>
-                    ))}
-                  </SelectInput>
+                    placeholder="Ciudad"
+                  />
                   {role === 'profesor' && (
                     <>
                       <SelectInput
@@ -750,7 +707,7 @@ export default function Perfil() {
           </div>
         </ProfileHeader>
 
-        {profile.rol === 'tutor' && (
+        {profile.rol === 'tutor' && isOwnProfile && (
           <Section>
             <h2 style={{ textAlign: 'center', color: '#024837' }}>Alumnos</h2>
             {(profile.alumnos || []).length === 0 ? (
@@ -759,27 +716,10 @@ export default function Perfil() {
               <ChildList>
                 {profile.alumnos.map(h => (
                   <ChildItem key={h.id}>
-                    <div style={{ position: 'relative', marginRight: '1rem' }}>
-                      {h.photoURL && <ChildImg src={h.photoURL} alt="foto" />}
-                      {isOwnProfile && isEditing && (
-                        <>
-                          <HiddenFileInput
-                            id={`child-photo-${h.id}`}
-                            type="file"
-                            onChange={e => handleChildPhotoChange(h.id, e.target.files[0])}
-                          />
-                          <PhotoLabel htmlFor={`child-photo-${h.id}`}>
-                            <CameraOverlay
-                              src={cameraIcon}
-                              hasPhoto={!!h.photoURL}
-                            />
-                          </PhotoLabel>
-                        </>
-                      )}
-                    </div>
+                    {profile.photoURL && <ChildImg src={profile.photoURL} alt="foto" />}
                     <div>
                       <div>{h.nombre}</div>
-                      <div style={{ fontSize: '0.8rem', color: '#555' }}>{h.curso}</div>
+                      <div style={{ fontSize: '0.8rem', color: '#555' }}>{formatDate(h.fechaNacimiento)}</div>
                     </div>
                   </ChildItem>
                 ))}
@@ -810,19 +750,6 @@ export default function Perfil() {
                           </optgroup>
                         ))}
                       </SelectInput>
-                    </div>
-                    <div style={{ gridColumn: '1 / -1' }}>
-                      <p style={{ marginBottom: '0.5rem' }}>Selecciona avatar</p>
-                      <AvatarGrid>
-                        {avatars.map((url, idx) => (
-                          <AvatarOption
-                            key={idx}
-                            src={url}
-                            onClick={() => setChildAvatar(url)}
-                            style={{ borderColor: childAvatar === url ? '#006D5B' : 'transparent' }}
-                          />
-                        ))}
-                      </AvatarGrid>
                     </div>
                     <PrimaryButton onClick={addChild} disabled={savingChild}>Guardar</PrimaryButton>
                   </AddChildForm>
