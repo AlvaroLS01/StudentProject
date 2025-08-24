@@ -141,19 +141,6 @@ app.post('/transaccion', async (req, res) => {
     const profesorEmail = profSnap.exists ? profSnap.data().email : null;
     if (!profesorEmail) throw new Error('Correo del profesor no encontrado');
 
-    await client.query(
-      `INSERT INTO student_project.saldo_usuario (user_id, rol, saldo)
-       VALUES ($1,'tutor',$2)
-       ON CONFLICT (user_id, rol) DO UPDATE SET saldo = saldo + EXCLUDED.saldo`,
-      [tutorId, -Math.abs(montoTutor || 0)]
-    );
-    await client.query(
-      `INSERT INTO student_project.saldo_usuario (user_id, rol, saldo)
-       VALUES ($1,'profesor',$2)
-       ON CONFLICT (user_id, rol) DO UPDATE SET saldo = saldo + EXCLUDED.saldo`,
-      [profesorId, montoProfesor || 0]
-    );
-
     let id_profesor = null;
     let id_alumno = null;
     let id_ubicacion = null;
@@ -216,81 +203,11 @@ app.post('/transaccion', async (req, res) => {
 
     await client.query('COMMIT');
 
-    await fdb.collection('balances').doc(tutorId).set(
-      {
-        rol: 'tutor',
-        saldo: admin.firestore.FieldValue.increment(-Math.abs(montoTutor || 0)),
-      },
-      { merge: true }
-    );
-    await fdb.collection('balances').doc(profesorId).set(
-      {
-        rol: 'profesor',
-        saldo: admin.firestore.FieldValue.increment(montoProfesor || 0),
-      },
-      { merge: true }
-    );
-
     res.json({ message: 'Transacción registrada' });
   } catch (err) {
     if (client) await client.query('ROLLBACK');
     console.error(err);
     res.status(500).json({ error: 'Error registrando transacción' });
-  } finally {
-    if (client) client.release();
-  }
-});
-
-app.get('/balances', async (req, res) => {
-  const { role } = req.query;
-  if (!role) return res.status(400).json({ error: 'role requerido' });
-  try {
-    const result = await db.query(
-      'SELECT user_id, rol, saldo FROM student_project.saldo_usuario WHERE rol=$1 ORDER BY user_id',
-      [role]
-    );
-    res.json(result.rows);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Error obteniendo saldos' });
-  }
-});
-
-app.post('/balances/:userId/liquidar', async (req, res) => {
-  const { userId } = req.params;
-  const { role, email } = req.body;
-  if (!role) return res.status(400).json({ error: 'Datos incompletos' });
-  let client;
-  try {
-    client = await db.connect();
-    await client.query('BEGIN');
-    const balRes = await client.query(
-      'SELECT saldo FROM student_project.saldo_usuario WHERE user_id=$1 AND rol=$2',
-      [userId, role]
-    );
-    const saldo = balRes.rowCount ? balRes.rows[0].saldo : 0;
-    await client.query(
-      'UPDATE student_project.saldo_usuario SET saldo=0 WHERE user_id=$1 AND rol=$2',
-      [userId, role]
-    );
-    await client.query('COMMIT');
-    const fdb = admin.firestore();
-    await fdb.collection('balances').doc(userId).set({ saldo: 0, rol: role }, { merge: true });
-    if (email) {
-      await transporter.sendMail({
-        from: `"Student Project" <${process.env.EMAIL_USER || 'alvaro@studentproject.es'}>`,
-        to: email,
-        subject: role === 'tutor' ? 'Pago pendiente' : 'Pago recibido',
-        html: role === 'tutor'
-          ? `<p>Tienes que pagar €${saldo}</p>`
-          : `<p>Se te ha ingresado €${saldo}</p>`
-      });
-    }
-    res.json({ message: 'Saldo liquidado' });
-  } catch (err) {
-    if (client) await client.query('ROLLBACK');
-    console.error(err);
-    res.status(500).json({ error: 'Error al liquidar saldo' });
   } finally {
     if (client) client.release();
   }
@@ -1112,9 +1029,9 @@ app.post('/accept-class', async (req, res) => {
     fecha_clase,
     hora_clase,
     modalidad_clase,
-    precio_total_clase,
-    beneficio_clase,
-    duracion_clase,
+    precio_total_clase = 0,
+    beneficio_clase = 0,
+    duracion_clase = 0,
     fecha_registro_clase,
     id_asignatura,
     id_ubicacion,
@@ -1129,9 +1046,6 @@ app.post('/accept-class', async (req, res) => {
     !fecha_clase ||
     !hora_clase ||
     !modalidad_clase ||
-    precio_total_clase == null ||
-    beneficio_clase == null ||
-    duracion_clase == null ||
     !fecha_registro_clase ||
     !id_asignatura ||
     !id_ubicacion ||
