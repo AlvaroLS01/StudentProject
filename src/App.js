@@ -111,7 +111,8 @@ function AppContent() {
               <Route path="/profesor"             element={<PanelProfesor />} />
               <Route path="/profesor/ofertas"     element={<Ofertas />} />
               <Route path="/profesor/calendario"  element={<CalendarioP />} />
-              <Route path="/profesor/mis-clases"  element={<ClasesProfesor />} />
+              <Route path="/profesor/mis-clases"  element={<ClasesProfesor only="clases" />} />
+              <Route path="/profesor/mis-ofertas" element={<ClasesProfesor only="ofertas" />} />
               <Route path="/profesor/mis-alumnos" element={<MisAlumnos />} />
             </Route>
 
