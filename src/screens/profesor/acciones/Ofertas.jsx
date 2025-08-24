@@ -4,7 +4,6 @@ import styled, { keyframes } from 'styled-components';
 import { useNotification } from '../../../NotificationContext';
 import { auth, db } from '../../../firebase/firebaseConfig';
 import InfoGrid from '../../../components/InfoGrid';
-import ProgressBar from '../../../components/ProgressBar';
 import { useAuth } from '../../../AuthContext';
 import CompleteTeacherProfileModal from '../../../components/CompleteTeacherProfileModal';
 import {
@@ -378,10 +377,19 @@ const SlotCell = styled.div`
   transition: background 0.2s, border 0.2s;
 `;
 
+const StatusText = styled.div`
+  margin: 0.5rem 0;
+  font-weight: 600;
+  color: ${p => p.color};
+`;
+
 const getProgressData = c => {
+  if (c.estado && c.estado !== 'pendiente') {
+    return { percent: 100, color: '#38a169', label: 'Profesor asignado' };
+  }
   return c.offers === 0
-    ? { percent: 33.3, color: '#e53e3e', label: 'En búsqueda de profesor' }
-    : { percent: 66.6, color: '#dd6b20', label: 'En selección de profesor' };
+    ? { percent: 25, color: '#e53e3e', label: 'En búsqueda de profesor' }
+    : { percent: 50, color: '#dd6b20', label: 'En selección de profesor' };
 };
 
 export default function Ofertas() {
@@ -877,9 +885,9 @@ export default function Ofertas() {
               ))}
             </div>
 
-            {c.estado === 'pendiente' && (
-              <ProgressBar {...getProgressData(c)} />
-            )}
+            <StatusText color={getProgressData(c).color}>
+              {getProgressData(c).label}
+            </StatusText>
 
               <Controls>
                 <ShowScheduleText onClick={() => toggleExpand(c.id)}>

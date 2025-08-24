@@ -137,13 +137,13 @@ const RejectButton = styled.button`
 const getProgressData = s => {
   if (s.estado === 'pendiente') {
     return s.offers === 0
-      ? { percent: 33.3, color: '#e53e3e', label: 'En búsqueda de profesor' }
-      : { percent: 66.6, color: '#dd6b20', label: 'En selección de profesor' };
+      ? { percent: 25, color: '#e53e3e', label: 'En búsqueda de profesor' }
+      : { percent: 50, color: '#dd6b20', label: 'En selección de profesor' };
   }
   if (s.estado === 'en_proceso') {
-    return { percent: 100, color: '#3182ce', label: 'Esperando respuesta del profesor' };
+    return { percent: 75, color: '#3182ce', label: 'Esperando respuesta del profesor' };
   }
-  return { percent: 0, color: '#38a169', label: 'Profesor asignado' };
+  return { percent: 100, color: '#38a169', label: 'Profesor asignado' };
 };
 
 export default function Clases() {

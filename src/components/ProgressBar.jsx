@@ -33,8 +33,8 @@ const Fill = styled.div`
     rgba(255,255,255,0) 100%
   );
   background-size: 40px 100%;
-  animation: ${shimmer} 2s linear infinite;
-  transition: width 0.6s ease;
+  animation: ${shimmer} 4s linear infinite;
+  transition: width 2s ease;
   border-radius: 8px;
 `;
 
@@ -87,7 +87,13 @@ const Labels = styled.div`
 `;
 
 export default function ProgressBar({ percent, color, label }) {
-  const steps = ['Solicitud', 'Búsqueda de profesor', 'Selección de profesor', 'Esperando respuesta del profesor'];
+  const steps = [
+    'Solicitud',
+    'Búsqueda de profesor',
+    'Selección de profesor',
+    'Esperando respuesta del profesor',
+    'Profesor asignado'
+  ];
   const stepPercents = steps.map((_, i) => (i / (steps.length - 1)) * 100);
 
   return (
