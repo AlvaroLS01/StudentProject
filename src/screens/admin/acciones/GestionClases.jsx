@@ -1,6 +1,6 @@
 // src/screens/admin/acciones/GestionClases.jsx
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import styled, { keyframes } from 'styled-components';
 import Card from '../../../components/CommonCard';
 import InfoGrid from '../../../components/InfoGrid';
@@ -109,10 +109,11 @@ const ShowScheduleText = styled.span`
   }
 `;
 
-const NameLink = styled.span`
+const NameLink = styled(Link)`
   color: #2c5282;
   font-weight: 600;
   cursor: pointer;
+  text-decoration: none;
   &:hover {
     text-decoration: underline;
   }
@@ -186,7 +187,6 @@ export default function GestionClases() {
   const [confirmModal, setConfirmModal] = useState(false);
   const [offerToConfirm, setOfferToConfirm] = useState(null);
   const [classToConfirm, setClassToConfirm] = useState(null);
-  const navigate = useNavigate();
 
   useEffect(() => {
     (async () => {
@@ -322,9 +322,9 @@ export default function GestionClases() {
                 <div>
                   <Label>Alumno:</Label>{' '}
                   <NameLink
+                    to={`/perfil/${c.alumnoId}`}
                     onClick={e => {
                       e.stopPropagation();
-                      navigate(`/perfil/${c.alumnoId}`);
                     }}
                   >
                     {c.alumnoNombre} {c.alumnoApellidos}
@@ -427,9 +427,9 @@ export default function GestionClases() {
                       <div>
                         <Label>Oferta profesor:</Label>{' '}
                         <NameLink
+                          to={`/perfil/${o.profesorId}`}
                           onClick={e => {
                             e.stopPropagation();
-                            navigate(`/perfil/${o.profesorId}`);
                           }}
                         >
                           {o.profesorNombre}
