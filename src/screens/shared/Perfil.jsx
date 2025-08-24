@@ -28,6 +28,7 @@ import {
 import { useChild } from '../../ChildContext';
 import { TextInput, SelectInput, PrimaryButton } from '../../components/FormElements';
 import InfoGrid from '../../components/InfoGrid';
+import { formatDate } from '../../utils/formatDate';
 
 // Animación de fade-in
 const fadeIn = keyframes`
@@ -718,7 +719,7 @@ export default function Perfil() {
                     {profile.photoURL && <ChildImg src={profile.photoURL} alt="foto" />}
                     <div>
                       <div>{h.nombre}</div>
-                      <div style={{ fontSize: '0.8rem', color: '#555' }}>{h.fechaNacimiento}</div>
+                      <div style={{ fontSize: '0.8rem', color: '#555' }}>{formatDate(h.fechaNacimiento)}</div>
                     </div>
                   </ChildItem>
                 ))}

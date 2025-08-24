@@ -20,6 +20,7 @@ import {
   serverTimestamp,
   onSnapshot
 } from 'firebase/firestore';
+import { formatDate } from '../../../utils/formatDate';
 
 import MisOfertas from './MisOfertas';
 
@@ -302,12 +303,12 @@ export default function ClasesProfesor() {
     });
     await addDoc(collection(db, 'clases_union', editing.unionId, 'chats'), {
       senderId: auth.currentUser.uid,
-      text: `He modificado la clase del día ${editing.fecha} de duración ${editing.duracion}h a ${newDate} con duración ${newDuration}h`,
+      text: `He modificado la clase del día ${formatDate(editing.fecha)} de duración ${editing.duracion}h a ${formatDate(newDate)} con duración ${newDuration}h`,
       createdAt: serverTimestamp()
     });
     await addDoc(collection(db, 'notificaciones'), {
       userId: editing.alumnoId,
-      text: `Se modificó la clase del ${editing.fecha}`,
+      text: `Se modificó la clase del ${formatDate(editing.fecha)}`,
       read: false,
       createdAt: serverTimestamp()
     });
@@ -379,7 +380,7 @@ export default function ClasesProfesor() {
                     <Label>Curso:</Label> <Value>{c.curso || '-'}</Value>
                   </div>
                   <div>
-                    <Label>Fecha:</Label> <Value>{c.fecha} {c.hora}</Value>
+                    <Label>Fecha:</Label> <Value>{formatDate(c.fecha)} {c.hora}</Value>
                   </div>
                   <div>
                     <Label>Modalidad:</Label> <Value>{c.modalidad}</Value>

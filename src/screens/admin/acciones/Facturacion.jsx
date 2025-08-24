@@ -3,6 +3,7 @@ import styled, { keyframes } from 'styled-components';
 import { PrimaryButton, DangerButton, TextInput } from '../../../components/FormElements';
 import { db } from '../../../firebase/firebaseConfig';
 import { collection, getDocs, addDoc, deleteDoc, doc } from 'firebase/firestore';
+import { formatDate } from '../../../utils/formatDate';
 
 const fade = keyframes`from{opacity:0;transform:translateY(-10px);}to{opacity:1;transform:translateY(0);}`;
 
@@ -65,7 +66,7 @@ export default function Facturacion(){
         </Form>
         {items.map(i=>(
           <Item key={i.id}>
-            <span>{i.fecha} - {i.mensaje}</span>
+            <span>{formatDate(i.fecha)} - {i.mensaje}</span>
             <DangerButton onClick={()=>removeItem(i.id)}>Eliminar</DangerButton>
           </Item>
         ))}

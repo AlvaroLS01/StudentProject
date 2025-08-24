@@ -19,6 +19,7 @@ import {
   doc
 } from 'firebase/firestore';
 import { useNavigate } from 'react-router-dom';
+import { formatDate } from '../../../utils/formatDate';
 
 // Animación de entrada
 const fadeIn = keyframes`
@@ -359,7 +360,7 @@ export default function MisProfesores() {
         collection(db, 'clases_union', chatUnionId, 'chats'),
         {
           senderId: union.profesorId,
-          text: `Clase confirmada de ${proposal.asignatura} el dia ${proposal.fecha}`,
+          text: `Clase confirmada de ${proposal.asignatura} el dia ${formatDate(proposal.fecha)}`,
           createdAt: serverTimestamp()
         }
       );
@@ -394,12 +395,12 @@ export default function MisProfesores() {
     if (union) {
       await addDoc(collection(db, 'clases_union', chatUnionId, 'chats'), {
         senderId: auth.currentUser.uid,
-        text: `He aceptado la modificación para el ${mod.fecha}`,
+        text: `He aceptado la modificación para el ${formatDate(mod.fecha)}`,
         createdAt: serverTimestamp()
       });
       await addDoc(collection(db, 'notificaciones'), {
         userId: union.profesorId,
-        text: `Modificación de clase aceptada para ${mod.fecha}`,
+        text: `Modificación de clase aceptada para ${formatDate(mod.fecha)}`,
         read: false,
         createdAt: serverTimestamp()
       });
@@ -479,7 +480,7 @@ export default function MisProfesores() {
                       <Bubble mine={mine}>
                         <div>
                           El profesor ha añadido una clase de <strong> {item.asignatura}</strong> el{' '}
-                          <strong>{item.fecha}</strong> a las <strong>{item.hora}</strong> ({item.duracion}h)
+                        <strong>{formatDate(item.fecha)}</strong> a las <strong>{item.hora}</strong> ({item.duracion}h)
                         </div>
                         <div>Coste: €{(item.precioTotalPadres || 0).toFixed(2)}</div>
                         <AcceptButton onClick={() => acceptProposal(item)}>
@@ -506,7 +507,7 @@ export default function MisProfesores() {
                       <Sender>{mine ? 'Tú (Cambio)' : 'Profesor (Cambio)'}</Sender>
                       <Bubble mine={mine}>
                         <div>
-                          Nueva fecha: <strong>{item.fecha}</strong> ({item.duracion}h)
+                          Nueva fecha: <strong>{formatDate(item.fecha)}</strong> ({item.duracion}h)
                         </div>
                         <AcceptButton onClick={() => acceptModification(item)}>
                           Aceptar cambio

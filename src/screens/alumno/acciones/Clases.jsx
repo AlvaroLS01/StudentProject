@@ -22,6 +22,7 @@ import {
 } from 'firebase/firestore';
 import { acceptClassByStudent, rejectPendingClass } from '../../../utils/classWorkflow';
 import { registerTransaction } from "../../../utils/api";
+import { formatDate } from '../../../utils/formatDate';
 
 const fadeIn = keyframes`
   from { opacity: 0; transform: translateY(-10px); }
@@ -265,7 +266,7 @@ export default function Clases() {
       });
       await addDoc(collection(db, 'clases_union', clase.unionId, 'chats'), {
         senderId: clase.profesorId,
-        text: `He añadido una clase, ${clase.fecha} a las ${clase.hora}`,
+        text: `He añadido una clase, ${formatDate(clase.fecha)} a las ${clase.hora}`,
         createdAt: serverTimestamp()
       });
       await registerTransaction({
@@ -332,7 +333,7 @@ export default function Clases() {
       });
       await addDoc(collection(db, 'clases_union', clase.unionId, 'chats'), {
         senderId: auth.currentUser.uid,
-        text: `He aceptado la modificación para el ${clase.fecha}`,
+        text: `He aceptado la modificación para el ${formatDate(clase.fecha)}`,
         createdAt: serverTimestamp()
       });
       setClases(prev => prev.map(c =>
@@ -358,7 +359,7 @@ export default function Clases() {
       });
       await addDoc(collection(db, 'clases_union', clase.unionId, 'chats'), {
         senderId: auth.currentUser.uid,
-        text: `He rechazado la modificación para el ${clase.fecha}`,
+        text: `He rechazado la modificación para el ${formatDate(clase.fecha)}`,
         createdAt: serverTimestamp()
       });
       setClases(prev => prev.map(c =>
@@ -416,10 +417,6 @@ export default function Clases() {
     return arr;
   }, [clases, sortBy]);
 
-  const formatDate = d => {
-    return d ? new Date(d).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' }) : '—';
-  };
-
   return (
     <Page>
       <Container>
@@ -467,7 +464,7 @@ export default function Clases() {
                       <Label>Curso:</Label> <Value>{c.curso || '-'}</Value>
                     </div>
                     <div>
-                      <Label>Fecha:</Label> <Value>{c.fecha} {c.hora}</Value>
+                      <Label>Fecha:</Label> <Value>{formatDate(c.fecha)} {c.hora}</Value>
                     </div>
                     <div>
                       <Label>Modalidad:</Label> <Value>{c.modalidad}</Value>
