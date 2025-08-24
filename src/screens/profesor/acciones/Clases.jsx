@@ -183,10 +183,10 @@ const ModalButton = styled.button`
       : `background: #f0f0f0; color: #333;`}
 `;
 
-export default function ClasesProfesor() {
+export default function ClasesProfesor({ only }) {
   const [searchParams, setSearchParams] = useSearchParams();
-  const initialView = searchParams.get('view') || 'clases';
-  const [view, setView] = useState(initialView);
+  const paramView = searchParams.get('view') || 'clases';
+  const [view, setView] = useState(only || paramView);
   const [clases, setClases] = useState([]);
   const [sortBy, setSortBy] = useState('fecha');
   const [editing, setEditing] = useState(null);
@@ -248,8 +248,10 @@ export default function ClasesProfesor() {
   }, []);
 
   useEffect(() => {
-    setSearchParams({ view });
-  }, [view, setSearchParams]);
+    if (!only) {
+      setSearchParams({ view });
+    }
+  }, [view, setSearchParams, only]);
 
 
   const sortedClases = useMemo(() => {
@@ -335,18 +337,22 @@ export default function ClasesProfesor() {
     return <LoadingScreen fullscreen />;
   }
 
+  const title = view === 'clases' ? 'Mis Clases' : 'Mis Ofertas';
+
   return (
     <Page>
       <Container>
-        <Title>Mis Clases & Ofertas</Title>
-        <Tabs
-          tabs={[
-            { label: 'Mis clases', value: 'clases' },
-            { label: 'Mis ofertas', value: 'ofertas' },
-          ]}
-          active={view}
-          onChange={setView}
-        />
+        <Title>{only ? title : 'Mis Clases & Ofertas'}</Title>
+        {!only && (
+          <Tabs
+            tabs={[
+              { label: 'Mis clases', value: 'clases' },
+              { label: 'Mis ofertas', value: 'ofertas' },
+            ]}
+            active={view}
+            onChange={setView}
+          />
+        )}
 
         {view === 'clases' ? (
           <>

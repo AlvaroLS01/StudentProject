@@ -85,8 +85,10 @@ export default function PanelProfesor() {
     switch(view) {
       case 'ofertas':
         return <Ofertas />;
-      case 'clases':
-        return <ClasesProfesor />;
+      case 'misClases':
+        return <ClasesProfesor only="clases" />;
+      case 'misOfertas':
+        return <ClasesProfesor only="ofertas" />;
       case 'calendario':
         return <CalendarioProfesor />;
       case 'misAlumnos':
@@ -111,10 +113,18 @@ export default function PanelProfesor() {
           </MenuItem>
           <MenuItem>
             <Button
-              active={view === 'clases'}
-              onClick={() => setView('clases')}
+              active={view === 'misClases'}
+              onClick={() => setView('misClases')}
             >
-              Mis clases & Ofertas
+              Mis clases
+            </Button>
+          </MenuItem>
+          <MenuItem>
+            <Button
+              active={view === 'misOfertas'}
+              onClick={() => setView('misOfertas')}
+            >
+              Mis ofertas
             </Button>
           </MenuItem>
           <MenuItem>
