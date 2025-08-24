@@ -259,58 +259,6 @@ export default function MisClases() {
     }
   };
 
-  const acceptModification = async clase => {
-    if (processingIds.has(clase.id)) return;
-    setProcessingIds(prev => new Set(prev).add(clase.id));
-    const ref = doc(db, 'clases_union', clase.unionId, 'clases_asignadas', clase.id);
-    try {
-      await updateDoc(ref, {
-        modificacionPendiente: false,
-        modificacionAceptada: serverTimestamp()
-      });
-      await addDoc(collection(db, 'clases_union', clase.unionId, 'chats'), {
-        senderId: auth.currentUser.uid,
-        text: `He aceptado la modificación para el ${formatDate(clase.fecha)}`,
-        createdAt: serverTimestamp()
-      });
-      setClases(prev => prev.map(c =>
-        c.id === clase.id ? { ...c, modificacionPendiente: false } : c
-      ));
-    } finally {
-      setProcessingIds(prev => {
-        const s = new Set(prev);
-        s.delete(clase.id);
-        return s;
-      });
-    }
-  };
-
-  const rejectModification = async clase => {
-    if (processingIds.has(clase.id)) return;
-    setProcessingIds(prev => new Set(prev).add(clase.id));
-    const ref = doc(db, 'clases_union', clase.unionId, 'clases_asignadas', clase.id);
-    try {
-      await updateDoc(ref, {
-        modificacionPendiente: false,
-        modificacionRechazada: serverTimestamp()
-      });
-      await addDoc(collection(db, 'clases_union', clase.unionId, 'chats'), {
-        senderId: auth.currentUser.uid,
-        text: `He rechazado la modificación para el ${formatDate(clase.fecha)}`,
-        createdAt: serverTimestamp()
-      });
-      setClases(prev => prev.map(c =>
-        c.id === clase.id ? { ...c, modificacionPendiente: false } : c
-      ));
-    } finally {
-      setProcessingIds(prev => {
-        const s = new Set(prev);
-        s.delete(clase.id);
-        return s;
-      });
-    }
-  };
-
   const sortedClases = React.useMemo(() => {
     const arr = [...clases];
     arr.sort((a, b) => {
@@ -388,25 +336,6 @@ export default function MisClases() {
                     disabled={processingIds.has(c.id)}
                   >
                     Aceptar
-                  </AcceptButton>
-                </div>
-              )}
-              {c.modificacionPendiente && (
-                <div>
-                  <p style={{ marginTop: '0.5rem' }}>
-                    El profesor propone modificar esta clase.
-                  </p>
-                  <RejectButton
-                    onClick={() => rejectModification(c)}
-                    disabled={processingIds.has(c.id)}
-                  >
-                    Rechazar cambio
-                  </RejectButton>{' '}
-                  <AcceptButton
-                    onClick={() => acceptModification(c)}
-                    disabled={processingIds.has(c.id)}
-                  >
-                    Aceptar cambio
                   </AcceptButton>
                 </div>
               )}
