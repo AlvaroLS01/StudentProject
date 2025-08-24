@@ -205,7 +205,6 @@ export default function MisProfesores() {
   const [chatUnionId, setChatUnionId] = useState(null);
   const [messages, setMessages] = useState([]);
   const [proposals, setProposals] = useState([]);
-  const [modifications, setModifications] = useState([]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(true);
   const scrollRef = useRef();
@@ -297,7 +296,6 @@ export default function MisProfesores() {
   useEffect(() => {
     if (!chatUnionId) {
       setProposals([]);
-      setModifications([]);
       return;
     }
     const q2 = query(
@@ -311,18 +309,6 @@ export default function MisProfesores() {
     return unsub2;
   }, [chatUnionId]);
 
-  // 3b. Escucha modificaciones pendientes
-  useEffect(() => {
-    if (!chatUnionId) return;
-    const q3 = query(
-      collection(db, 'clases_union', chatUnionId, 'clases_asignadas'),
-      where('modificacionPendiente', '==', true)
-    );
-    const unsub3 = onSnapshot(q3, snap => {
-      setModifications(snap.docs.map(d => ({ id: d.id, ...d.data() })));
-    });
-    return unsub3;
-  }, [chatUnionId]);
 
   // 4. Envía un mensaje de chat
   const sendMessage = async () => {
@@ -414,48 +400,18 @@ export default function MisProfesores() {
     // NOTA: no agregamos mensaje extra al chat; el bubble desaparecerá
   };
 
-  const acceptModification = async mod => {
-    const ref = doc(db, 'clases_union', chatUnionId, 'clases_asignadas', mod.id);
-    await updateDoc(ref, {
-      modificacionPendiente: false,
-      modificacionAceptada: serverTimestamp()
-    });
-    const union = unions.find(u => u.id === chatUnionId);
-    if (union) {
-      await addDoc(collection(db, 'clases_union', chatUnionId, 'chats'), {
-        senderId: auth.currentUser.uid,
-        text: `He aceptado la modificación para el ${formatDate(mod.fecha)}`,
-        createdAt: serverTimestamp()
-      });
-      await addDoc(collection(db, 'notificaciones'), {
-        userId: union.profesorId,
-        text: `Modificación de clase aceptada para ${formatDate(mod.fecha)}`,
-        read: false,
-        createdAt: serverTimestamp()
-      });
-    }
-    show('Modificación aceptada', 'success');
-  };
-
   // Construcción de “feed”: combinamos mensajes y propuestas en un solo arreglo, ordenado por createdAt
   const feedItems = React.useMemo(() => {
     const msgs = messages.map(m => ({ ...m, type: 'message' }));
     const props = proposals.map(p => ({ ...p, type: 'proposal' }));
-    const mods = modifications.map(m => ({ ...m, type: 'modification' }));
-    const combined = [...msgs, ...props, ...mods];
+    const combined = [...msgs, ...props];
     combined.sort((a, b) => {
-      const ta =
-        a.type === 'modification'
-          ? a.modificacionCreada?.toDate?.() || new Date(0)
-          : a.createdAt?.toDate?.() || new Date(0);
-      const tb =
-        b.type === 'modification'
-          ? b.modificacionCreada?.toDate?.() || new Date(0)
-          : b.createdAt?.toDate?.() || new Date(0);
+      const ta = a.createdAt?.toDate?.() || new Date(0);
+      const tb = b.createdAt?.toDate?.() || new Date(0);
       return ta.getTime() - tb.getTime();
     });
     return combined;
-  }, [messages, proposals, modifications]);
+  }, [messages, proposals]);
 
   if (loading) {
     return <LoadingScreen fullscreen />;
@@ -517,29 +473,6 @@ export default function MisProfesores() {
                         </RejectButton>
                         <AcceptButton onClick={() => acceptProposal(item)}>
                           Aceptar
-                        </AcceptButton>
-                      </Bubble>
-                      <Timestamp mine={mine}>
-                        {hh}:{mm}
-                      </Timestamp>
-                    </BubbleWrapper>
-                  );
-                }
-
-                if (item.type === 'modification') {
-                  const mine = false;
-                  const dObj = item.modificacionCreada?.toDate?.() || new Date();
-                  const hh = String(dObj.getHours()).padStart(2, '0');
-                  const mm = String(dObj.getMinutes()).padStart(2, '0');
-                  return (
-                    <BubbleWrapper key={`mod-${item.id}`} mine={mine}>
-                      <Sender>{mine ? 'Tú (Cambio)' : 'Profesor (Cambio)'}</Sender>
-                      <Bubble mine={mine}>
-                        <div>
-                          Nueva fecha: <strong>{formatDate(item.fecha)}</strong> ({item.duracion}h)
-                        </div>
-                        <AcceptButton onClick={() => acceptModification(item)}>
-                          Aceptar cambio
                         </AcceptButton>
                       </Bubble>
                       <Timestamp mine={mine}>
