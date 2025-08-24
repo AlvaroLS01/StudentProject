@@ -2,6 +2,15 @@ import React, { useEffect, useState } from 'react';
 import styled, { keyframes } from 'styled-components';
 import { PrimaryButton } from '../../../components/FormElements';
 import { fetchBalances, liquidarBalance } from '../../../utils/api';
+import { db } from '../../../firebase/firebaseConfig';
+import {
+  collection,
+  doc,
+  getDoc,
+  getDocs,
+  query,
+  where,
+} from 'firebase/firestore';
 
 const fade = keyframes`from{opacity:0;transform:translateY(-10px);}to{opacity:1;transform:translateY(0);}`;
 
@@ -31,6 +40,10 @@ const Counter = styled.p`
   margin-bottom:1rem;
   font-weight:500;
 `;
+const SectionTitle = styled.h2`
+  margin-top:1.5rem;
+  color:#034640;
+`;
 const Table = styled.table`
   width:100%;
   border-collapse:collapse;
@@ -52,72 +65,147 @@ const Td = styled.td`
   border-top:1px solid #e2e8f0;
 `;
 
-export default function Pagos(){
-  const [rows,setRows]=useState([]);
-  const [total,setTotal]=useState(0);
+export default function Pagos() {
+  const [tutores, setTutores] = useState([]);
+  const [profesores, setProfesores] = useState([]);
+  const [total, setTotal] = useState(0);
 
-  useEffect(()=>{
-    (async()=>{
-      try{
-        const [tutores, profesores] = await Promise.all([
+  // Helper to obtain the Firestore profile name/id
+  async function fetchProfile(userId) {
+    let profileId = userId;
+    let nombre = userId;
+    try {
+      const ref = doc(db, 'usuarios', userId);
+      const snap = await getDoc(ref);
+      if (snap.exists()) {
+        const data = snap.data();
+        nombre = `${data.nombre || ''} ${data.apellidos || data.apellido || ''}`.trim();
+        profileId = snap.id;
+      } else {
+        const q = query(collection(db, 'usuarios'), where('email', '==', userId));
+        const qsnap = await getDocs(q);
+        if (!qsnap.empty) {
+          const d = qsnap.docs[0];
+          const data = d.data();
+          nombre = `${data.nombre || ''} ${data.apellidos || data.apellido || ''}`.trim();
+          profileId = d.id;
+        }
+      }
+    } catch (err) {
+      console.error('Error obteniendo perfil', err);
+    }
+    return { nombre, profileId };
+  }
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const [balTutores, balProfes] = await Promise.all([
           fetchBalances('tutor'),
-          fetchBalances('profesor')
+          fetchBalances('profesor'),
         ]);
-        const combined=[
-          ...tutores.map(r=>({...r, rol:'tutor'})),
-          ...profesores.map(r=>({...r, rol:'profesor'}))
-        ];
-        setRows(combined);
-        setTotal(combined.reduce((a,b)=>a+Number(b.saldo||0),0));
-      }catch(e){
+
+        const load = async (rows) =>
+          Promise.all(
+            rows.map(async (r) => {
+              const { nombre, profileId } = await fetchProfile(r.user_id);
+              return { ...r, nombre, profileId };
+            })
+          );
+
+        const tutoresData = await load(balTutores);
+        const profesoresData = await load(balProfes);
+
+        setTutores(tutoresData);
+        setProfesores(profesoresData);
+        setTotal(
+          [...tutoresData, ...profesoresData].reduce(
+            (a, b) => a + Math.abs(Number(b.saldo) || 0),
+            0
+          )
+        );
+      } catch (e) {
         console.error(e);
       }
     })();
-  },[]);
+  }, []);
 
-  const handleLiquidar=async(id, rol)=>{
-    try{
-      const email = rol==='tutor'?id:undefined;
+  const updateTotal = (ts, ps) => {
+    setTotal(
+      [...ts, ...ps].reduce((a, b) => a + Math.abs(Number(b.saldo) || 0), 0)
+    );
+  };
+
+  const handleLiquidar = async (id, rol) => {
+    try {
+      const email = rol === 'tutor' ? id : undefined;
       await liquidarBalance(id, rol, email);
-      setRows(r=>{
-        const updated=r.map(x=>x.user_id===id && x.rol===rol?{...x,saldo:0}:x);
-        setTotal(updated.reduce((a,b)=>a+Number(b.saldo||0),0));
-        return updated;
-      });
-    }catch(e){
+      if (rol === 'tutor') {
+        setTutores((prev) => {
+          const updated = prev.map((x) =>
+            x.user_id === id ? { ...x, saldo: 0 } : x
+          );
+          updateTotal(updated, profesores);
+          return updated;
+        });
+      } else {
+        setProfesores((prev) => {
+          const updated = prev.map((x) =>
+            x.user_id === id ? { ...x, saldo: 0 } : x
+          );
+          updateTotal(tutores, updated);
+          return updated;
+        });
+      }
+    } catch (e) {
       console.error(e);
     }
   };
 
-  return(
+  const renderRows = (rows, rol) => (
+    <Table>
+      <thead>
+        <tr>
+          <Th>Usuario</Th>
+          <Th>Saldo</Th>
+          <Th></Th>
+        </tr>
+      </thead>
+      <tbody>
+        {rows.map((r) => (
+          <tr key={`${r.user_id}-${rol}`}>
+            <Td>
+              <a href={`/perfil/${r.profileId}`}>{r.nombre}</a>
+            </Td>
+            <Td>{Math.abs(Number(r.saldo))}€</Td>
+            <Td>
+              <PrimaryButton onClick={() => handleLiquidar(r.user_id, rol)}>
+                Mandar factura
+              </PrimaryButton>
+            </Td>
+          </tr>
+        ))}
+      </tbody>
+    </Table>
+  );
+
+  return (
     <Page>
       <Container>
         <Title>Pagos</Title>
-        <Counter>Total saldo: {total}€</Counter>
-        <Table>
-          <thead>
-            <tr>
-              <Th>Usuario</Th>
-              <Th>Rol</Th>
-              <Th>Saldo</Th>
-              <Th></Th>
-            </tr>
-          </thead>
-          <tbody>
-            {rows.map(r => (
-              <tr key={`${r.user_id}-${r.rol}`}>
-                <Td>{r.user_id}</Td>
-                <Td>{r.rol}</Td>
-                <Td>{r.saldo}€</Td>
-                <Td>
-                  <PrimaryButton onClick={() => handleLiquidar(r.user_id, r.rol)}>
-                    Mandar factura
-                  </PrimaryButton>
-                </Td>
-              </tr>
-            ))}
-          </tbody>
-        </Table>
+        <Counter>Beneficio total: {total}€</Counter>
+        {tutores.length > 0 && (
+          <>
+            <SectionTitle>Tutores</SectionTitle>
+            {renderRows(tutores, 'tutor')}
+          </>
+        )}
+        {profesores.length > 0 && (
+          <>
+            <SectionTitle>Profesores</SectionTitle>
+            {renderRows(profesores, 'profesor')}
+          </>
+        )}
       </Container>
     </Page>
   );
