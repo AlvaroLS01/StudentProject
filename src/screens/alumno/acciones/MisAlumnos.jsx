@@ -7,6 +7,7 @@ import { useChild } from '../../../ChildContext';
 import { useAuth } from '../../../AuthContext';
 import { Overlay, Modal, ModalText, ModalActions, ModalButton } from '../../../components/ModalStyles';
 import { fetchCursos, registerAlumno } from '../../../utils/api';
+import avatars from '../../../utils/avatars';
 import PhoneInput from 'react-phone-input-2';
 import 'react-phone-input-2/lib/style.css';
 
@@ -68,13 +69,30 @@ const Form = styled.div`
 `;
 
 
+const AvatarGrid = styled.div`
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
+  gap: 0.5rem;
+  max-height: 200px;
+  overflow-y: auto;
+`;
+
+const AvatarOption = styled.img`
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  cursor: pointer;
+  object-fit: cover;
+  border: 2px solid transparent;
+`;
+
 export default function MisAlumnos() {
   const { childList, setChildList, setSelectedChild } = useChild();
   const { userData } = useAuth();
   const [name, setName] = useState('');
   const [lastName, setLastName] = useState('');
   const [gender, setGender] = useState('');
-  const [date, setDate] = useState('');
   const [courseId, setCourseId] = useState('');
   const [courses, setCourses] = useState([]);
   const [phone, setPhone] = useState('');
@@ -88,6 +106,8 @@ export default function MisAlumnos() {
   const [postalCode, setPostalCode] = useState('');
   const [saving, setSaving] = useState(false);
   const [childToDelete, setChildToDelete] = useState(null);
+  const [avatar, setAvatar] = useState('');
+  const [showAvatars, setShowAvatars] = useState(false);
 
   useEffect(() => {
     fetchCursos().then(setCourses).catch(console.error);
@@ -98,13 +118,13 @@ export default function MisAlumnos() {
       !name ||
       !lastName ||
       !gender ||
-      !date ||
-        !courseId ||
+      !courseId ||
         (ownPhone && (!phone || phone !== phoneConfirm)) ||
         !nif ||
         !address ||
         !district ||
         !city ||
+        !avatar ||
         saving
       ) return;
     setSaving(true);
@@ -127,24 +147,23 @@ export default function MisAlumnos() {
           }
         });
 
-      const courseName = courses.find(c => c.id_curso === parseInt(courseId))?.curso || '';
-        const finalPhone = ownPhone ? phone : userData?.telefono || '';
-        const nuevo = {
-          id: Date.now().toString(),
-          nombre: name,
-          apellidos: lastName,
-          genero: gender,
-          fechaNacimiento: date,
-          curso: courseName,
-          telefono: finalPhone,
-          NIF: nif,
-          direccion: address,
-          distrito: district,
-          barrio,
-          codigo_postal: postalCode,
-          ciudad: city,
-          photoURL: userData?.photoURL || auth.currentUser.photoURL || ''
-        };
+      const courseName = courses.find(c => c.id_curso === parseInt(courseId))?.nombre || '';
+      const finalPhone = ownPhone ? phone : userData?.telefono || '';
+      const nuevo = {
+        id: Date.now().toString(),
+        nombre: name,
+        apellidos: lastName,
+        genero: gender,
+        curso: courseName,
+        telefono: finalPhone,
+        NIF: nif,
+        direccion: address,
+        distrito: district,
+        barrio,
+        codigo_postal: postalCode,
+        ciudad: city,
+        photoURL: avatar
+      };
       const nuevos = [...childList, nuevo];
       await updateDoc(doc(db, 'usuarios', auth.currentUser.uid), { alumnos: nuevos });
       setChildList(nuevos.filter(c => !c.disabled));
@@ -152,7 +171,6 @@ export default function MisAlumnos() {
       setName('');
       setLastName('');
       setGender('');
-      setDate('');
       setCourseId('');
       setPhone('');
       setPhoneConfirm('');
@@ -163,6 +181,8 @@ export default function MisAlumnos() {
       setCity('');
       setBarrio('');
       setPostalCode('');
+      setAvatar('');
+      setShowAvatars(false);
     } catch (err) {
       console.error(err);
     } finally {
@@ -188,11 +208,8 @@ export default function MisAlumnos() {
           {childList.map(c => (
             <Item key={c.id}>
               <div style={{ display: 'flex', alignItems: 'center' }}>
-                {userData?.photoURL && <Img src={userData.photoURL} alt="foto" />}
-                <div>
-                  <div>{c.nombre}</div>
-                  <div style={{ fontSize: '0.8rem', color: '#555' }}>{c.fechaNacimiento}</div>
-                </div>
+                {c.photoURL && <Img src={c.photoURL} alt="foto" />}
+                <div>{c.nombre}</div>
               </div>
               <DangerButton
                 disabled={childList.length <= 1}
@@ -229,17 +246,29 @@ export default function MisAlumnos() {
             <option value="Femenino">Femenino</option>
             <option value="Otro">Otro</option>
           </SelectInput>
-          <TextInput
-            type="date"
-            value={date}
-            onChange={e => setDate(e.target.value)}
-          />
           <SelectInput value={courseId} onChange={e => setCourseId(e.target.value)}>
             <option value="">Selecciona curso</option>
             {courses.map(c => (
-              <option key={c.id_curso} value={c.id_curso}>{c.curso}</option>
+              <option key={c.id_curso} value={c.id_curso}>{c.nombre}</option>
             ))}
           </SelectInput>
+          <div style={{ gridColumn: '1 / -1' }}>
+            <PrimaryButton type="button" onClick={() => setShowAvatars(s => !s)} style={{ marginBottom: '0.5rem' }}>
+              {avatar ? 'Cambiar avatar' : 'Elegir avatar'}
+            </PrimaryButton>
+            {showAvatars && (
+              <AvatarGrid>
+                {avatars.map(a => (
+                  <AvatarOption
+                    key={a.name}
+                    src={a.src}
+                    onClick={() => setAvatar(a.src)}
+                    style={{ borderColor: avatar === a.src ? '#006D5B' : 'transparent' }}
+                  />
+                ))}
+              </AvatarGrid>
+            )}
+          </div>
           <label style={{ display: 'flex', alignItems: 'center' }}>
             <input
               type="checkbox"

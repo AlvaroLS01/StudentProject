@@ -7,6 +7,7 @@ import { useAuth } from '../AuthContext';
 import { useNotification } from '../NotificationContext';
 import { db } from '../firebase/firebaseConfig';
 import { collection, getDocs, doc, setDoc, query, where } from 'firebase/firestore';
+import { fetchCursos, registerAlumno } from '../utils/api';
 
 const Page = styled.div`
   display: flex;
@@ -85,7 +86,8 @@ export default function CompletarDatosGoogle() {
   const [confirmTelefono, setConfirmTelefono] = useState('');
   const [telefonoError, setTelefonoError] = useState('');
   const [ciudad, setCiudad] = useState('');
-  const [curso, setCurso] = useState('');
+  const [courseId, setCourseId] = useState('');
+  const [courses, setCourses] = useState([]);
   const [nif, setNif] = useState('');
   const [distritoFacturacion, setDistritoFacturacion] = useState('');
   const [nombreHijo, setNombreHijo] = useState('');
@@ -93,14 +95,7 @@ export default function CompletarDatosGoogle() {
   const [nifAlumno, setNifAlumno] = useState('');
   const [distritoAlumno, setDistritoAlumno] = useState('');
   const [generoHijo, setGeneroHijo] = useState('Masculino');
-  const [fechaNacHijo, setFechaNacHijo] = useState('');
   const [cities, setCities] = useState([]);
-
-  const cursosGrouped = [
-    { group: 'Primaria', options: ['1º Primaria','2º Primaria','3º Primaria','4º Primaria','5º Primaria','6º Primaria'] },
-    { group: 'ESO', options: ['1º ESO','2º ESO','3º ESO','4º ESO'] },
-    { group: 'Bachillerato', options: ['1º Bachillerato','2º Bachillerato'] }
-  ];
 
   useEffect(() => {
     if (user && user.displayName) {
@@ -115,6 +110,8 @@ export default function CompletarDatosGoogle() {
       try {
         const snap = await getDocs(collection(db, 'ciudades'));
         setCities(snap.docs.map(d => d.data().ciudad));
+        const cursos = await fetchCursos();
+        setCourses(cursos);
       } catch (err) {
         console.error(err);
       }
@@ -130,7 +127,7 @@ export default function CompletarDatosGoogle() {
     if (!telefono) missing.push('Teléfono');
     if (!confirmTelefono) missing.push('Repite Teléfono');
     if (!ciudad) missing.push('Ciudad');
-    if (rol !== 'profesor' && !curso) missing.push('Curso');
+    if (rol !== 'profesor' && !courseId) missing.push('Curso');
     if (!nif) missing.push('NIF');
     if (!distritoFacturacion) missing.push('Distrito facturación');
     if (missing.length) {
@@ -141,18 +138,17 @@ export default function CompletarDatosGoogle() {
       setTelefonoError('Los números no coinciden');
       return;
     }
-    if (rol === 'tutor') {
-      const missingAlumno = [];
-      if (!nombreHijo) missingAlumno.push('Nombre del alumno');
-      if (!apellidoHijo) missingAlumno.push('Apellidos del alumno');
-      if (!nifAlumno) missingAlumno.push('NIF del alumno');
-      if (!distritoAlumno) missingAlumno.push('Distrito del alumno');
-      if (!fechaNacHijo) missingAlumno.push('Fecha nacimiento del alumno');
-      if (!generoHijo) missingAlumno.push('Género del alumno');
-      if (missingAlumno.length) {
-        show('Faltan datos del alumno: ' + missingAlumno.join(', '), 'error');
-        return;
-      }
+      if (rol === 'tutor') {
+        const missingAlumno = [];
+        if (!nombreHijo) missingAlumno.push('Nombre del alumno');
+        if (!apellidoHijo) missingAlumno.push('Apellidos del alumno');
+        if (!nifAlumno) missingAlumno.push('NIF del alumno');
+        if (!distritoAlumno) missingAlumno.push('Distrito del alumno');
+        if (!generoHijo) missingAlumno.push('Género del alumno');
+        if (missingAlumno.length) {
+          show('Faltan datos del alumno: ' + missingAlumno.join(', '), 'error');
+          return;
+        }
     }
     setTelefonoError('');
     try {
@@ -161,6 +157,7 @@ export default function CompletarDatosGoogle() {
         setTelefonoError('Este teléfono ya está registrado');
         return;
       }
+      const courseName = courses.find(c => c.id_curso === parseInt(courseId))?.nombre || '';
       const data = {
         uid: user.uid,
         email: user.email,
@@ -177,7 +174,7 @@ export default function CompletarDatosGoogle() {
       if (rol === 'profesor') {
         // nothing extra
       } else {
-        data.curso = curso;
+        data.curso = courseName;
         if (rol === 'tutor') {
           data.alumnos = [
             {
@@ -185,8 +182,7 @@ export default function CompletarDatosGoogle() {
               nombre: nombreHijo,
               apellidos: apellidoHijo,
               genero: generoHijo,
-              fechaNacimiento: fechaNacHijo,
-              curso,
+              curso: courseName,
               nif: nifAlumno,
               distrito: distritoAlumno,
               photoURL: user.photoURL || ''
@@ -195,6 +191,29 @@ export default function CompletarDatosGoogle() {
         }
       }
       await setDoc(doc(db, 'usuarios', user.uid), data);
+      if (rol === 'tutor') {
+        try {
+          await registerAlumno({
+            tutor_email: user.email,
+            alumno: {
+              nombre: nombreHijo,
+              apellidos: apellidoHijo,
+              direccion: distritoAlumno,
+              NIF: nifAlumno,
+              telefono: null,
+              telefonoConfirm: null,
+              genero: generoHijo,
+              id_curso: parseInt(courseId),
+              distrito: distritoAlumno,
+              barrio: null,
+              codigo_postal: null,
+              ciudad,
+            },
+          });
+        } catch (e) {
+          console.error(e);
+        }
+      }
       const target = rol === 'profesor' ? '/profesor' : rol === 'tutor' ? '/tutor' : '/home';
       navigate(target);
     } catch (err) {
@@ -266,12 +285,10 @@ export default function CompletarDatosGoogle() {
           {rol !== 'profesor' && (
             <Field>
               <label>Curso</label>
-              <select className="form-control" value={curso} onChange={e => setCurso(e.target.value)}>
+              <select className="form-control" value={courseId} onChange={e => setCourseId(e.target.value)}>
                 <option value="">Selecciona curso</option>
-                {cursosGrouped.map(({group, options}) => (
-                  <optgroup key={group} label={group}>
-                    {options.map(o => <option key={o} value={o}>{o}</option>)}
-                  </optgroup>
+                {courses.map(c => (
+                  <option key={c.id_curso} value={c.id_curso}>{c.nombre}</option>
                 ))}
               </select>
             </Field>
@@ -327,15 +344,6 @@ export default function CompletarDatosGoogle() {
                   <option value="Masculino">Masculino</option>
                   <option value="Femenino">Femenino</option>
                 </select>
-              </Field>
-              <Field>
-                <label>Fecha nacimiento del alumno</label>
-                <input
-                  className="form-control"
-                  type="date"
-                  value={fechaNacHijo}
-                  onChange={e => setFechaNacHijo(e.target.value)}
-                />
               </Field>
               <p style={{ gridColumn: '1 / -1', fontSize: '0.85rem', color: '#555' }}>
                 Podrás añadir más alumnos desde la pestaña "Mi cuenta".
