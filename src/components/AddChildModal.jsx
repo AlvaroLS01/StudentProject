@@ -6,6 +6,7 @@ import { doc, updateDoc } from 'firebase/firestore';
 import { useChild } from '../ChildContext';
 import { useAuth } from '../AuthContext';
 import { fetchCursos, fetchCities, registerAlumno } from '../utils/api';
+import avatars from '../utils/avatars';
 import { Overlay, Modal, ModalTitle } from './ModalStyles';
 import PhoneInput from 'react-phone-input-2';
 import 'react-phone-input-2/lib/style.css';
@@ -27,6 +28,24 @@ const Form = styled.div`
   margin-top: 1rem;
 `;
 
+const AvatarGrid = styled.div`
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
+  gap: 0.5rem;
+  max-height: 200px;
+  overflow-y: auto;
+`;
+
+const AvatarOption = styled.img`
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  cursor: pointer;
+  object-fit: cover;
+  border: 2px solid transparent;
+`;
+
 
 export default function AddChildModal({ open, onClose }) {
   const { childList, setChildList, setSelectedChild } = useChild();
@@ -45,6 +64,7 @@ export default function AddChildModal({ open, onClose }) {
   const [district, setDistrict] = useState('');
   const [city, setCity] = useState('');
   const [saving, setSaving] = useState(false);
+  const [avatar, setAvatar] = useState('');
 
   useEffect(() => {
     if (open) {
@@ -57,15 +77,17 @@ export default function AddChildModal({ open, onClose }) {
     if (
       !name ||
       !lastName ||
-        !gender ||
-        !courseId ||
-        (ownPhone && (!phone || phone !== phoneConfirm)) ||
-        !nif ||
-        !address ||
-        !district ||
-        !city ||
-        saving
-      ) return;
+      !gender ||
+      !courseId ||
+      (ownPhone && (!phone || phone !== phoneConfirm)) ||
+      !nif ||
+      !address ||
+      !district ||
+      !city ||
+      !avatar ||
+      saving
+    )
+      return;
     setSaving(true);
     try {
         await registerAlumno({
@@ -97,7 +119,7 @@ export default function AddChildModal({ open, onClose }) {
           direccion: address,
           distrito: district,
           ciudad: city,
-          photoURL: userData?.photoURL || auth.currentUser.photoURL || ''
+          photoURL: avatar,
         };
       const nuevos = [...childList, nuevo];
       await updateDoc(doc(db, 'usuarios', auth.currentUser.uid), { alumnos: nuevos });
@@ -114,6 +136,7 @@ export default function AddChildModal({ open, onClose }) {
       setAddress('');
       setDistrict('');
       setCity('');
+      setAvatar('');
     } catch (err) {
       console.error(err);
     } finally {
@@ -211,6 +234,19 @@ export default function AddChildModal({ open, onClose }) {
               <option key={c.id_ciudad} value={c.nombre}>{c.nombre}</option>
             ))}
           </SelectInput>
+          <div style={{ gridColumn: '1 / -1' }}>
+            <p style={{ marginBottom: '0.5rem' }}>Selecciona avatar</p>
+            <AvatarGrid>
+              {avatars.map((url, idx) => (
+                <AvatarOption
+                  key={idx}
+                  src={url}
+                  onClick={() => setAvatar(url)}
+                  style={{ borderColor: avatar === url ? '#006D5B' : 'transparent' }}
+                />
+              ))}
+            </AvatarGrid>
+          </div>
           <PrimaryButton onClick={addChild} disabled={saving} style={{ gridColumn: '1 / -1' }}>
             {saving ? 'Guardando...' : 'Guardar'}
           </PrimaryButton>
