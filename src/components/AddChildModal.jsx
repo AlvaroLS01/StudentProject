@@ -6,7 +6,7 @@ import { doc, updateDoc } from 'firebase/firestore';
 import { useChild } from '../ChildContext';
 import { useAuth } from '../AuthContext';
 import { fetchCursos, fetchCities, registerAlumno } from '../utils/api';
-import avatars, { getRandomAvatar } from '../utils/avatars';
+import avatars from '../utils/avatars';
 import { Overlay, Modal, ModalTitle } from './ModalStyles';
 import PhoneInput from 'react-phone-input-2';
 import 'react-phone-input-2/lib/style.css';
@@ -47,7 +47,7 @@ const AvatarOption = styled.img`
 `;
 
 
-export default function AddChildModal({ open, onClose, onAdded }) {
+export default function AddChildModal({ open, onClose }) {
   const { childList, setChildList, setSelectedChild } = useChild();
   const { userData } = useAuth();
   const [name, setName] = useState('');
@@ -84,6 +84,7 @@ export default function AddChildModal({ open, onClose, onAdded }) {
       !address ||
       !district ||
       !city ||
+      !avatar ||
       saving
     )
       return;
@@ -107,7 +108,6 @@ export default function AddChildModal({ open, onClose, onAdded }) {
 
         const courseName = courses.find(c => c.id_curso === parseInt(courseId))?.nombre || '';
         const finalPhone = ownPhone ? phone : userData?.telefono || '';
-        const finalAvatar = avatar || getRandomAvatar();
         const nuevo = {
           id: Date.now().toString(),
           nombre: name,
@@ -119,7 +119,7 @@ export default function AddChildModal({ open, onClose, onAdded }) {
           direccion: address,
           distrito: district,
           ciudad: city,
-          photoURL: finalAvatar,
+          photoURL: avatar,
         };
       const nuevos = [...childList, nuevo];
       await updateDoc(doc(db, 'usuarios', auth.currentUser.uid), { alumnos: nuevos });
@@ -137,7 +137,6 @@ export default function AddChildModal({ open, onClose, onAdded }) {
       setDistrict('');
       setCity('');
       setAvatar('');
-      if (onAdded) onAdded(nuevo);
     } catch (err) {
       console.error(err);
     } finally {

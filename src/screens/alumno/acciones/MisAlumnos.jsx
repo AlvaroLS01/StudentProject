@@ -6,10 +6,9 @@ import { doc, updateDoc } from 'firebase/firestore';
 import { useChild } from '../../../ChildContext';
 import { useAuth } from '../../../AuthContext';
 import { Overlay, Modal, ModalText, ModalActions, ModalButton } from '../../../components/ModalStyles';
-import { fetchCursos, fetchCities, registerAlumno } from '../../../utils/api';
+import { fetchCursos, registerAlumno } from '../../../utils/api';
 import PhoneInput from 'react-phone-input-2';
 import 'react-phone-input-2/lib/style.css';
-import avatars, { getRandomAvatar } from '../../../utils/avatars';
 
 const fadeIn = keyframes`
   from { opacity: 0; transform: translateY(-10px); }
@@ -58,24 +57,6 @@ const Img = styled.img`
   margin-right: 1rem;
 `;
 
-const AvatarGrid = styled.div`
-  grid-column: 1 / -1;
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
-  gap: 0.5rem;
-  max-height: 200px;
-  overflow-y: auto;
-`;
-
-const AvatarOption = styled.img`
-  width: 60px;
-  height: 60px;
-  border-radius: 50%;
-  cursor: pointer;
-  object-fit: cover;
-  border: 2px solid transparent;
-`;
-
 const Form = styled.div`
   margin-top: 2rem;
   background: #fff;
@@ -93,9 +74,9 @@ export default function MisAlumnos() {
   const [name, setName] = useState('');
   const [lastName, setLastName] = useState('');
   const [gender, setGender] = useState('');
+  const [date, setDate] = useState('');
   const [courseId, setCourseId] = useState('');
   const [courses, setCourses] = useState([]);
-  const [cities, setCities] = useState([]);
   const [phone, setPhone] = useState('');
   const [phoneConfirm, setPhoneConfirm] = useState('');
   const [ownPhone, setOwnPhone] = useState(false);
@@ -107,11 +88,9 @@ export default function MisAlumnos() {
   const [postalCode, setPostalCode] = useState('');
   const [saving, setSaving] = useState(false);
   const [childToDelete, setChildToDelete] = useState(null);
-  const [avatar, setAvatar] = useState('');
 
   useEffect(() => {
     fetchCursos().then(setCourses).catch(console.error);
-    fetchCities().then(setCities).catch(console.error);
   }, []);
 
   const addChild = async () => {
@@ -119,6 +98,7 @@ export default function MisAlumnos() {
       !name ||
       !lastName ||
       !gender ||
+      !date ||
         !courseId ||
         (ownPhone && (!phone || phone !== phoneConfirm)) ||
         !nif ||
@@ -147,14 +127,14 @@ export default function MisAlumnos() {
           }
         });
 
-      const courseName = courses.find(c => c.id_curso === parseInt(courseId))?.nombre || '';
+      const courseName = courses.find(c => c.id_curso === parseInt(courseId))?.curso || '';
         const finalPhone = ownPhone ? phone : userData?.telefono || '';
-        const finalAvatar = avatar || getRandomAvatar();
         const nuevo = {
           id: Date.now().toString(),
           nombre: name,
           apellidos: lastName,
           genero: gender,
+          fechaNacimiento: date,
           curso: courseName,
           telefono: finalPhone,
           NIF: nif,
@@ -163,7 +143,7 @@ export default function MisAlumnos() {
           barrio,
           codigo_postal: postalCode,
           ciudad: city,
-          photoURL: finalAvatar
+          photoURL: userData?.photoURL || auth.currentUser.photoURL || ''
         };
       const nuevos = [...childList, nuevo];
       await updateDoc(doc(db, 'usuarios', auth.currentUser.uid), { alumnos: nuevos });
@@ -172,6 +152,7 @@ export default function MisAlumnos() {
       setName('');
       setLastName('');
       setGender('');
+      setDate('');
       setCourseId('');
       setPhone('');
       setPhoneConfirm('');
@@ -182,7 +163,6 @@ export default function MisAlumnos() {
       setCity('');
       setBarrio('');
       setPostalCode('');
-      setAvatar('');
     } catch (err) {
       console.error(err);
     } finally {
@@ -208,10 +188,10 @@ export default function MisAlumnos() {
           {childList.map(c => (
             <Item key={c.id}>
               <div style={{ display: 'flex', alignItems: 'center' }}>
-                {c.photoURL && <Img src={c.photoURL} alt="foto" />}
+                {userData?.photoURL && <Img src={userData.photoURL} alt="foto" />}
                 <div>
                   <div>{c.nombre}</div>
-                  <div style={{ fontSize: '0.8rem', color: '#555' }}>{c.curso}</div>
+                  <div style={{ fontSize: '0.8rem', color: '#555' }}>{c.fechaNacimiento}</div>
                 </div>
               </div>
               <DangerButton
@@ -249,10 +229,15 @@ export default function MisAlumnos() {
             <option value="Femenino">Femenino</option>
             <option value="Otro">Otro</option>
           </SelectInput>
+          <TextInput
+            type="date"
+            value={date}
+            onChange={e => setDate(e.target.value)}
+          />
           <SelectInput value={courseId} onChange={e => setCourseId(e.target.value)}>
             <option value="">Selecciona curso</option>
             {courses.map(c => (
-              <option key={c.id_curso} value={c.id_curso}>{c.nombre}</option>
+              <option key={c.id_curso} value={c.id_curso}>{c.curso}</option>
             ))}
           </SelectInput>
           <label style={{ display: 'flex', alignItems: 'center' }}>
@@ -318,27 +303,12 @@ export default function MisAlumnos() {
             value={postalCode}
             onChange={e => setPostalCode(e.target.value)}
           />
-          <SelectInput value={city} onChange={e => setCity(e.target.value)}>
-            <option value="">Selecciona ciudad</option>
-            {cities.map(c => (
-              <option key={c.id_ciudad} value={c.nombre}>{c.nombre}</option>
-            ))}
-          </SelectInput>
-          <div style={{ gridColumn: '1 / -1' }}>
-            <p style={{ marginBottom: '0.5rem' }}>Selecciona avatar</p>
-            <AvatarGrid>
-              {avatars.map((a) => (
-                <AvatarOption
-                  key={a.name}
-                  src={a.src}
-                  onClick={() => setAvatar(a.src)}
-                  style={{
-                    borderColor: avatar === a.src ? '#006D5B' : 'transparent',
-                  }}
-                />
-              ))}
-            </AvatarGrid>
-          </div>
+          <TextInput
+            type="text"
+            placeholder="Ciudad"
+            value={city}
+            onChange={e => setCity(e.target.value)}
+          />
           <PrimaryButton
             onClick={addChild}
             disabled={saving}
