@@ -450,52 +450,6 @@ app.post('/alumno', async (req, res) => {
   }
 });
 
-app.put('/tutor/ciudad', async (req, res) => {
-  const { tutor_email, ciudad } = req.body;
-  if (!tutor_email || !ciudad) {
-    return res.status(400).json({ error: 'Faltan datos' });
-  }
-  let client;
-  try {
-    client = await db.connect();
-    await client.query('BEGIN');
-
-    const cityRes = await client.query(
-      'SELECT id_ciudad FROM student_project.ciudad WHERE LOWER(nombre)=LOWER($1)',
-      [ciudad]
-    );
-    let id_ciudad;
-    if (cityRes.rowCount > 0) {
-      id_ciudad = cityRes.rows[0].id_ciudad;
-    } else {
-      const inserted = await client.query(
-        `INSERT INTO student_project.ciudad (nombre, id_grupo)
-         VALUES ($1, (SELECT id_grupo FROM student_project.grupo WHERE nombre='A'))
-         RETURNING id_ciudad`,
-        [ciudad]
-      );
-      id_ciudad = inserted.rows[0].id_ciudad;
-    }
-
-    await client.query(
-      `UPDATE student_project.ubicacion u
-         SET id_ciudad=$1
-       FROM student_project.alumno a
-       WHERE a.id_ubicacion=u.id_ubicacion AND a.correo_tutor=$2`,
-      [id_ciudad, tutor_email]
-    );
-
-    await client.query('COMMIT');
-    res.json({ status: 'ok' });
-  } catch (err) {
-    if (client) await client.query('ROLLBACK');
-    console.error(err);
-    res.status(500).json({ error: err.message || 'Error actualizando ciudad' });
-  } finally {
-    if (client) client.release();
-  }
-});
-
 app.post('/profesor', async (req, res) => {
   const {
     nombre,
