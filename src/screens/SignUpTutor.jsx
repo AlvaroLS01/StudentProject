@@ -478,7 +478,7 @@ export default function SignUpTutor() {
         await sendEmailVerification(auth.currentUser);
       }
       show('Tutor registrado con éxito', 'success');
-      navigate('/');
+      navigate('/tutor');
     } catch (err) {
       console.error(err);
       if (authUser) {

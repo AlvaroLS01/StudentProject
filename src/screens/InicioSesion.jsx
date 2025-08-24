@@ -202,8 +202,13 @@ const InicioSesion = () => {
       return;
     }
     try {
-      await signInWithEmailAndPassword(auth, email, password);
-      navigate('/home');
+      const { user } = await signInWithEmailAndPassword(auth, email, password);
+      const snap = await getDoc(doc(db, 'usuarios', user.uid));
+      const rol = snap.exists() ? snap.data().rol : null;
+      if (rol === 'admin') navigate('/admin');
+      else if (rol === 'profesor') navigate('/profesor');
+      else if (rol === 'tutor') navigate('/tutor');
+      else navigate('/home');
     } catch (err) {
       setError(getAuthErrorMessage(err.code));
     }
@@ -219,7 +224,11 @@ const InicioSesion = () => {
       const snap = await getDoc(userRef);
       if (snap.exists()) {
         await updateDoc(userRef, { photoURL: user.photoURL });
-        navigate('/home');
+        const data = snap.data();
+        if (data?.rol === 'admin') navigate('/admin');
+        else if (data?.rol === 'profesor') navigate('/profesor');
+        else if (data?.rol === 'tutor') navigate('/tutor');
+        else navigate('/seleccion-rol');
       } else {
         await setDoc(userRef, { photoURL: user.photoURL }, { merge: true });
         navigate('/seleccion-rol');
@@ -234,8 +243,19 @@ const InicioSesion = () => {
     setError('');
     setLoading(true);
     try {
-      await signInWithPopup(auth, appleProvider);
-      navigate('/home');
+      const { user } = await signInWithPopup(auth, appleProvider);
+      const userRef = doc(db, 'usuarios', user.uid);
+      const snap = await getDoc(userRef);
+      if (snap.exists()) {
+        const data = snap.data();
+        if (data?.rol === 'admin') navigate('/admin');
+        else if (data?.rol === 'profesor') navigate('/profesor');
+        else if (data?.rol === 'tutor') navigate('/tutor');
+        else navigate('/seleccion-rol');
+      } else {
+        await setDoc(userRef, { photoURL: user.photoURL }, { merge: true });
+        navigate('/seleccion-rol');
+      }
     } catch (err) {
       setError(getAuthErrorMessage(err.code));
     }

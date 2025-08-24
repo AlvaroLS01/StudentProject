@@ -195,7 +195,8 @@ export default function CompletarDatosGoogle() {
         }
       }
       await setDoc(doc(db, 'usuarios', user.uid), data);
-      navigate('/home');
+      const target = rol === 'profesor' ? '/profesor' : rol === 'tutor' ? '/tutor' : '/home';
+      navigate(target);
     } catch (err) {
       console.error(err);
       show('Error al guardar datos', 'error');

@@ -420,7 +420,7 @@ export default function SignUpProfesor() {
         await sendEmailVerification(auth.currentUser);
       }
       show('Profesor registrado con éxito', 'success');
-      navigate('/');
+      navigate('/profesor');
     } catch (err) {
       console.error(err);
       if (authUser) {
