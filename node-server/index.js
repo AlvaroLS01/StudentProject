@@ -110,6 +110,69 @@ app.get('/pagos', async (_req, res) => {
     res.status(500).json({ error: 'Error fetching pagos' });
   }
 });
+
+app.get('/balances', async (req, res) => {
+  const role = req.query.role;
+  if (!role) return res.status(400).json({ error: 'role required' });
+  try {
+    const result = await db.query(
+      'SELECT user_id, saldo FROM student_project.saldo_usuario WHERE rol=$1 ORDER BY user_id',
+      [role]
+    );
+    res.json(result.rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Error fetching balances' });
+  }
+});
+
+app.post('/balances/:id/liquidar', async (req, res) => {
+  const { id } = req.params;
+  const { role, email } = req.body;
+  if (!role) return res.status(400).json({ error: 'role required' });
+  let client;
+  try {
+    client = await db.connect();
+    await client.query('BEGIN');
+    const result = await client.query(
+      'SELECT saldo FROM student_project.saldo_usuario WHERE user_id=$1 AND rol=$2',
+      [id, role]
+    );
+    const saldo = result.rows[0]?.saldo || 0;
+    await client.query(
+      'UPDATE student_project.saldo_usuario SET saldo=0 WHERE user_id=$1 AND rol=$2',
+      [id, role]
+    );
+    await client.query('COMMIT');
+
+    try {
+      const mail = email
+        ? email
+        : (await admin.firestore().collection('usuarios').doc(id).get()).data()?.email;
+      if (mail) {
+        const msg =
+          role === 'tutor'
+            ? `Debes ${saldo}€`
+            : `Se te va a ingresar en tu número de cuenta ${saldo}€`;
+        await transporter.sendMail({
+          to: mail,
+          subject: 'Liquidación de saldo',
+          text: msg,
+        });
+      }
+    } catch (e) {
+      console.error('Error sending mail', e);
+    }
+
+    res.json({ saldo });
+  } catch (err) {
+    if (client) await client.query('ROLLBACK');
+    console.error(err);
+    res.status(500).json({ error: 'Error liquidando balance' });
+  } finally {
+    if (client) client.release();
+  }
+});
 app.post('/transaccion', async (req, res) => {
   const {
     alumnoId,
@@ -198,6 +261,20 @@ app.post('/transaccion', async (req, res) => {
           id_profesor,
           id_alumno,
         ]
+      );
+      const totalTutor = Math.abs(montoTutor || 0);
+      const totalProfesor = Math.abs(montoProfesor || 0);
+      await client.query(
+        `INSERT INTO student_project.saldo_usuario (user_id, rol, saldo)
+         VALUES ($1,'tutor',$2)
+         ON CONFLICT (user_id, rol) DO UPDATE SET saldo = saldo + EXCLUDED.saldo`,
+        [tutorId, -totalTutor]
+      );
+      await client.query(
+        `INSERT INTO student_project.saldo_usuario (user_id, rol, saldo)
+         VALUES ($1,'profesor',$2)
+         ON CONFLICT (user_id, rol) DO UPDATE SET saldo = saldo + EXCLUDED.saldo`,
+        [profesorId, totalProfesor]
       );
     }
 
