@@ -4,6 +4,7 @@ import styled, { keyframes } from 'styled-components';
 import { Link } from 'react-router-dom';
 import { useChild } from '../../../ChildContext';
 import Card from '../../../components/CommonCard';
+import CardActions from '../../../components/CardActions';
 import InfoGrid from '../../../components/InfoGrid';
 import ProgressBar from '../../../components/ProgressBar';
 import { auth, db } from '../../../firebase/firebaseConfig';
@@ -177,10 +178,10 @@ export default function MisSolicitudes() {
                   <Link to={`/perfil/${p.profesorId}`}>{p.profesorNombre}</Link>
                   ?
                 </p>
-                <div>
-                  <RejectButton onClick={() => rejectAssignment(p)} disabled={processingIds.has(p.id)}>Rechazar</RejectButton>{' '}
+                <CardActions>
+                  <RejectButton onClick={() => rejectAssignment(p)} disabled={processingIds.has(p.id)}>Rechazar</RejectButton>
                   <AcceptButton onClick={() => acceptAssignment(p)} disabled={processingIds.has(p.id)}>Confirmar</AcceptButton>
-                </div>
+                </CardActions>
               </Card>
             ))}
             {solicitudes.map(s => {

@@ -3,6 +3,7 @@ import React, { useEffect, useState } from 'react';
 import styled, { keyframes } from 'styled-components';
 import { useChild } from '../../../ChildContext';
 import Card from '../../../components/CommonCard';
+import CardActions from '../../../components/CardActions';
 import InfoGrid from '../../../components/InfoGrid';
 import { auth, db } from '../../../firebase/firebaseConfig';
 import {
@@ -376,39 +377,41 @@ export default function MisClases() {
                 </div>
               </InfoGrid>
               {c.estado === 'pendiente' && (
-                <div>
+                <CardActions>
                   <RejectButton
                     onClick={() => rejectProposal(c)}
                     disabled={processingIds.has(c.id)}
                   >
                     Rechazar
-                  </RejectButton>{' '}
+                  </RejectButton>
                   <AcceptButton
                     onClick={() => acceptProposal(c)}
                     disabled={processingIds.has(c.id)}
                   >
                     Aceptar
                   </AcceptButton>
-                </div>
+                </CardActions>
               )}
               {c.modificacionPendiente && (
-                <div>
+                <>
                   <p style={{ marginTop: '0.5rem' }}>
                     El profesor propone modificar esta clase.
                   </p>
-                  <RejectButton
-                    onClick={() => rejectModification(c)}
-                    disabled={processingIds.has(c.id)}
-                  >
-                    Rechazar cambio
-                  </RejectButton>{' '}
-                  <AcceptButton
-                    onClick={() => acceptModification(c)}
-                    disabled={processingIds.has(c.id)}
-                  >
-                    Aceptar cambio
-                  </AcceptButton>
-                </div>
+                  <CardActions>
+                    <RejectButton
+                      onClick={() => rejectModification(c)}
+                      disabled={processingIds.has(c.id)}
+                    >
+                      Rechazar cambio
+                    </RejectButton>
+                    <AcceptButton
+                      onClick={() => acceptModification(c)}
+                      disabled={processingIds.has(c.id)}
+                    >
+                      Aceptar cambio
+                    </AcceptButton>
+                  </CardActions>
+                </>
               )}
             </Card>
           ))

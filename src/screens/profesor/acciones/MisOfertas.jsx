@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import styled from 'styled-components';
 import Card from '../../../components/CommonCard';
+import CardActions from '../../../components/CardActions';
 import InfoGrid from '../../../components/InfoGrid';
 import LoadingScreen from '../../../components/LoadingScreen';
 import { auth, db } from '../../../firebase/firebaseConfig';
@@ -149,18 +150,18 @@ export default function MisOfertas() {
           const { text, color } = statusInfo(o, alert);
           return (
             <Card key={o.id}>
-              {alert && alert.estado === 'espera_profesor' && (
-                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.5rem', marginBottom: '0.5rem' }}>
-                  <CancelButton onClick={() => handleCancel(alert)} disabled={processing.has(alert.id)}>Cancelar</CancelButton>
-                  <Button onClick={() => handleAccept(alert)} disabled={processing.has(alert.id)}>Aceptar</Button>
-                </div>
-              )}
               <InfoGrid>
                 <div><strong>Alumno:</strong> {o.alumnoNombre || alert?.alumnoNombre || '-'}</div>
                 <div><strong>Asignaturas:</strong> {o.asignaturas ? o.asignaturas.join(', ') : o.asignatura || alert?.classInfo?.asignaturas?.join(', ') || alert?.classInfo?.asignatura}</div>
                 {o.precio && (<div><strong>Precio ofertado:</strong> €{o.precio}</div>)}
                 <div><strong>Estado:</strong> <StatusText color={color}>{text}</StatusText></div>
               </InfoGrid>
+              {alert && alert.estado === 'espera_profesor' && (
+                <CardActions>
+                  <CancelButton onClick={() => handleCancel(alert)} disabled={processing.has(alert.id)}>Cancelar</CancelButton>
+                  <Button onClick={() => handleAccept(alert)} disabled={processing.has(alert.id)}>Aceptar</Button>
+                </CardActions>
+              )}
             </Card>
           );
         })
