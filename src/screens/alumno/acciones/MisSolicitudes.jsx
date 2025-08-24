@@ -50,8 +50,6 @@ const Value = styled.span`
 `;
 
 const AcceptButton = styled.button`
-  margin-top: 0.5rem;
-  margin-right: 0.5rem;
   background: #006d5b;
   color: #fff;
   border: none;
@@ -69,8 +67,6 @@ const AcceptButton = styled.button`
 `;
 
 const RejectButton = styled.button`
-  margin-top: 0.5rem;
-  margin-right: 0.5rem;
   background: #f56565;
   color: #fff;
   border: none;
@@ -85,6 +81,13 @@ const RejectButton = styled.button`
     opacity: 0.6;
     cursor: not-allowed;
   }
+`;
+
+const CardActions = styled.div`
+  margin-top: auto;
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
 `;
 
 const getProgressData = s => {
@@ -179,10 +182,10 @@ export default function MisSolicitudes() {
                   <Link to={`/perfil/${p.profesorId}`}>{p.profesorNombre}</Link>
                   ?
                 </p>
-                <div>
-                  <RejectButton onClick={() => rejectAssignment(p)} disabled={processingIds.has(p.id)}>Rechazar</RejectButton>{' '}
+                <CardActions>
+                  <RejectButton onClick={() => rejectAssignment(p)} disabled={processingIds.has(p.id)}>Rechazar</RejectButton>
                   <AcceptButton onClick={() => acceptAssignment(p)} disabled={processingIds.has(p.id)}>Confirmar</AcceptButton>
-                </div>
+                </CardActions>
               </Card>
             ))}
             {solicitudes.map(s => {

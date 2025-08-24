@@ -93,8 +93,6 @@ const Value = styled.span`
 `;
 
 const AcceptButton = styled.button`
-  margin-top: 0.5rem;
-  margin-right: 0.5rem;
   background: #006d5b;
   color: #fff;
   border: none;
@@ -112,8 +110,6 @@ const AcceptButton = styled.button`
 `;
 
 const RejectButton = styled.button`
-  margin-top: 0.5rem;
-  margin-right: 0.5rem;
   background: #f56565;
   color: #fff;
   border: none;
@@ -128,6 +124,13 @@ const RejectButton = styled.button`
     opacity: 0.6;
     cursor: not-allowed;
   }
+`;
+
+const CardActions = styled.div`
+  margin-top: auto;
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
 `;
 
 export default function MisClases() {
@@ -326,20 +329,20 @@ export default function MisClases() {
                 </div>
               </InfoGrid>
               {c.estado === 'pendiente' && (
-                <div>
+                <CardActions>
                   <RejectButton
                     onClick={() => rejectProposal(c)}
                     disabled={processingIds.has(c.id)}
                   >
                     Rechazar
-                  </RejectButton>{' '}
+                  </RejectButton>
                   <AcceptButton
                     onClick={() => acceptProposal(c)}
                     disabled={processingIds.has(c.id)}
                   >
                     Aceptar
                   </AcceptButton>
-                </div>
+                </CardActions>
               )}
             </Card>
           ))
