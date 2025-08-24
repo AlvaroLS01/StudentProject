@@ -415,12 +415,8 @@ export default function SignUpTutor() {
       }
       const { user } = await createUserWithEmailAndPassword(auth, email, password);
       authUser = user;
-      const tutorAvatar = getRandomAvatar();
-      let studentAvatar = getRandomAvatar();
-      if (studentAvatar === tutorAvatar) {
-        studentAvatar = getRandomAvatar();
-      }
-      await updateProfile(user, { photoURL: tutorAvatar });
+      const avatar = getRandomAvatar();
+      await updateProfile(user, { photoURL: avatar });
       const data = {
         uid: user.uid,
         email,
@@ -437,7 +433,7 @@ export default function SignUpTutor() {
         barrio: barrioTutor,
         codigo_postal: codigoPostalTutor,
         createdAt: new Date(),
-        photoURL: tutorAvatar,
+        photoURL: avatar,
         alumnos: [
           {
             id: Date.now().toString(),
@@ -449,7 +445,7 @@ export default function SignUpTutor() {
             NIF: nifAlumno,
             direccion: direccionAlumno,
             distrito: distritoAlumno,
-            photoURL: studentAvatar
+            photoURL: avatar
           },
         ]
       };
