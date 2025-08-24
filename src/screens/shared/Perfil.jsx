@@ -15,6 +15,7 @@ import {
 } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import cameraIcon from '../../assets/icons/camara.png';
+import avatars from '../../utils/avatars';
 import {
   BarChart,
   Bar,
@@ -179,6 +180,27 @@ const EditButton = styled.button`
   }
 `;
 
+const AvatarGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+  max-height: 200px;
+  overflow-y: auto;
+`;
+
+const AvatarOption = styled.img`
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  cursor: pointer;
+  object-fit: cover;
+  border: 2px solid transparent;
+  &:hover {
+    border-color: #006D5B;
+  }
+`;
+
 const InlineInput = styled.input`
   display: block;
   width: 100%;
@@ -238,6 +260,7 @@ export default function Perfil() {
   const [role, setRole] = useState(null); // 'alumno' o 'profesor'
   const [unions, setUnions] = useState([]); // todas las uniones del usuario
   const [acceptedClasses, setAcceptedClasses] = useState([]); // solo las clases aceptadas
+  const [showAvatarPicker, setShowAvatarPicker] = useState(false);
   const [metrics, setMetrics] = useState({
     totalHoras: 0,
     totalGanado: 0,
@@ -286,6 +309,7 @@ export default function Perfil() {
       status: formData.status,
       iban: formData.iban,
     }));
+    setShowAvatarPicker(false);
     setIsEditing(false);
   };
 
@@ -299,6 +323,12 @@ export default function Perfil() {
     const url = await getDownloadURL(storageRef);
     await updateDoc(doc(db, 'usuarios', userId), { photoURL: url });
     setProfile(p => ({ ...p, photoURL: url }));
+  };
+
+  const handleAvatarSelect = async url => {
+    await updateDoc(doc(db, 'usuarios', userId), { photoURL: url });
+    setProfile(p => ({ ...p, photoURL: url }));
+    setShowAvatarPicker(false);
   };
 
   const addChild = async () => {
@@ -524,6 +554,25 @@ export default function Perfil() {
           </PhotoWrapper>
           <div>
             {isOwnProfile && <p>{profile.email}</p>}
+            {isOwnProfile && isEditing && (
+              <>
+                <EditButton type="button" onClick={() => setShowAvatarPicker(!showAvatarPicker)}>
+                  Elegir avatar
+                </EditButton>
+                {showAvatarPicker && (
+                  <AvatarGrid>
+                    {avatars.map(a => (
+                      <AvatarOption
+                        key={a.name}
+                        src={a.src}
+                        alt={a.name}
+                        onClick={() => handleAvatarSelect(a.src)}
+                      />
+                    ))}
+                  </AvatarGrid>
+                )}
+              </>
+            )}
             {isOwnProfile && (
               isEditing ? (
                 <>

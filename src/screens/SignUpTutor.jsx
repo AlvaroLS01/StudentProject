@@ -16,7 +16,8 @@ import { Overlay, Modal, ModalText, ModalActions, ModalButton } from '../compone
 
 // Firebase (inicializado en firebaseConfig.js)
 import { auth, db } from '../firebase/firebaseConfig';
-import { createUserWithEmailAndPassword, sendEmailVerification, deleteUser } from 'firebase/auth';
+import { createUserWithEmailAndPassword, sendEmailVerification, deleteUser, updateProfile } from 'firebase/auth';
+import { getRandomAvatar } from '../utils/avatars';
 import { collection, getDocs, doc, setDoc, deleteDoc, query, where } from 'firebase/firestore';
 
 // Animación de entrada
@@ -414,6 +415,8 @@ export default function SignUpTutor() {
       }
       const { user } = await createUserWithEmailAndPassword(auth, email, password);
       authUser = user;
+      const avatar = getRandomAvatar();
+      await updateProfile(user, { photoURL: avatar });
       const data = {
         uid: user.uid,
         email,
@@ -430,6 +433,7 @@ export default function SignUpTutor() {
         barrio: barrioTutor,
         codigo_postal: codigoPostalTutor,
         createdAt: new Date(),
+        photoURL: avatar,
         alumnos: [
           {
             id: Date.now().toString(),
@@ -441,7 +445,7 @@ export default function SignUpTutor() {
             NIF: nifAlumno,
             direccion: direccionAlumno,
             distrito: distritoAlumno,
-            photoURL: user.photoURL || ''
+            photoURL: avatar
           },
         ]
       };
