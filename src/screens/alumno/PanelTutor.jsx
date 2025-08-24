@@ -136,6 +136,14 @@ export default function PanelTutor() {
     }
   }, [selectedChild, userData, show]);
 
+  // Si la query ?tab cambia externamente, sincronizamos la vista
+  useEffect(() => {
+    const urlTab = searchParams.get('tab') || 'nueva-clase';
+    if (urlTab !== view) {
+      setView(urlTab);
+    }
+  }, [searchParams, view]);
+
   // Al cambiar de pestaña, subimos arriba y actualizamos la URL
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
