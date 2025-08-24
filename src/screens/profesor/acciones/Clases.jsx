@@ -247,16 +247,6 @@ export default function ClasesProfesor({ only }) {
     return () => unsub();
   }, []);
 
-  // Sincroniza la vista si la query ?view cambia externamente
-  useEffect(() => {
-    if (!only) {
-      const urlView = searchParams.get('view') || 'clases';
-      if (urlView !== view) {
-        setView(urlView);
-      }
-    }
-  }, [searchParams, view, only]);
-
   useEffect(() => {
     if (!only) {
       setSearchParams({ view });
