@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import styled, { keyframes } from 'styled-components';
+import ToggleSwitch from '../../../components/ToggleSwitch';
 import { PrimaryButton } from '../../../components/FormElements';
 import { fetchBalances, liquidarBalance } from '../../../utils/api';
 
@@ -23,43 +24,51 @@ const Title = styled.h1`
   margin-bottom:2rem;
 `;
 
-const Switch = styled.div`
-  display:flex;
-  justify-content:center;
-  gap:1rem;
+const Counter = styled.p`
+  text-align:center;
+  color:#046654;
+  margin-top:-1rem;
   margin-bottom:1rem;
-  button{
-    padding:0.5rem 1rem;
-    border:none;
-    border-radius:6px;
-    cursor:pointer;
-    background:#e2e8f0;
-  }
-  .active{
-    background:${({theme})=>theme.colors.secondary};
-    color:${({theme})=>theme.colors.primary};
-  }
+  font-weight:500;
 `;
 
-const Table = styled.table`
-  width:100%;
-  border-collapse:collapse;
-  th,td{
-    padding:0.5rem;
-    border:1px solid #e2e8f0;
-    text-align:left;
-  }
+const List = styled.ul`
+  list-style:none;
+  padding:0;
+  margin:0;
+`;
+
+const Item = styled.li`
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  background:#fff;
+  border-radius:8px;
+  padding:0.75rem 1rem;
+  margin-bottom:0.75rem;
+  box-shadow:0 4px 12px rgba(0,0,0,0.05);
+`;
+
+const User = styled.span`
+  color:#034640;
+  font-weight:500;
+`;
+
+const Amount = styled.span`
+  margin-right:1rem;
 `;
 
 export default function Pagos(){
   const [role,setRole]=useState('tutor');
   const [rows,setRows]=useState([]);
+  const [total,setTotal]=useState(0);
 
   useEffect(()=>{
     (async()=>{
       try{
         const data=await fetchBalances(role);
         setRows(data);
+        setTotal(data.reduce((a,b)=>a+Number(b.saldo||0),0));
       }catch(e){
         console.error(e);
       }
@@ -70,7 +79,11 @@ export default function Pagos(){
     try{
       const email = role==='tutor'?id:undefined;
       await liquidarBalance(id, role, email);
-      setRows(r=>r.map(x=>x.user_id===id?{...x,saldo:0}:x));
+      setRows(r=>{
+        const updated=r.map(x=>x.user_id===id?{...x,saldo:0}:x);
+        setTotal(updated.reduce((a,b)=>a+Number(b.saldo||0),0));
+        return updated;
+      });
     }catch(e){
       console.error(e);
     }
@@ -80,28 +93,22 @@ export default function Pagos(){
     <Page>
       <Container>
         <Title>Pagos</Title>
-        <Switch>
-          <button className={role==='tutor'?'active':''} onClick={()=>setRole('tutor')}>Tutores</button>
-          <button className={role==='profesor'?'active':''} onClick={()=>setRole('profesor')}>Profesores</button>
-        </Switch>
-        <Table>
-          <thead>
-            <tr>
-              <th>Usuario</th>
-              <th>Saldo (€)</th>
-              <th></th>
-            </tr>
-          </thead>
-          <tbody>
-            {rows.map(r=> (
-              <tr key={r.user_id}>
-                <td>{r.user_id}</td>
-                <td>{r.saldo}</td>
-                <td><PrimaryButton onClick={()=>handleLiquidar(r.user_id)}>Mandar factura</PrimaryButton></td>
-              </tr>
-            ))}
-          </tbody>
-        </Table>
+        <ToggleSwitch
+          leftLabel="Tutores"
+          rightLabel="Profesores"
+          value={role==='tutor'?'left':'right'}
+          onChange={val=>setRole(val==='left'?'tutor':'profesor')}
+        />
+        <Counter>Total saldo: {total}€</Counter>
+        <List>
+          {rows.map(r=> (
+            <Item key={r.user_id}>
+              <User>{r.user_id}</User>
+              <Amount>{r.saldo}€</Amount>
+              <PrimaryButton onClick={()=>handleLiquidar(r.user_id)}>Mandar factura</PrimaryButton>
+            </Item>
+          ))}
+        </List>
       </Container>
     </Page>
   );
