@@ -13,7 +13,7 @@ const Page = styled.div`
 `;
 
 const Container = styled.div`
-  max-width:900px;
+  max-width:800px;
   margin:auto;
   animation:${fade} 0.4s ease-out;
 `;
@@ -21,8 +21,7 @@ const Container = styled.div`
 const Title = styled.h1`
   text-align:center;
   color:#034640;
-  margin-bottom:1.5rem;
-  font-size:2.5rem;
+  margin-bottom:2rem;
 `;
 
 const Counter = styled.p`
@@ -32,25 +31,31 @@ const Counter = styled.p`
   margin-bottom:1rem;
   font-weight:500;
 `;
-const Table = styled.table`
-  width:100%;
-  border-collapse:collapse;
+
+const List = styled.ul`
+  list-style:none;
+  padding:0;
+  margin:0;
+`;
+
+const Item = styled.li`
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
   background:#fff;
   border-radius:8px;
-  overflow:hidden;
+  padding:0.75rem 1rem;
+  margin-bottom:0.75rem;
   box-shadow:0 4px 12px rgba(0,0,0,0.05);
 `;
 
-const Th = styled.th`
-  text-align:left;
-  padding:0.75rem 1rem;
-  background:#e6f2ef;
+const User = styled.span`
   color:#034640;
+  font-weight:500;
 `;
 
-const Td = styled.td`
-  padding:0.75rem 1rem;
-  border-top:1px solid #e2e8f0;
+const Amount = styled.span`
+  margin-right:1rem;
 `;
 
 export default function Pagos(){
@@ -95,28 +100,15 @@ export default function Pagos(){
           onChange={val=>setRole(val==='left'?'tutor':'profesor')}
         />
         <Counter>Total saldo: {total}€</Counter>
-        <Table>
-          <thead>
-            <tr>
-              <Th>Usuario</Th>
-              <Th>Saldo</Th>
-              <Th></Th>
-            </tr>
-          </thead>
-          <tbody>
-            {rows.map(r => (
-              <tr key={r.user_id}>
-                <Td>{r.user_id}</Td>
-                <Td>{r.saldo}€</Td>
-                <Td>
-                  <PrimaryButton onClick={() => handleLiquidar(r.user_id)}>
-                    Mandar factura
-                  </PrimaryButton>
-                </Td>
-              </tr>
-            ))}
-          </tbody>
-        </Table>
+        <List>
+          {rows.map(r=> (
+            <Item key={r.user_id}>
+              <User>{r.user_id}</User>
+              <Amount>{r.saldo}€</Amount>
+              <PrimaryButton onClick={()=>handleLiquidar(r.user_id)}>Mandar factura</PrimaryButton>
+            </Item>
+          ))}
+        </List>
       </Container>
     </Page>
   );
