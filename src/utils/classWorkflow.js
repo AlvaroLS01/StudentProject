@@ -1,5 +1,5 @@
 import { db } from '../firebase/firebaseConfig';
-import { collection, addDoc, serverTimestamp, updateDoc, doc, deleteDoc } from 'firebase/firestore';
+import { collection, addDoc, serverTimestamp, updateDoc, doc, deleteDoc, getDoc } from 'firebase/firestore';
 import { sendAssignmentEmails } from './email';
 import { acceptPuja, confirmPuja } from './api';
 
@@ -19,12 +19,26 @@ export async function registerPendingClass({ classId, offer, alumnoId, alumnoNom
   });
 }
 
-export async function acceptClassByTeacher(recordId, studentEmail, studentName, pujaId) {
+export async function acceptClassByTeacher(recordId, studentEmail, pujaId) {
   const ref = doc(db, 'registro_clases', recordId);
+  const snap = await getDoc(ref);
+  const data = snap.exists() ? snap.data() : {};
   await updateDoc(ref, { estado: 'espera_alumno', acceptedByTeacher: serverTimestamp() });
+  let teacherCareer = '';
+  try {
+    if (data.profesorId) {
+      const tSnap = await getDoc(doc(db, 'usuarios', data.profesorId));
+      teacherCareer = tSnap.exists() ? tSnap.data().carrera || '' : '';
+    }
+  } catch (err) {
+    console.error(err);
+  }
   await sendAssignmentEmails({
     studentEmail,
-    studentName,
+    tutorName: data.padreNombre,
+    studentName: data.alumnoNombre,
+    teacherName: data.profesorNombre,
+    teacherCareer,
     recipient: 'student',
   });
   if (pujaId) {
@@ -58,10 +72,21 @@ export async function acceptClassByStudent(recordId, data) {
     estado: 'clase_formada',
     createdAt: serverTimestamp(),
   });
+  let teacherCareer = '';
+  try {
+    if (data.profesorId) {
+      const tSnap = await getDoc(doc(db, 'usuarios', data.profesorId));
+      teacherCareer = tSnap.exists() ? tSnap.data().carrera || '' : '';
+    }
+  } catch (err) {
+    console.error(err);
+  }
   await sendAssignmentEmails({
     studentEmail: data.studentEmail,
+    tutorName: data.padreNombre,
     studentName: data.alumnoNombre,
     teacherName: data.profesorNombre,
+    teacherCareer,
     recipient: 'both',
   });
 }

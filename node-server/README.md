@@ -78,15 +78,17 @@ Envía un `POST` a `http://localhost:3001/send-assignment-email` con un cuerpo c
 {
   "teacherEmail": "profesor@ejemplo.com",
   "teacherName": "Nombre Profesor",
-  "studentEmail": "alumno@ejemplo.com",
+  "teacherCareer": "Ingeniería Civil",
+  "studentEmail": "tutor@ejemplo.com",
   "studentName": "Nombre Alumno",
+  "tutorName": "Nombre Tutor",
   "schedule": ["Lunes-17", "Martes-18"],
   "recipient": "teacher"
 }
 ```
 
 El campo `recipient` puede ser `teacher`, `student` o `both` para indicar a quién se envía la notificación.
-Se utilizará para avisar al profesor cuando la administración lo seleccione y al alumno cuando el profesor acepte la solicitud.
+Se utilizará para avisar al profesor cuando la administración lo seleccione y al tutor cuando el profesor acepte la solicitud.
 
 ### Notificar clase al tutor
 
