@@ -350,17 +350,8 @@ export default function MisProfesores() {
       confirmadaEn: serverTimestamp(),
       pendienteAdmin: true
     });
-    // Mensaje persistente en el chat indicando la clase añadida
     const union = unions.find(u => u.id === chatUnionId);
     if (union) {
-      await addDoc(
-        collection(db, 'clases_union', chatUnionId, 'chats'),
-        {
-          senderId: union.profesorId,
-          text: `Clase confirmada de ${proposal.asignatura} el dia ${formatDate(proposal.fecha)}`,
-          createdAt: serverTimestamp()
-        }
-      );
       try {
         await registerTransaction({
           tutorId: auth.currentUser.uid,
@@ -455,18 +446,36 @@ export default function MisProfesores() {
             <MessageContainer ref={scrollRef}>
               {feedItems.map((item, idx) => {
                 if (item.type === 'proposal') {
-                  // La propuesta viene del profesor => mine = false para el alumno
-                  const mine = false;
                   const dateObj = item.createdAt?.toDate?.() || new Date();
                   const hh = String(dateObj.getHours()).padStart(2, '0');
                   const mm = String(dateObj.getMinutes()).padStart(2, '0');
+                  if (item.estado === 'aceptada') {
+                    const mine = true;
+                    return (
+                      <BubbleWrapper key={`p-${item.id}`} mine={mine}>
+                        <Sender>Tú</Sender>
+                        <Bubble mine={mine}>
+                          Has aceptado la clase del{' '}
+                          <strong>{formatDate(item.fecha)}</strong> a las{' '}
+                          <strong>{item.hora}</strong> de{' '}
+                          <strong>{item.asignatura}</strong> ({item.duracion}h)
+                        </Bubble>
+                        <Timestamp mine={mine}>
+                          {hh}:{mm}
+                        </Timestamp>
+                      </BubbleWrapper>
+                    );
+                  }
+                  const mine = false;
                   return (
                     <BubbleWrapper key={`p-${item.id}`} mine={mine}>
                       <Sender>{mine ? 'Tú (Propuesta)' : 'Profesor (Propuesta)'}</Sender>
                       <Bubble mine={mine}>
                         <div>
-                          El profesor ha añadido una clase de <strong> {item.asignatura}</strong> el{' '}
-                        <strong>{formatDate(item.fecha)}</strong> a las <strong>{item.hora}</strong> ({item.duracion}h)
+                          El profesor ha añadido la clase del{' '}
+                          <strong>{formatDate(item.fecha)}</strong> a las{' '}
+                          <strong>{item.hora}</strong> de{' '}
+                          <strong>{item.asignatura}</strong> ({item.duracion}h)
                         </div>
                         <div>Coste: €{(item.precioTotalPadres || 0).toFixed(2)}</div>
                         <RejectButton onClick={() => rejectProposal(item)}>

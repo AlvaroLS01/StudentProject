@@ -208,7 +208,7 @@ export default function MisClases() {
       });
       await addDoc(collection(db, 'clases_union', clase.unionId, 'chats'), {
         senderId: clase.profesorId,
-        text: `He añadido una clase, ${formatDate(clase.fecha)} a las ${clase.hora}`,
+        text: `He añadido la clase del ${formatDate(clase.fecha)} a las ${clase.hora}`,
         createdAt: serverTimestamp()
       });
       await registerTransaction({

@@ -1082,8 +1082,7 @@ app.post('/notify-tutor-class', async (req, res) => {
   }
 
   const html = `
-      <p>Hola ${tutorName || 'tutor'}, el profesor ${teacherName || 'profesor'} ha añadido una clase para el alumno ${studentName || ''}.</p>
-      <p>Fecha y hora: ${classDate || ''} a las ${classTime || ''}.</p>
+      <p>Hola ${tutorName || 'tutor'}, el profesor ${teacherName || 'profesor'} ha registrado la clase del ${classDate || ''} a las ${classTime || ''} para el alumno ${studentName || ''}.</p>
       <p>Por favor, entra en el chat con el profesor para aceptarla.</p>
     `;
 
