@@ -356,7 +356,15 @@ export default function MisAlumnos() {
           let photoURL = '';
           try {
             const usnap = await getDoc(doc(db, 'usuarios', data.alumnoId));
-            photoURL = usnap.exists() ? usnap.data().photoURL || '' : '';
+            if (usnap.exists()) {
+              const udata = usnap.data();
+              if (data.hijoId && Array.isArray(udata.alumnos)) {
+                const hijo = udata.alumnos.find(h => h.id === data.hijoId);
+                photoURL = hijo?.photoURL || '';
+              } else {
+                photoURL = udata.photoURL || '';
+              }
+            }
           } catch (err) {
             console.error(err);
           }
