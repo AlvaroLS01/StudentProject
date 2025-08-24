@@ -92,6 +92,7 @@ export default function ProgressBar({ percent, color, label }) {
     'Búsqueda de profesor',
     'Selección de profesor',
     'Esperando respuesta del profesor',
+    'Esperando respuesta del tutor',
     'Profesor asignado'
   ];
   const stepPercents = steps.map((_, i) => (i / (steps.length - 1)) * 100);
