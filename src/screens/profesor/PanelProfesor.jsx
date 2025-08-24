@@ -90,14 +90,6 @@ export default function PanelProfesor() {
   const initialTab = searchParams.get('tab') || 'ofertas';
   const [view, setView] = useState(initialTab);
 
-  // Actualiza la vista cuando la query ?tab cambia desde fuera
-  useEffect(() => {
-    const urlTab = searchParams.get('tab') || 'ofertas';
-    if (urlTab !== view) {
-      setView(urlTab);
-    }
-  }, [searchParams, view]);
-
   // Al cambiar de pestaña, subimos arriba y actualizamos la URL
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
