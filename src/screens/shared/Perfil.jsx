@@ -13,6 +13,7 @@ import {
   getDoc,
   updateDoc,
 } from 'firebase/firestore';
+import { updateProfile } from 'firebase/auth';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import cameraIcon from '../../assets/icons/camara.png';
 import avatars from '../../utils/avatars';
@@ -29,6 +30,7 @@ import { useChild } from '../../ChildContext';
 import { SelectInput } from '../../components/FormElements';
 import InfoGrid from '../../components/InfoGrid';
 import { fetchCities, updateTutorCity } from '../../utils/api';
+import { useAuth } from '../../AuthContext';
 
 // Animación de fade-in
 const fadeIn = keyframes`
@@ -247,6 +249,7 @@ export default function Perfil() {
   const [cities, setCities] = useState([]);
 
   const { setChildList, setSelectedChild } = useChild();
+  const { refreshUserData } = useAuth();
 
   useEffect(() => {
     fetchCities().then(setCities).catch(console.error);
@@ -305,7 +308,9 @@ export default function Perfil() {
     await uploadBytes(storageRef, file);
     const url = await getDownloadURL(storageRef);
     await updateDoc(doc(db, 'usuarios', userId), { photoURL: url });
+    await updateProfile(auth.currentUser, { photoURL: url });
     setProfile(p => ({ ...p, photoURL: url }));
+    refreshUserData && refreshUserData();
   };
 
   const handleChildPhotoChange = async (childId, file) => {
