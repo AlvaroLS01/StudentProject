@@ -193,6 +193,7 @@ export default function ClasesProfesor({ only }) {
   const [newDate, setNewDate] = useState('');
   const [newDuration, setNewDuration] = useState('');
   const [confirmEdit, setConfirmEdit] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
   const [loading, setLoading] = useState(true);
   const { show } = useNotification();
 
@@ -289,33 +290,39 @@ export default function ClasesProfesor({ only }) {
   };
 
   const submitEdit = async () => {
-    if (!editing) return;
-    const docRef = doc(db, 'clases_union', editing.unionId, 'clases_asignadas', editing.id);
-    const d = new Date(editing.fecha);
-    const sunday = new Date(d);
-    const offset = (7 - sunday.getDay()) % 7;
-    sunday.setDate(d.getDate() + offset);
-    sunday.setHours(16, 0, 0, 0);
-    await updateDoc(docRef, {
-      fecha: newDate,
-      duracion: parseFloat(newDuration),
-      modificacionPendiente: true,
-      modificacionExpira: sunday.toISOString(),
-      modificacionCreada: serverTimestamp()
-    });
-    await addDoc(collection(db, 'clases_union', editing.unionId, 'chats'), {
-      senderId: auth.currentUser.uid,
-      text: `He modificado la clase del día ${formatDate(editing.fecha)} de duración ${editing.duracion}h a ${formatDate(newDate)} con duración ${newDuration}h`,
-      createdAt: serverTimestamp()
-    });
-    await addDoc(collection(db, 'notificaciones'), {
-      userId: editing.alumnoId,
-      text: `Se modificó la clase del ${formatDate(editing.fecha)}`,
-      read: false,
-      createdAt: serverTimestamp()
-    });
-    show('Propuesta de modificación enviada', 'success');
-    setEditing(null);
+    if (submitting || !editing) return;
+    setSubmitting(true);
+    try {
+      const docRef = doc(db, 'clases_union', editing.unionId, 'clases_asignadas', editing.id);
+      const d = new Date(editing.fecha);
+      const sunday = new Date(d);
+      const offset = (7 - sunday.getDay()) % 7;
+      sunday.setDate(d.getDate() + offset);
+      sunday.setHours(16, 0, 0, 0);
+      await updateDoc(docRef, {
+        fecha: newDate,
+        duracion: parseFloat(newDuration),
+        modificacionPendiente: true,
+        modificacionExpira: sunday.toISOString(),
+        modificacionCreada: serverTimestamp()
+      });
+      await addDoc(collection(db, 'clases_union', editing.unionId, 'chats'), {
+        senderId: auth.currentUser.uid,
+        text: `He modificado la clase del día ${formatDate(editing.fecha)} de duración ${editing.duracion}h a ${formatDate(newDate)} con duración ${newDuration}h`,
+        createdAt: serverTimestamp()
+      });
+      await addDoc(collection(db, 'notificaciones'), {
+        userId: editing.alumnoId,
+        text: `Se modificó la clase del ${formatDate(editing.fecha)}`,
+        read: false,
+        createdAt: serverTimestamp()
+      });
+      show('Propuesta de modificación enviada', 'success');
+      setEditing(null);
+      setConfirmEdit(false);
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const cancelPending = async clase => {
@@ -452,10 +459,8 @@ export default function ClasesProfesor({ only }) {
               <ModalButton onClick={() => setConfirmEdit(false)}>Cancelar</ModalButton>
               <ModalButton
                 primary
-                onClick={() => {
-                  submitEdit();
-                  setConfirmEdit(false);
-                }}
+                onClick={submitEdit}
+                disabled={submitting}
               >
                 Confirmar
               </ModalButton>

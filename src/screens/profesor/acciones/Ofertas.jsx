@@ -396,6 +396,7 @@ export default function Ofertas() {
   const [subjectSelections, setSubjectSelections] = useState({});
   const [confirmModal, setConfirmModal] = useState(false);
   const [infoModal, setInfoModal] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
   const { show } = useNotification();
 
@@ -548,85 +549,93 @@ export default function Ofertas() {
 
   // Confirmar y guardar oferta en Firestore
   const confirmRequest = async () => {
-    const clase = selected;
-    const prof = auth.currentUser;
-    const selections = subjectSelections[clase.id] || {};
-    const selectedSubs = Object.entries(selections)
-      .filter(([,v]) => v)
-      .map(([s]) => s);
-    if (selectedSubs.length === 0) {
-      show('Selecciona al menos una asignatura.', 'error');
-      return;
+    if (submitting) return;
+    setSubmitting(true);
+    try {
+      const clase = selected;
+      const prof = auth.currentUser;
+      const selections = subjectSelections[clase.id] || {};
+      const selectedSubs = Object.entries(selections)
+        .filter(([, v]) => v)
+        .map(([s]) => s);
+      if (selectedSubs.length === 0) {
+        show('Selecciona al menos una asignatura.', 'error');
+        return;
+      }
+      const snap = await getDoc(doc(db, 'usuarios', prof.uid));
+      const profName = snap.exists()
+        ? `${snap.data().nombre} ${snap.data().apellidos || ''}`.trim()
+        : '';
+      const franjas = Array.from(selectedSlots)
+        .map(slot => {
+          const [day, h] = slot.split('-');
+          return `${day} ${h}.00–${parseInt(h, 10) + 1}.00`;
+        })
+        .join(', ');
+      const offerRef = await addDoc(collection(db, 'clases', clase.id, 'ofertas'), {
+        profesorId: prof.uid,
+        profesorNombre: profName,
+        precio: clase.precioProfesores,
+        estado: 'oferta',
+        createdAt: serverTimestamp(),
+        schedule: Array.from(selectedSlots),
+        asignaturas: selectedSubs,
+        fechaInicio: clase.fechaInicio,
+        fechaFin: clase.fechaFin,
+        horasSemana: clase.horasSemana,
+        duracionSemanas: calculateWeeks(clase.fechaInicio, clase.fechaFin)
+      });
+
+      const pujaRes = await createPuja({
+        fecha_puja: new Date().toISOString().slice(0, 10),
+        estado_puja: 'pendiente',
+        profesor_email: prof.email,
+        id_oferta: clase.ofertaId,
+        asignaturas: selectedSubs,
+        precio: clase.precioProfesores
+      });
+
+      const pujaId = pujaRes.id;
+      await updateDoc(offerRef, { pujaId });
+
+      // Registrar la oferta en el perfil del profesor para consultas sin índices
+      await setDoc(doc(db, 'usuarios', prof.uid, 'ofertas', offerRef.id), {
+        classId: clase.id,
+        createdAt: serverTimestamp(),
+        estado: 'pendiente',
+        pujaId
+      });
+      setClases(cs => cs.filter(c => c.id !== clase.id));
+      setConfirmModal(false);
+      setSelected(null);
+      setSelectedSlots(new Set());
+      setSubjectSelections(prev => {
+        const updated = { ...prev };
+        delete updated[clase.id];
+        return updated;
+      });
+
+      // Mostrar información de proceso de selección en un modal
+      setInfoModal(true);
+
+      // Construir el texto de notificación
+      const inicioTxt = clase.fechaInicio ? formatDate(clase.fechaInicio) : '—';
+      const finTxt = clase.fechaFin ? formatDate(clase.fechaFin) : '—';
+      const duration = calculateWeeks(clase.fechaInicio, clase.fechaFin);
+      const durTxt = `${duration} ${duration === 1 ? 'semana' : 'semanas'}`;
+      const firstName = clase.alumnoNombre?.split(' ')[0] || '';
+      const asignText = selectedSubs.join(', ');
+      const mensaje =
+        `Se ha enviado tu oferta para la clase de ${asignText}.\n` +
+        `Alumno: ${firstName}\n` +
+        `Fecha inicio aprox.: ${inicioTxt}\n` +
+        `Fecha fin aprox.: ${finTxt}\n` +
+        `Duración aprox.: ${durTxt}\n` +
+        `Franjas seleccionadas: ${franjas}`;
+      show(mensaje, 'success');
+    } finally {
+      setSubmitting(false);
     }
-    const snap = await getDoc(doc(db, 'usuarios', prof.uid));
-    const profName = snap.exists()
-      ? `${snap.data().nombre} ${snap.data().apellidos || ''}`.trim()
-      : '';
-    const franjas = Array.from(selectedSlots).map(slot => {
-      const [day, h] = slot.split('-');
-      return `${day} ${h}.00–${parseInt(h,10)+1}.00`;
-    }).join(', ');
-    const offerRef = await addDoc(collection(db, 'clases', clase.id, 'ofertas'), {
-      profesorId: prof.uid,
-      profesorNombre: profName,
-      precio: clase.precioProfesores,
-      estado: 'oferta',
-      createdAt: serverTimestamp(),
-      schedule: Array.from(selectedSlots),
-      asignaturas: selectedSubs,
-      fechaInicio: clase.fechaInicio,
-      fechaFin: clase.fechaFin,
-      horasSemana: clase.horasSemana,
-      duracionSemanas: calculateWeeks(clase.fechaInicio, clase.fechaFin)
-    });
-
-    const pujaRes = await createPuja({
-      fecha_puja: new Date().toISOString().slice(0,10),
-      estado_puja: 'pendiente',
-      profesor_email: prof.email,
-      id_oferta: clase.ofertaId,
-      asignaturas: selectedSubs,
-      precio: clase.precioProfesores,
-    });
-
-    const pujaId = pujaRes.id;
-    await updateDoc(offerRef, { pujaId });
-
-    // Registrar la oferta en el perfil del profesor para consultas sin índices
-    await setDoc(doc(db, 'usuarios', prof.uid, 'ofertas', offerRef.id), {
-      classId: clase.id,
-      createdAt: serverTimestamp(),
-      estado: 'pendiente',
-      pujaId
-    });
-    setClases(cs => cs.filter(c => c.id !== clase.id));
-    setConfirmModal(false);
-    setSelected(null);
-    setSelectedSlots(new Set());
-    setSubjectSelections(prev => {
-      const updated = { ...prev };
-      delete updated[clase.id];
-      return updated;
-    });
-
-    // Mostrar información de proceso de selección en un modal
-    setInfoModal(true);
-
-    // Construir el texto de notificación
-    const inicioTxt = clase.fechaInicio ? formatDate(clase.fechaInicio) : '—';
-    const finTxt = clase.fechaFin ? formatDate(clase.fechaFin) : '—';
-    const duration = calculateWeeks(clase.fechaInicio, clase.fechaFin);
-    const durTxt = `${duration} ${duration === 1 ? 'semana' : 'semanas'}`;
-    const firstName = clase.alumnoNombre?.split(' ')[0] || '';
-    const asignText = selectedSubs.join(', ');
-    const mensaje =
-      `Se ha enviado tu oferta para la clase de ${asignText}.\n` +
-      `Alumno: ${firstName}\n` +
-      `Fecha inicio aprox.: ${inicioTxt}\n` +
-      `Fecha fin aprox.: ${finTxt}\n` +
-      `Duración aprox.: ${durTxt}\n` +
-      `Franjas seleccionadas: ${franjas}`;
-    show(mensaje, 'success');
   };
 
   // Renderiza resumen de horario en texto, ordenando días de la semana
@@ -955,7 +964,7 @@ export default function Ofertas() {
                 <ModalButton onClick={() => setConfirmModal(false)}>
                   Cancelar
                 </ModalButton>
-                <ModalButton primary onClick={confirmRequest}>
+                <ModalButton primary onClick={confirmRequest} disabled={submitting}>
                   Confirmar oferta
                 </ModalButton>
               </ModalActions>
