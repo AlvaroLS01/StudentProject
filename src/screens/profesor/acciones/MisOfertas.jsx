@@ -129,7 +129,7 @@ export default function MisOfertas() {
     if (processing.has(rec.id)) return;
     setProcessing(prev => new Set(prev).add(rec.id));
     try {
-      await rejectPendingClass(rec.id);
+      await rejectPendingClass(rec, 'profesor');
       setAssignments(as => as.filter(a => a.id !== rec.id));
       setOffers(os => os.map(o => o.id === rec.offerId ? { ...o, estado: 'cancelada' } : o));
     } finally {

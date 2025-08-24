@@ -1,7 +1,7 @@
 import { db } from '../firebase/firebaseConfig';
-import { collection, addDoc, serverTimestamp, updateDoc, doc, deleteDoc, getDoc } from 'firebase/firestore';
+import { collection, addDoc, serverTimestamp, updateDoc, doc, deleteDoc, getDoc, getDocs } from 'firebase/firestore';
 import { sendAssignmentEmails } from './email';
-import { acceptPuja, confirmPuja } from './api';
+import { acceptPuja, confirmPuja, cancelOffer } from './api';
 
 export async function registerPendingClass({ classId, offer, alumnoId, alumnoNombre, padreNombre, hijoId }) {
   await addDoc(collection(db, 'registro_clases'), {
@@ -105,7 +105,39 @@ export async function acceptClassByStudent(recordId, data) {
   });
 }
 
-export async function rejectPendingClass(recordId) {
-  const ref = doc(db, 'registro_clases', recordId);
+export async function rejectPendingClass(record, role) {
+  const ref = doc(db, 'registro_clases', record.id);
   await deleteDoc(ref);
+  try {
+    await cancelOffer({ offerId: record.offerId, pujaId: record.pujaId, role });
+  } catch (err) {
+    console.error(err);
+  }
+  try {
+    if (role === 'tutor') {
+      if (record.claseId) {
+        const offersSnap = await getDocs(collection(db, 'clases', record.claseId, 'ofertas'));
+        for (const o of offersSnap.docs) {
+          const data = o.data();
+          if (data.profesorId) {
+            try { await deleteDoc(doc(db, 'usuarios', data.profesorId, 'ofertas', o.id)); } catch (e) { console.error(e); }
+          }
+          await deleteDoc(o.ref);
+        }
+        await deleteDoc(doc(db, 'clases', record.claseId));
+      }
+    } else if (role === 'profesor') {
+      if (record.claseId && record.offerId && record.profesorId) {
+        await deleteDoc(doc(db, 'clases', record.claseId, 'ofertas', record.offerId));
+        await deleteDoc(doc(db, 'usuarios', record.profesorId, 'ofertas', record.offerId));
+        await updateDoc(doc(db, 'clases', record.claseId), {
+          estado: 'pendiente',
+          profesorSeleccionado: null,
+          precioSeleccionado: null,
+        });
+      }
+    }
+  } catch (err) {
+    console.error(err);
+  }
 }

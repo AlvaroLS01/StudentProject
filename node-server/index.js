@@ -795,6 +795,92 @@ app.post('/puja/:id/confirm', async (req, res) => {
   }
 });
 
+app.post('/cancel-offer', async (req, res) => {
+  const { offerId, pujaId, role } = req.body;
+  if (!offerId || !pujaId || !role) {
+    return res.status(400).json({ error: 'Datos incompletos' });
+  }
+  let client;
+  try {
+    client = await db.connect();
+    await client.query('BEGIN');
+    const infoRes = await client.query(
+      `SELECT pr.correo_electronico AS profesor_email, pr.nombre AS profesor_nombre,
+              t.correo_electronico AS tutor_email, t.nombre AS tutor_nombre
+       FROM student_project.puja p
+       JOIN student_project.profesor pr ON p.id_profesor = pr.id_profesor
+       JOIN student_project.oferta o ON p.id_oferta = o.id_oferta
+       JOIN student_project.alumno a ON o.id_alumno = a.id_alumno
+       JOIN student_project.tutor t ON a.correo_tutor = t.correo_electronico
+       WHERE p.id_puja = $1`,
+      [pujaId]
+    );
+    if (infoRes.rowCount === 0) throw new Error('Datos no encontrados');
+    const { profesor_email, profesor_nombre, tutor_email, tutor_nombre } = infoRes.rows[0];
+
+    if (role === 'tutor') {
+      await client.query('DELETE FROM student_project.puja_asignatura WHERE id_puja IN (SELECT id_puja FROM student_project.puja WHERE id_oferta=$1)', [offerId]);
+      await client.query('DELETE FROM student_project.puja WHERE id_oferta=$1', [offerId]);
+      await client.query('DELETE FROM student_project.oferta_asignatura WHERE id_oferta=$1', [offerId]);
+      await client.query('DELETE FROM student_project.oferta WHERE id_oferta=$1', [offerId]);
+    } else if (role === 'profesor') {
+      await client.query('DELETE FROM student_project.puja_asignatura WHERE id_puja IN (SELECT id_puja FROM student_project.puja WHERE id_oferta=$1)', [offerId]);
+      await client.query('DELETE FROM student_project.puja WHERE id_oferta=$1', [offerId]);
+      await client.query('UPDATE student_project.oferta SET estado=$1 WHERE id_oferta=$2', ['pendiente', offerId]);
+    } else {
+      throw new Error('Rol inválido');
+    }
+
+    await client.query('COMMIT');
+
+    const from = `"Student Project" <${process.env.EMAIL_USER || 'alvaro@studentproject.es'}>`;
+    const emails = [];
+    if (role === 'tutor') {
+      emails.push(
+        transporter.sendMail({
+          from,
+          to: profesor_email,
+          subject: 'Solicitud cancelada',
+          html: `El tutor ${tutor_nombre || ''} ha cancelado la solicitud.`,
+        })
+      );
+      emails.push(
+        transporter.sendMail({
+          from,
+          to: tutor_email,
+          subject: 'Has cancelado la solicitud',
+          html: 'Has cancelado la solicitud de la clase.',
+        })
+      );
+    } else {
+      emails.push(
+        transporter.sendMail({
+          from,
+          to: tutor_email,
+          subject: 'Clase disponible nuevamente',
+          html: `El profesor ${profesor_nombre || ''} ha cancelado la oferta. Tu clase vuelve a la lista de pujas.`,
+        })
+      );
+      emails.push(
+        transporter.sendMail({
+          from,
+          to: profesor_email,
+          subject: 'Has cancelado la oferta',
+          html: 'Has cancelado tu oferta para la clase.',
+        })
+      );
+    }
+    await Promise.all(emails);
+    res.json({ message: 'Oferta cancelada' });
+  } catch (err) {
+    if (client) await client.query('ROLLBACK');
+    console.error(err);
+    res.status(500).json({ error: 'Error cancelando oferta' });
+  } finally {
+    if (client) client.release();
+  }
+});
+
 app.post('/send-email', async (req, res) => {
   const { email, name } = req.body;
 
