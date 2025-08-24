@@ -7,6 +7,8 @@ import { useChild } from '../../../ChildContext';
 import { useAuth } from '../../../AuthContext';
 import { Overlay, Modal, ModalText, ModalActions, ModalButton } from '../../../components/ModalStyles';
 import { fetchCursos, registerAlumno } from '../../../utils/api';
+import PhoneInput from 'react-phone-input-2';
+import 'react-phone-input-2/lib/style.css';
 
 const fadeIn = keyframes`
   from { opacity: 0; transform: translateY(-10px); }
@@ -255,17 +257,19 @@ export default function MisAlumnos() {
           </label>
           {ownPhone && (
             <>
-              <TextInput
-                type="tel"
-                placeholder="Teléfono"
+              <PhoneInput
+                country={'es'}
                 value={phone}
-                onChange={e => setPhone(e.target.value)}
+                onChange={value => setPhone(value)}
+                inputStyle={{ width: '100%' }}
+                placeholder="Teléfono"
               />
-              <TextInput
-                type="tel"
-                placeholder="Repite teléfono"
+              <PhoneInput
+                country={'es'}
                 value={phoneConfirm}
-                onChange={e => setPhoneConfirm(e.target.value)}
+                onChange={value => setPhoneConfirm(value)}
+                inputStyle={{ width: '100%' }}
+                placeholder="Repite teléfono"
               />
             </>
           )}
