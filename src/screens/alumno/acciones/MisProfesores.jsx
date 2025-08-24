@@ -253,7 +253,16 @@ export default function MisProfesores() {
           return { id: d.id, ...data, profesorPhotoURL: photoURL };
         })
       );
-      setUnions(items);
+      // Elimina profesores duplicados para que solo aparezcan una vez
+      const unique = [];
+      const seen = new Set();
+      for (const item of items) {
+        if (!seen.has(item.profesorId)) {
+          unique.push(item);
+          seen.add(item.profesorId);
+        }
+      }
+      setUnions(unique);
       setLoading(false);
     }
     fetchUnions();

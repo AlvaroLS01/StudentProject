@@ -10,7 +10,16 @@ export const ChildProvider = ({ children }) => {
 
   useEffect(() => {
     if (userData?.rol === 'tutor') {
-      const alumnos = (userData.alumnos || []).filter(h => !h.disabled);
+      const raw = userData.alumnos || [];
+      // Asegura que no haya alumnos repetidos por id
+      const alumnos = [];
+      const seen = new Set();
+      for (const h of raw) {
+        if (!h.disabled && !seen.has(h.id)) {
+          alumnos.push(h);
+          seen.add(h.id);
+        }
+      }
       setChildList(alumnos);
       setSelectedChild(prev => {
         if (prev && alumnos.some(h => h.id === prev.id)) {
