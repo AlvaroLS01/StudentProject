@@ -206,12 +206,6 @@ const DropdownList = styled.ul`
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
   z-index: 10;
 `;
-const DropdownGroupLabel = styled.li`
-  padding: 0.5rem 0.8rem;
-  font-weight: 700;
-  background: #e6f7f2;
-  color: #014F40;
-`;
 const DropdownItem = styled.li`
   padding: 0.5rem 0.8rem;
   cursor: pointer;
