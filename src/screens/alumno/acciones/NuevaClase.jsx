@@ -560,10 +560,10 @@ export default function NuevaClase() {
     <Page>
       <Card>
         <Title>
-          Solicitar nueva clase
+          Solicitar un nuevo profesor
           {userData?.rol === 'tutor' && alumnoNombre && ` para ${alumnoNombre}`}
         </Title>
-        <Subtitle>Encuentra al profesor ideal para ti</Subtitle>
+        <Subtitle>Encuentra al docente ideal para ti</Subtitle>
 
         <FormGrid>
           {/* Asignatura */}
