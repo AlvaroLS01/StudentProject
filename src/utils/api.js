@@ -53,6 +53,15 @@ export async function registerAlumno(data) {
   return handleResponse(res);
 }
 
+export async function updateTutorCity(tutor_email, ciudad) {
+  const res = await fetch(`${API_URL}/tutor/ciudad`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ tutor_email, ciudad }),
+  });
+  return handleResponse(res);
+}
+
 export async function registerProfesor(data) {
   const res = await fetch(`${API_URL}/profesor`, {
     method: 'POST',

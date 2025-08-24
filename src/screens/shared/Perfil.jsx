@@ -28,7 +28,7 @@ import {
 import { useChild } from '../../ChildContext';
 import { TextInput, SelectInput, PrimaryButton } from '../../components/FormElements';
 import InfoGrid from '../../components/InfoGrid';
-import { fetchCities } from '../../utils/api';
+import { fetchCities, updateTutorCity } from '../../utils/api';
 
 // Animación de fade-in
 const fadeIn = keyframes`
@@ -274,6 +274,7 @@ export default function Perfil() {
   const [childName, setChildName] = useState('');
   const [childDate, setChildDate] = useState('');
   const [childCourse, setChildCourse] = useState('');
+  const [childAvatar, setChildAvatar] = useState('');
   const [savingChild, setSavingChild] = useState(false);
   const [cities, setCities] = useState([]);
 
@@ -305,12 +306,20 @@ export default function Perfil() {
       status: formData.status,
       iban: formData.iban,
     };
+    const cityChanged = profile.ciudad !== formData.ciudad;
     let nuevosAlumnos = profile.alumnos;
     if (role === 'tutor' && profile.alumnos) {
       nuevosAlumnos = profile.alumnos.map(a => ({ ...a, ciudad: formData.ciudad }));
       updates.alumnos = nuevosAlumnos;
     }
     await updateDoc(doc(db, 'usuarios', userId), updates);
+    if (cityChanged && role === 'tutor' && profile.email) {
+      try {
+        await updateTutorCity(profile.email, formData.ciudad);
+      } catch (e) {
+        console.error(e);
+      }
+    }
     setProfile(p => ({
       ...p,
       ...updates,
@@ -362,7 +371,7 @@ export default function Perfil() {
   };
 
   const addChild = async () => {
-    if (!childName || !childDate || !childCourse || savingChild || !isOwnProfile) return;
+    if (!childName || !childDate || !childCourse || !childAvatar || savingChild || !isOwnProfile) return;
     setSavingChild(true);
     const nuevo = {
       id: Date.now().toString(),
@@ -370,7 +379,7 @@ export default function Perfil() {
       fechaNacimiento: childDate,
       curso: childCourse,
       ciudad: formData.ciudad,
-      photoURL: '',
+      photoURL: childAvatar,
     };
     const nuevos = [...(profile.alumnos || []), nuevo];
     await updateDoc(doc(db, 'usuarios', userId), { alumnos: nuevos });
@@ -382,6 +391,7 @@ export default function Perfil() {
     setChildName('');
     setChildDate('');
     setChildCourse('');
+    setChildAvatar('');
     setShowAddChild(false);
     setSavingChild(false);
   };
@@ -800,6 +810,19 @@ export default function Perfil() {
                           </optgroup>
                         ))}
                       </SelectInput>
+                    </div>
+                    <div style={{ gridColumn: '1 / -1' }}>
+                      <p style={{ marginBottom: '0.5rem' }}>Selecciona avatar</p>
+                      <AvatarGrid>
+                        {avatars.map((url, idx) => (
+                          <AvatarOption
+                            key={idx}
+                            src={url}
+                            onClick={() => setChildAvatar(url)}
+                            style={{ borderColor: childAvatar === url ? '#006D5B' : 'transparent' }}
+                          />
+                        ))}
+                      </AvatarGrid>
                     </div>
                     <PrimaryButton onClick={addChild} disabled={savingChild}>Guardar</PrimaryButton>
                   </AddChildForm>
