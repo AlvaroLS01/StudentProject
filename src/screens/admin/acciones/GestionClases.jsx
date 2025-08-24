@@ -464,11 +464,11 @@ export default function GestionClases() {
                     {/* Alternar visibilidad de la tabla */}
                     {expandedOfferId === o.id && (
                       <OfferDetails>
-                        <Label>Asignaturas prof.:</Label>{' '}
-                        <Value>{o.asignaturas ? o.asignaturas.join(', ') : (c.asignaturas ? c.asignaturas.join(', ') : c.asignatura)}</Value>
-                        {(() => {
-                          const studSubs = c.asignaturas || (c.asignatura ? [c.asignatura] : []);
-                          const profSubs = o.asignaturas || [];
+                          <Label>Asignaturas prof.:</Label>{' '}
+                          <Value>{o.asignaturas ? o.asignaturas.join(', ') : (c.asignaturas ? c.asignaturas.join(', ') : c.asignatura)}</Value>
+                          {(() => {
+                            const studSubs = c.asignaturas || (c.asignatura ? [c.asignatura] : []);
+                            const profSubs = o.asignaturas || [];
                           const allSelected =
                             studSubs.length > 0 &&
                             studSubs.every(s => profSubs.includes(s)) &&
@@ -482,6 +482,20 @@ export default function GestionClases() {
                                   ? 'Todas las solicitadas'
                                   : `${profSubs.length} de ${studSubs.length}`}
                               </Value>
+                            </>
+                          );
+                        })()}
+                        {(() => {
+                          if (!c.schedule || c.schedule.length === 0) return null;
+                          const studentSlots = c.schedule;
+                          const profSlots = o.schedule || [];
+                          const overlap = profSlots.filter(s => studentSlots.includes(s)).length;
+                          const percentage = Math.round((overlap / studentSlots.length) * 100);
+                          return (
+                            <>
+                              <br />
+                              <Label>Disponibilidad:</Label>{' '}
+                              <Value>{percentage}%</Value>
                             </>
                           );
                         })()}
