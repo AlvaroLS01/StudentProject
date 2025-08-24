@@ -848,7 +848,7 @@ export default function NuevaClase() {
             <Modal>
               <ModalText>
                 Se ha publicado una solicitud.<br/>
-                La podrás encontrar en Mis Clases &amp; Solicitudes en el apartado de mis solicitudes.
+                La podrás encontrar en Mis Solicitudes.
               </ModalText>
               <ModalActions>
                 <ModalButton primary onClick={handleSuccessClose}>Entendido</ModalButton>

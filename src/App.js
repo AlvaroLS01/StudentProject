@@ -13,7 +13,8 @@ import Alta            from './screens/Alta';
 import ReservaClase    from './screens/ReservaClase';
 import CalendarioA     from './screens/alumno/acciones/Calendario';
 import CalendarioP     from './screens/profesor/acciones/Calendario';
-import Clases          from './screens/alumno/acciones/Clases';
+import MisClases      from './screens/alumno/acciones/MisClases';
+import MisSolicitudes from './screens/alumno/acciones/MisSolicitudes';
 import ClasesProfesor  from './screens/profesor/acciones/Clases';
 import NuevaClase      from './screens/alumno/acciones/NuevaClase';
 import Ofertas         from './screens/profesor/acciones/Ofertas';
@@ -95,7 +96,8 @@ function AppContent() {
             <Route element={<RequireAuth allowedRoles={['tutor','admin']} />}>
               <Route path="/tutor"               element={<PanelTutor />} />
               <Route path="/tutor/nueva-clase"   element={<NuevaClase />} />
-              <Route path="/tutor/clases"        element={<Clases />} />
+              <Route path="/tutor/mis-clases"        element={<MisClases />} />
+              <Route path="/tutor/mis-solicitudes"   element={<MisSolicitudes />} />
               <Route path="/tutor/calendario"    element={<CalendarioA />} />
               <Route path="/profesor/mis-profesores" element={<MisProfesores />} />
             </Route>

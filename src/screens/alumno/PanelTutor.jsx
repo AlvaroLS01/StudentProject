@@ -10,7 +10,8 @@ import AddChildModal from '../../components/AddChildModal';
 
 // importa tus pantallas “incrustadas”
 import NuevaClase    from './acciones/NuevaClase';
-import Clases        from './acciones/Clases';
+import MisClases     from './acciones/MisClases';
+import MisSolicitudes from './acciones/MisSolicitudes';
 import MisProfesores from './acciones/MisProfesores';
 import CalendarioA   from './acciones/Calendario';
 import MisAlumnos    from './acciones/MisAlumnos';
@@ -128,7 +129,8 @@ export default function PanelTutor() {
   const renderView = () => {
     switch(view) {
       case 'nueva-clase':    return requireChild(<NuevaClase />);
-      case 'clases':         return requireChild(<Clases />);
+      case 'mis-clases':     return requireChild(<MisClases />);
+      case 'mis-solicitudes':return requireChild(<MisSolicitudes />);
       case 'mis-profesores': return requireChild(<MisProfesores />);
       case 'calendario':     return requireChild(<CalendarioA />);
       case 'mis-alumnos':      return <MisAlumnos />;
@@ -171,10 +173,18 @@ export default function PanelTutor() {
           </MenuItem>
           <MenuItem>
             <Button
-              active={view === 'clases'}
-              onClick={() => handleMenuClick('clases')}
+              active={view === 'mis-clases'}
+              onClick={() => handleMenuClick('mis-clases')}
             >
-              Mis Clases & Solicitudes
+              Mis Clases
+            </Button>
+          </MenuItem>
+          <MenuItem>
+            <Button
+              active={view === 'mis-solicitudes'}
+              onClick={() => handleMenuClick('mis-solicitudes')}
+            >
+              Mis Solicitudes
             </Button>
           </MenuItem>
           <MenuItem>
