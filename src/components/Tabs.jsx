@@ -4,6 +4,7 @@ import styled from 'styled-components';
 const Container = styled.div`
   display: flex;
   justify-content: center;
+  gap: 0.5rem;
   margin-bottom: 1rem;
   border-bottom: 2px solid #e0e0e0;
 `;

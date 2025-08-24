@@ -174,6 +174,7 @@ const SendButton = styled.button`
 
 const AcceptButton = styled.button`
   margin-top: 0.5rem;
+  margin-right: 0.5rem;
   background: #006D5B;
   color: #fff;
   border: none;
@@ -188,6 +189,7 @@ const AcceptButton = styled.button`
 
 const RejectButton = styled.button`
   margin-top: 0.5rem;
+  margin-right: 0.5rem;
   background: #f56565;
   color: #fff;
   border: none;
