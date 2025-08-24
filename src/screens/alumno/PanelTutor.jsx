@@ -8,6 +8,14 @@ import { useNotification } from '../../NotificationContext';
 import ChildSelectorBubble from '../../components/ChildSelectorBubble';
 import AddChildModal from '../../components/AddChildModal';
 
+// icons
+import iconNuevaClase from '../../assets/icons/ofertas.png';
+import iconMisClases from '../../assets/icons/clases.png';
+import iconMisSolicitudes from '../../assets/icons/chat.png';
+import iconMisProfesores from '../../assets/icons/profesor.png';
+import iconCalendario from '../../assets/icons/calendario.png';
+import iconAlumnos from '../../assets/icons/alumnos.png';
+
 // importa tus pantallas “incrustadas”
 import NuevaClase    from './acciones/NuevaClase';
 import MisClases     from './acciones/MisClases';
@@ -57,6 +65,9 @@ const MenuItem = styled.li`
 `;
 
 const Button = styled.button`
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
   width: 100%;
   padding: 0.75rem 1rem;
   background: ${({ active }) => active ? '#ccf3e5' : 'transparent'};
@@ -70,6 +81,11 @@ const Button = styled.button`
   &:hover {
     background: #f1f8f6;
   }
+`;
+
+const Icon = styled.img`
+  width: 20px;
+  height: 20px;
 `;
 
 
@@ -168,6 +184,7 @@ export default function PanelTutor() {
               active={view === 'nueva-clase'}
               onClick={() => handleMenuClick('nueva-clase')}
             >
+              <Icon src={iconNuevaClase} alt="Solicitar nuevo profesor" />
               Solicitar nuevo profesor
             </Button>
           </MenuItem>
@@ -176,6 +193,7 @@ export default function PanelTutor() {
               active={view === 'mis-clases'}
               onClick={() => handleMenuClick('mis-clases')}
             >
+              <Icon src={iconMisClases} alt="Mis Clases" />
               Mis Clases
             </Button>
           </MenuItem>
@@ -184,6 +202,7 @@ export default function PanelTutor() {
               active={view === 'mis-solicitudes'}
               onClick={() => handleMenuClick('mis-solicitudes')}
             >
+              <Icon src={iconMisSolicitudes} alt="Mis Solicitudes" />
               Mis Solicitudes
             </Button>
           </MenuItem>
@@ -192,6 +211,7 @@ export default function PanelTutor() {
               active={view === 'mis-profesores'}
               onClick={() => handleMenuClick('mis-profesores')}
             >
+              <Icon src={iconMisProfesores} alt="Mis profesores" />
               Mis profesores
             </Button>
           </MenuItem>
@@ -200,6 +220,7 @@ export default function PanelTutor() {
               active={view === 'calendario'}
               onClick={() => handleMenuClick('calendario')}
             >
+              <Icon src={iconCalendario} alt="Calendario" />
               Calendario
             </Button>
           </MenuItem>
@@ -209,6 +230,7 @@ export default function PanelTutor() {
                 active={view === 'mis-alumnos'}
                 onClick={() => handleMenuClick('mis-alumnos')}
               >
+                <Icon src={iconAlumnos} alt="Alumnos" />
                 Alumnos
               </Button>
             </MenuItem>
