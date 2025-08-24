@@ -14,6 +14,7 @@ import {
   getDocs,
   addDoc,
   setDoc,
+  updateDoc,
   serverTimestamp,
   doc,
   getDoc
@@ -581,20 +582,24 @@ export default function Ofertas() {
       duracionSemanas: calculateWeeks(clase.fechaInicio, clase.fechaFin)
     });
 
-    // Registrar la oferta en el perfil del profesor para consultas sin índices
-    await setDoc(doc(db, 'usuarios', prof.uid, 'ofertas', offerRef.id), {
-      classId: clase.id,
-      createdAt: serverTimestamp(),
-      estado: 'pendiente'
-    });
-
-    await createPuja({
+    const pujaRes = await createPuja({
       fecha_puja: new Date().toISOString().slice(0,10),
       estado_puja: 'pendiente',
       profesor_email: prof.email,
       id_oferta: clase.ofertaId,
       asignaturas: selectedSubs,
       precio: clase.precioProfesores,
+    });
+
+    const pujaId = pujaRes.id;
+    await updateDoc(offerRef, { pujaId });
+
+    // Registrar la oferta en el perfil del profesor para consultas sin índices
+    await setDoc(doc(db, 'usuarios', prof.uid, 'ofertas', offerRef.id), {
+      classId: clase.id,
+      createdAt: serverTimestamp(),
+      estado: 'pendiente',
+      pujaId
     });
     setClases(cs => cs.filter(c => c.id !== clase.id));
     setConfirmModal(false);

@@ -18,6 +18,7 @@ import {
 } from 'firebase/firestore';
 import { sendAssignmentEmails } from '../../../utils/email';
 import { registerPendingClass } from '../../../utils/classWorkflow';
+import { selectPuja } from '../../../utils/api';
 import { Overlay, Modal, ModalText, ModalActions, ModalButton } from '../../../components/ModalStyles';
 
 // Animación suave al cargar
@@ -257,6 +258,13 @@ export default function GestionClases() {
       precioSeleccionado: offer.precio,
       updatedAt: serverTimestamp()
     });
+    if (offer.pujaId) {
+      try {
+        await selectPuja(offer.pujaId);
+      } catch (err) {
+        console.error(err);
+      }
+    }
     await registerPendingClass({
       classId,
       offer,

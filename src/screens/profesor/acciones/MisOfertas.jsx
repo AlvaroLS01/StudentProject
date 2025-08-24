@@ -118,7 +118,7 @@ export default function MisOfertas() {
     if (processing.has(rec.id)) return;
     setProcessing(prev => new Set(prev).add(rec.id));
     try {
-      await acceptClassByTeacher(rec.id, rec.studentEmail, rec.alumnoNombre);
+      await acceptClassByTeacher(rec.id, rec.studentEmail, rec.alumnoNombre, rec.pujaId);
       setAssignments(as => as.map(a => a.id === rec.id ? { ...a, estado: 'espera_alumno' } : a));
     } finally {
       setProcessing(prev => { const s = new Set(prev); s.delete(rec.id); return s; });
