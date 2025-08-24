@@ -642,11 +642,11 @@ export default function SignUpProfesor() {
           <Modal>
             <ModalText>¿Seguro que quieres volver atrás? Se perderán los datos ingresados.</ModalText>
             <ModalActions>
-              <ModalButton primary onClick={() => navigate('/alta')}>
-                Sí, más tarde
-              </ModalButton>
               <ModalButton onClick={() => setModalOpen(false)}>
                 No, permanezco
+              </ModalButton>
+              <ModalButton primary onClick={() => navigate('/alta')}>
+                Sí, más tarde
               </ModalButton>
             </ModalActions>
           </Modal>

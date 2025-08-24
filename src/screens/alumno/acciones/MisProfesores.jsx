@@ -483,12 +483,12 @@ export default function MisProfesores() {
                         <strong>{formatDate(item.fecha)}</strong> a las <strong>{item.hora}</strong> ({item.duracion}h)
                         </div>
                         <div>Coste: €{(item.precioTotalPadres || 0).toFixed(2)}</div>
-                        <AcceptButton onClick={() => acceptProposal(item)}>
-                          Aceptar
-                        </AcceptButton>
                         <RejectButton onClick={() => rejectProposal(item)}>
                           Rechazar
                         </RejectButton>
+                        <AcceptButton onClick={() => acceptProposal(item)}>
+                          Aceptar
+                        </AcceptButton>
                       </Bubble>
                       <Timestamp mine={mine}>
                         {hh}:{mm}

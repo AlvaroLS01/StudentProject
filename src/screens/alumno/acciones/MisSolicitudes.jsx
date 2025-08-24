@@ -178,8 +178,8 @@ export default function MisSolicitudes() {
                   ?
                 </p>
                 <div>
-                  <AcceptButton onClick={() => acceptAssignment(p)} disabled={processingIds.has(p.id)}>Confirmar</AcceptButton>{' '}
-                  <RejectButton onClick={() => rejectAssignment(p)} disabled={processingIds.has(p.id)}>Rechazar</RejectButton>
+                  <RejectButton onClick={() => rejectAssignment(p)} disabled={processingIds.has(p.id)}>Rechazar</RejectButton>{' '}
+                  <AcceptButton onClick={() => acceptAssignment(p)} disabled={processingIds.has(p.id)}>Confirmar</AcceptButton>
                 </div>
               </Card>
             ))}

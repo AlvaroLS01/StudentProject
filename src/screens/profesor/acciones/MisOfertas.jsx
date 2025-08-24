@@ -151,8 +151,8 @@ export default function MisOfertas() {
             <Card key={o.id}>
               {alert && alert.estado === 'espera_profesor' && (
                 <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.5rem', marginBottom: '0.5rem' }}>
-                  <Button onClick={() => handleAccept(alert)} disabled={processing.has(alert.id)}>Aceptar</Button>
                   <CancelButton onClick={() => handleCancel(alert)} disabled={processing.has(alert.id)}>Cancelar</CancelButton>
+                  <Button onClick={() => handleAccept(alert)} disabled={processing.has(alert.id)}>Aceptar</Button>
                 </div>
               )}
               <InfoGrid>
