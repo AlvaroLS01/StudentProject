@@ -12,9 +12,11 @@ Este servidor Node.js expone diferentes endpoints para enviar correos desde la p
    ```bash
     cp .env-example .env
     # Modifica EMAIL_USER y EMAIL_PASS si cambian las credenciales
-    # Establece JWT_SECRET y RESET_BASE_URL para los correos de restablecimiento
-    # Especifica la ruta del JSON de la cuenta de servicio con
+   # Establece JWT_SECRET y RESET_BASE_URL para los correos de restablecimiento
+   # Especifica la ruta del JSON de la cuenta de servicio con
     # GOOGLE_APPLICATION_CREDENTIALS
+    # Añade STRIPE_SECRET_KEY y STRIPE_WEBHOOK_SECRET para Stripe
+    # Ajusta APP_URL con la URL del cliente
     ```
 
   * `JWT_SECRET` puede ser cualquier cadena aleatoria que solo tú conozcas. El
@@ -23,6 +25,11 @@ Este servidor Node.js expone diferentes endpoints para enviar correos desde la p
   * `GOOGLE_APPLICATION_CREDENTIALS` debe apuntar al archivo JSON de la cuenta
     de servicio de Firebase. Este archivo se obtiene desde la consola de
     Firebase y permite que el servidor utilice la API de administración.
+
+Para configurar Stripe:
+
+1. Abre [https://dashboard.stripe.com](https://dashboard.stripe.com) y en **Developers → API keys** copia la **Secret key** de prueba y colócala en `STRIPE_SECRET_KEY`.
+2. En **Developers → Webhooks** crea un endpoint con la URL `http://localhost:3001/stripe/webhook` y selecciona el evento `checkout.session.completed`. Tras guardarlo, copia el **Signing secret** y guárdalo en `STRIPE_WEBHOOK_SECRET`.
 
 ## Ejecutar el servidor
 
