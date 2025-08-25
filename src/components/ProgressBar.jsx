@@ -57,9 +57,7 @@ const CurrentDot = styled(StepDot)`
   z-index: 2;
   cursor: default;
 
-  &:hover span {
-    opacity: 1;
-  }
+  &:hover span { opacity: 1; }
 `;
 
 const Tooltip = styled.span`
@@ -79,14 +77,23 @@ const Tooltip = styled.span`
 `;
 
 const Labels = styled.div`
-  display: flex;
-  justify-content: space-between;
-  margin-top: 0.25rem;
+  display: grid;
+  grid-template-columns: repeat(${p => p.count}, 1fr);
+  gap: .25rem;
+  margin-top: .25rem;
   font-size: 0.75rem;
   color: #4a5568;
 `;
 
-export default function ProgressBar({ percent, color, label }) {
+const LabelItem = styled.div`
+  text-align: center;
+  padding: 0 .25rem;
+  line-height: 1.2;
+  white-space: normal;        /* permite salto por espacios */
+  overflow-wrap: anywhere;    /* evita que se apiñe/solape */
+`;
+
+export default function ProgressBar({ percent, color = '#0ea5e9', label }) {
   const steps = [
     'Solicitud',
     'Búsqueda de profesor',
@@ -95,6 +102,7 @@ export default function ProgressBar({ percent, color, label }) {
     'Esperando respuesta del tutor',
     'Profesor asignado'
   ];
+
   const stepPercents = steps.map((_, i) => (i / (steps.length - 1)) * 100);
 
   return (
@@ -108,9 +116,10 @@ export default function ProgressBar({ percent, color, label }) {
           <Tooltip>{label}</Tooltip>
         </CurrentDot>
       </Track>
-      <Labels>
+
+      <Labels count={steps.length}>
         {steps.map((s, i) => (
-          <div key={i}>{s}</div>
+          <LabelItem key={i}>{s}</LabelItem>
         ))}
       </Labels>
     </Container>
