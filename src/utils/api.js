@@ -30,6 +30,11 @@ export async function fetchAsignaturas() {
   return handleResponse(res);
 }
 
+export async function fetchGrados() {
+  const res = await fetch(`${API_URL}/grados`);
+  return handleResponse(res);
+}
+
 export async function fetchPagos() {
   const res = await fetch(`${API_URL}/pagos`);
   return handleResponse(res);

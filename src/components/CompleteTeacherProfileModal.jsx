@@ -4,7 +4,7 @@ import { TextInput, SelectInput, PrimaryButton } from './FormElements';
 import { auth, db } from '../firebase/firebaseConfig';
 import { doc, updateDoc } from 'firebase/firestore';
 import { useAuth } from '../AuthContext';
-import { updateProfesor } from '../utils/api';
+import { updateProfesor, fetchGrados } from '../utils/api';
 import { Overlay, Modal, ModalTitle } from './ModalStyles';
 
 const DNI_LETTERS = 'TRWAGMYFPDXBNJZSQVHLCKE';
@@ -65,7 +65,10 @@ export default function CompleteTeacherProfileModal({ open, onClose, userData })
     userData?.docType && userData?.docType !== 'DNI' ? userData.docType : ''
   );
   const [docNumber, setDocNumber] = useState(userData?.docNumber || '');
-  const [studies, setStudies] = useState(userData?.studies || '');
+  const [degrees, setDegrees] = useState([]);
+  const [studySelect, setStudySelect] = useState('');
+  const [studyOther, setStudyOther] = useState('');
+  const [isOtherStudy, setIsOtherStudy] = useState(false);
   const [studyTime, setStudyTime] = useState(userData?.studyTime || '');
   const [finished, setFinished] = useState(userData?.careerFinished || false);
   const [iban, setIban] = useState(userData?.iban || '');
@@ -96,11 +99,34 @@ export default function CompleteTeacherProfileModal({ open, onClose, userData })
     }
   }, [iban]);
 
+  useEffect(() => {
+    const loadDegrees = async () => {
+      try {
+        const data = await fetchGrados();
+        setDegrees(data);
+        if (userData?.studies) {
+          if (data.some(d => d.nombre === userData.studies)) {
+            setStudySelect(userData.studies);
+            setIsOtherStudy(false);
+          } else {
+            setStudySelect('');
+            setStudyOther(userData.studies);
+            setIsOtherStudy(true);
+          }
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    };
+    loadDegrees();
+  }, [userData]);
+
   if (!open) return null;
 
   const save = async () => {
     const finalDocType = docSelect === 'DNI' ? 'DNI' : docTypeOther.trim();
-    if (!finalDocType || !docNumber || !studies || (!finished && !studyTime) || !experience || !iban) return;
+    const finalStudies = isOtherStudy ? studyOther.trim() : studySelect.trim();
+    if (!finalDocType || !docNumber || !finalStudies || (!finished && !studyTime) || !experience || !iban) return;
     if (docSelect === 'DNI' && dniError) return;
     if (ibanError) return;
     if (saving) return;
@@ -108,14 +134,14 @@ export default function CompleteTeacherProfileModal({ open, onClose, userData })
     await updateDoc(doc(db, 'usuarios', auth.currentUser.uid), {
       docType: finalDocType,
       docNumber,
-      studies,
+      studies: finalStudies,
       studyTime,
       careerFinished: finished,
       status: 'estudia',
       iban,
       NIF: docNumber,
       IBAN: iban,
-      carrera: studies,
+      carrera: finalStudies,
       curso: studyTime,
       experiencia: Number(experience),
     });
@@ -123,7 +149,7 @@ export default function CompleteTeacherProfileModal({ open, onClose, userData })
       correo_electronico: auth.currentUser.email,
       NIF: docNumber,
       IBAN: iban,
-      carrera: studies,
+      carrera: finalStudies,
       curso: studyTime,
       experiencia: Number(experience),
     });
@@ -172,10 +198,34 @@ export default function CompleteTeacherProfileModal({ open, onClose, userData })
         <Field>
           <label>¿Qué estudias o has estudiado?</label>
           <TextInput
-            type="text"
-            value={studies}
-            onChange={e => setStudies(e.target.value)}
+            list="grados-list"
+            value={isOtherStudy ? 'Otro grado' : studySelect}
+            onChange={e => {
+              const val = e.target.value;
+              if (val === 'Otro grado') {
+                setIsOtherStudy(true);
+                setStudySelect('');
+              } else {
+                setIsOtherStudy(false);
+                setStudySelect(val);
+              }
+            }}
           />
+          <datalist id="grados-list">
+            {degrees.map(g => (
+              <option key={g.id_grado} value={g.nombre} />
+            ))}
+            <option value="Otro grado" />
+          </datalist>
+          {isOtherStudy && (
+            <TextInput
+              type="text"
+              placeholder="Introduce tu grado"
+              value={studyOther}
+              onChange={e => setStudyOther(e.target.value)}
+              style={{ marginTop: '0.5rem' }}
+            />
+          )}
         </Field>
         {!finished && (
           <Field>
