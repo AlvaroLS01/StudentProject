@@ -175,4 +175,14 @@ To work locally with both the frontend and the `node-server` you can run each on
 
 The client reads the `REACT_APP_WELCOME_API` variable from `.env` (default `http://localhost:3001/send-email`) and sends a request after a user signs up. With CORS enabled on the server both applications work together without extra configuration.
 
+## Configuración de Stripe
+
+Para generar enlaces de pago cuando se liquida el saldo de un tutor necesitas una cuenta de [Stripe](https://dashboard.stripe.com/). Los pasos básicos son:
+
+1. En el panel de Stripe abre **Developers → API keys** y copia la **Secret key** de modo de prueba. Guárdala en la variable `STRIPE_SECRET_KEY` del archivo `.env` del servidor.
+2. Dentro de **Developers → Webhooks** crea un endpoint apuntando a `http://localhost:3001/stripe/webhook` (o la URL pública de tu servidor) y selecciona el evento `checkout.session.completed`. Después de guardar, copia el **Signing secret** en `STRIPE_WEBHOOK_SECRET`.
+3. Define `APP_URL` con la URL del frontend que Stripe usará para redirigir tras el pago (por defecto `http://localhost:3000`).
+
+Con estas variables definidas reinicia el `node-server` y podrás enviar enlaces de pago desde el panel de administración.
+
 

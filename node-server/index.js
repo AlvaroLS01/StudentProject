@@ -8,9 +8,51 @@ const jwt = require('jsonwebtoken');
 const { google } = require('googleapis');
 const db = require('./db');
 const bcrypt = require('bcryptjs');
+const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 
 const app = express();
 app.use(cors());
+
+// Stripe webhook must receive the raw body, so register it before the JSON
+// parser middleware. This endpoint records tutor payments as liquidated debts
+// when Stripe confirms the checkout session.
+app.post(
+  '/stripe/webhook',
+  express.raw({ type: 'application/json' }),
+  async (req, res) => {
+    const sig = req.headers['stripe-signature'];
+    let event;
+    try {
+      event = stripe.webhooks.constructEvent(
+        req.body,
+        sig,
+        process.env.STRIPE_WEBHOOK_SECRET
+      );
+    } catch (err) {
+      console.error('Webhook signature verification failed', err);
+      return res.status(400).send(`Webhook Error: ${err.message}`);
+    }
+
+    if (event.type === 'checkout.session.completed') {
+      const session = event.data.object;
+      try {
+        await db.query(
+          'INSERT INTO student_project.liquidacion (user_id, monto, payment_intent, fecha) VALUES ($1,$2,$3,NOW())',
+          [
+            session.metadata?.userId || null,
+            session.amount_total ? session.amount_total / 100 : null,
+            session.payment_intent || null,
+          ]
+        );
+      } catch (e) {
+        console.error('Error recording liquidacion', e);
+      }
+    }
+
+    res.json({ received: true });
+  }
+);
+
 app.use(express.json());
 
 // Allow setting a service account key via env. Otherwise use application default
@@ -145,26 +187,63 @@ app.post('/balances/:id/liquidar', async (req, res) => {
     );
     await client.query('COMMIT');
 
+    let paymentUrl;
     try {
       const mail = email
         ? email
-        : (await admin.firestore().collection('usuarios').doc(id).get()).data()?.email;
+        : (await admin
+            .firestore()
+            .collection('usuarios')
+            .doc(id)
+            .get()).data()?.email;
       if (mail) {
-        const msg =
-          role === 'tutor'
-            ? `Debes ${saldo}€`
-            : `Se te va a ingresar en tu número de cuenta ${saldo}€`;
-        await transporter.sendMail({
-          to: mail,
-          subject: 'Liquidación de saldo',
-          text: msg,
-        });
+        if (role === 'tutor' && Number(saldo) < 0) {
+          const amountToPay = Math.abs(Number(saldo));
+          const session = await stripe.checkout.sessions.create({
+            mode: 'payment',
+            line_items: [
+              {
+                price_data: {
+                  currency: 'eur',
+                  unit_amount: Math.round(amountToPay * 100),
+                  product_data: {
+                    name: 'Pago de clases pendientes',
+                  },
+                },
+                quantity: 1,
+              },
+            ],
+            success_url: `${process.env.APP_URL || 'http://localhost:3000'}/pago-exito`,
+            cancel_url: `${process.env.APP_URL || 'http://localhost:3000'}/pago-cancelado`,
+            metadata: { userId: id },
+          });
+          paymentUrl = session.url;
+          const html = `
+            <div style="background:#f7faf9;padding:20px;font-family:Arial,sans-serif;">
+              <h2 style="color:#034640;">Saldo pendiente</h2>
+              <p style="color:#034640;">Esto es lo que debes por tus clases, págalo lo antes posible.</p>
+              <a href="${paymentUrl}" style="display:inline-block;margin-top:10px;padding:10px 20px;background:#046654;color:#fff;text-decoration:none;border-radius:4px;">Pagar ${amountToPay}€</a>
+            </div>`;
+          await transporter.sendMail({
+            to: mail,
+            subject: 'Liquidación de saldo',
+            html,
+            text: `Debes ${amountToPay}€`,
+          });
+        } else {
+          const msg = `Se te va a ingresar en tu número de cuenta ${saldo}€`;
+          await transporter.sendMail({
+            to: mail,
+            subject: 'Liquidación de saldo',
+            text: msg,
+          });
+        }
       }
     } catch (e) {
       console.error('Error sending mail', e);
     }
 
-    res.json({ saldo });
+    res.json({ saldo, paymentUrl });
   } catch (err) {
     if (client) await client.query('ROLLBACK');
     console.error(err);
