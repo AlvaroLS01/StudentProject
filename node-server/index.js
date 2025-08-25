@@ -137,6 +137,18 @@ app.get('/asignaturas', async (_req, res) => {
   }
 });
 
+app.get('/grados', async (_req, res) => {
+  try {
+    const result = await db.query(
+      'SELECT id_grado, nombre FROM student_project.grado ORDER BY nombre'
+    );
+    res.json(result.rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Error fetching grados' });
+  }
+});
+
 app.get('/pagos', async (_req, res) => {
   try {
     const result = await db.query(
