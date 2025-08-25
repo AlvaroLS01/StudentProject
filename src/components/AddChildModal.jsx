@@ -62,6 +62,8 @@ export default function AddChildModal({ open, onClose }) {
   const [nif, setNif] = useState('');
   const [address, setAddress] = useState('');
   const [district, setDistrict] = useState('');
+  const [barrio, setBarrio] = useState('');
+  const [postalCode, setPostalCode] = useState('');
   const [city, setCity] = useState('');
   const [saving, setSaving] = useState(false);
   const [avatar, setAvatar] = useState('');
@@ -84,7 +86,6 @@ export default function AddChildModal({ open, onClose }) {
       !address ||
       !district ||
       !city ||
-      !avatar ||
       saving
     )
       return;
@@ -102,6 +103,8 @@ export default function AddChildModal({ open, onClose }) {
             genero: gender,
             id_curso: courseId,
             distrito: district,
+            barrio,
+            codigo_postal: postalCode,
             ciudad: city,
           }
         });
@@ -118,6 +121,8 @@ export default function AddChildModal({ open, onClose }) {
           NIF: nif,
           direccion: address,
           distrito: district,
+          barrio,
+          codigo_postal: postalCode,
           ciudad: city,
           photoURL: avatar,
         };
@@ -135,6 +140,8 @@ export default function AddChildModal({ open, onClose }) {
       setNif('');
       setAddress('');
       setDistrict('');
+      setBarrio('');
+      setPostalCode('');
       setCity('');
       setAvatar('');
     } catch (err) {
@@ -227,6 +234,18 @@ export default function AddChildModal({ open, onClose }) {
             placeholder="Distrito"
             value={district}
             onChange={e => setDistrict(e.target.value)}
+          />
+          <TextInput
+            type="text"
+            placeholder="Barrio (opcional)"
+            value={barrio}
+            onChange={e => setBarrio(e.target.value)}
+          />
+          <TextInput
+            type="text"
+            placeholder="Código postal (opcional)"
+            value={postalCode}
+            onChange={e => setPostalCode(e.target.value)}
           />
           <SelectInput value={city} onChange={e => setCity(e.target.value)}>
             <option value="">Selecciona ciudad</option>

@@ -138,7 +138,7 @@ CREATE TABLE IF NOT EXISTS student_project.alumno
     apellidos VARCHAR(100),
     direccion VARCHAR(100),
     NIF VARCHAR(100) NOT NULL,
-    telefono VARCHAR(25) UNIQUE,
+    telefono VARCHAR(25),
     genero VARCHAR(100),
 
         correo_tutor VARCHAR(100) NOT NULL REFERENCES student_project.tutor(correo_electronico)
