@@ -125,3 +125,4 @@ export default function ProgressBar({ percent, color = '#0ea5e9', label }) {
     </Container>
   );
 }
+
