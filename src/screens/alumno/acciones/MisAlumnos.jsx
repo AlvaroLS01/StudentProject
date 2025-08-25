@@ -6,7 +6,7 @@ import { doc, updateDoc } from 'firebase/firestore';
 import { useChild } from '../../../ChildContext';
 import { useAuth } from '../../../AuthContext';
 import { Overlay, Modal, ModalText, ModalActions, ModalButton } from '../../../components/ModalStyles';
-import { fetchCursos, registerAlumno } from '../../../utils/api';
+import { fetchCursos, fetchCities, registerAlumno } from '../../../utils/api';
 import avatars from '../../../utils/avatars';
 import PhoneInput from 'react-phone-input-2';
 import 'react-phone-input-2/lib/style.css';
@@ -95,6 +95,7 @@ export default function MisAlumnos() {
   const [gender, setGender] = useState('');
   const [courseId, setCourseId] = useState('');
   const [courses, setCourses] = useState([]);
+  const [cities, setCities] = useState([]);
   const [phone, setPhone] = useState('');
   const [phoneConfirm, setPhoneConfirm] = useState('');
   const [ownPhone, setOwnPhone] = useState(false);
@@ -111,6 +112,7 @@ export default function MisAlumnos() {
 
   useEffect(() => {
     fetchCursos().then(setCourses).catch(console.error);
+    fetchCities().then(setCities).catch(console.error);
   }, []);
 
   const addChild = async () => {
@@ -124,7 +126,6 @@ export default function MisAlumnos() {
         !address ||
         !district ||
         !city ||
-        !avatar ||
         saving
       ) return;
     setSaving(true);
@@ -332,12 +333,12 @@ export default function MisAlumnos() {
             value={postalCode}
             onChange={e => setPostalCode(e.target.value)}
           />
-          <TextInput
-            type="text"
-            placeholder="Ciudad"
-            value={city}
-            onChange={e => setCity(e.target.value)}
-          />
+          <SelectInput value={city} onChange={e => setCity(e.target.value)}>
+            <option value="">Selecciona ciudad</option>
+            {cities.map(c => (
+              <option key={c.id_ciudad} value={c.nombre}>{c.nombre}</option>
+            ))}
+          </SelectInput>
           <PrimaryButton
             onClick={addChild}
             disabled={saving}
