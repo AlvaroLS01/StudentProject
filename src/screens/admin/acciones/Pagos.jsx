@@ -192,7 +192,7 @@ export default function Pagos() {
             </Td>
             <Td>
               <PrimaryButton onClick={() => handleLiquidar(r.user_id, rol)}>
-                Mandar factura
+                Liquidar
               </PrimaryButton>
             </Td>
           </tr>
