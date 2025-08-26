@@ -17,6 +17,7 @@ import {
 } from 'firebase/firestore';
 import { Link } from 'react-router-dom';
 import { formatDate } from '../../../utils/formatDate';
+import { notifyTutorClass } from '../../../utils/email';
 
 // Animación de entrada
 const fadeIn = keyframes`
@@ -502,6 +503,23 @@ export default function MisAlumnos() {
         createdAt: serverTimestamp() // timestamp para ordenar
       }
     );
+    let tutorEmail = '';
+    try {
+      const tutorSnap = await getDoc(doc(db, 'usuarios', selectedUnion.alumnoId));
+      tutorEmail = tutorSnap.exists() ? tutorSnap.data().email || '' : '';
+    } catch (err) {
+      console.error(err);
+    }
+    if (tutorEmail) {
+      await notifyTutorClass({
+        tutorEmail,
+        tutorName: selectedUnion.padreNombre || '',
+        teacherName: selectedUnion.profesorNombre || '',
+        studentName: selectedUnion.alumnoNombre || '',
+        classDate: fechaClase,
+        classTime: horaClase,
+      });
+    }
     setOpenProposalModal(false);
     show('Propuesta de clase enviada al alumno', 'success');
     // NOTA: **No** agregamos un mensaje separado en “chats”;
