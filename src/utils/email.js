@@ -35,3 +35,15 @@ export async function sendVerificationCode({ email, code }) {
     console.error('Failed to send verification code', err);
   }
 }
+
+export async function notifyTutorClass({ tutorEmail, tutorName, teacherName, studentName, classDate, classTime }) {
+  try {
+    await fetch(process.env.REACT_APP_NOTIFY_CLASS_API || '/api/notify-tutor-class', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ tutorEmail, tutorName, teacherName, studentName, classDate, classTime })
+    });
+  } catch (err) {
+    console.error('Failed to send class notification email', err);
+  }
+}
