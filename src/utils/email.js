@@ -36,12 +36,32 @@ export async function sendVerificationCode({ email, code }) {
   }
 }
 
-export async function notifyTutorClass({ tutorEmail, tutorName, teacherName, studentName, classDate, classTime }) {
+export async function notifyTutorClass({
+  tutorEmail,
+  tutorName,
+  teacherName,
+  studentName,
+  classDate,
+  classTime,
+  subject,
+  duration,
+  classMode,
+}) {
   try {
     await fetch(process.env.REACT_APP_NOTIFY_CLASS_API || '/api/notify-tutor-class', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ tutorEmail, tutorName, teacherName, studentName, classDate, classTime })
+      body: JSON.stringify({
+        tutorEmail,
+        tutorName,
+        teacherName,
+        studentName,
+        classDate,
+        classTime,
+        subject,
+        duration,
+        classMode,
+      })
     });
   } catch (err) {
     console.error('Failed to send class notification email', err);
