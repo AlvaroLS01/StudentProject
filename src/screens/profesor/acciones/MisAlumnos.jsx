@@ -503,6 +503,12 @@ export default function MisAlumnos() {
         createdAt: serverTimestamp() // timestamp para ordenar
       }
     );
+    await addDoc(collection(db, 'notificaciones'), {
+      userId: selectedUnion.alumnoId,
+      text: `El profesor ${selectedUnion.profesorNombre || ''} ha propuesto una clase el ${fechaClase} a las ${horaClase}.`,
+      read: false,
+      createdAt: serverTimestamp()
+    });
     let tutorEmail = '';
     try {
       const tutorSnap = await getDoc(doc(db, 'usuarios', selectedUnion.alumnoId));
@@ -518,6 +524,9 @@ export default function MisAlumnos() {
         studentName: selectedUnion.alumnoNombre || '',
         classDate: fechaClase,
         classTime: horaClase,
+        subject: asignMateria,
+        duration: durNum,
+        classMode: modalidadStore,
       });
     }
     setOpenProposalModal(false);

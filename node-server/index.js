@@ -1168,6 +1168,9 @@ app.post('/notify-tutor-class', async (req, res) => {
     studentName,
     classDate,
     classTime,
+    subject,
+    duration,
+    classMode,
   } = req.body;
 
   if (!tutorEmail) {
@@ -1175,8 +1178,10 @@ app.post('/notify-tutor-class', async (req, res) => {
   }
 
   const html = `
-      <p>Hola ${tutorName || 'tutor'}, el profesor ${teacherName || 'profesor'} ha registrado la clase del ${classDate || ''} a las ${classTime || ''} para el alumno ${studentName || ''}.</p>
-      <p>Por favor, entra en el chat con el profesor para aceptarla.</p>
+      <p>Hola ${tutorName || 'tutor'}, el profesor ${teacherName || 'profesor'} ha registrado una nueva clase para ${studentName || ''}.</p>
+      <p><strong>Fecha:</strong> ${classDate || ''}<br/>
+      <strong>Hora:</strong> ${classTime || ''}${subject ? `<br/><strong>Asignatura:</strong> ${subject}` : ''}${duration ? `<br/><strong>Duración:</strong> ${duration}h` : ''}${classMode ? `<br/><strong>Modalidad:</strong> ${classMode}` : ''}</p>
+      <p>Accede a la pestaña "Mis clases" o al chat con el profesor para aceptarla o rechazarla si es incorrecta.</p>
     `;
 
   try {
