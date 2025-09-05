@@ -75,6 +75,45 @@ const transporter = nodemailer.createTransport({
   },
 });
 
+const LOGO_URL =
+  'https://studentproject.es/wp-content/uploads/2023/09/WhatsApp_Image_2023-09-02_at_11.59.21-removebg-preview-3.png';
+const BRAND_GREEN = '#046654';
+const BASE_BG = '#f7faf9';
+
+function buildEmailTemplate(content) {
+  return `
+    <div style="background:${BASE_BG};padding:40px 0;font-family:'Helvetica Neue',Arial,sans-serif;">
+      <table width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;margin:auto;background:#ffffff;border-radius:8px;overflow:hidden;">
+        <tr>
+          <td style="background:${BRAND_GREEN};text-align:center;padding:20px;">
+            <img src="${LOGO_URL}" alt="Student Project" style="max-height:80px;" />
+          </td>
+        </tr>
+        <tr>
+          <td style="padding:30px;color:#034640;font-size:16px;line-height:1.6;">
+            ${content}
+          </td>
+        </tr>
+        <tr>
+          <td style="background:${BASE_BG};color:#034640;text-align:center;font-size:12px;padding:15px;">
+            © ${new Date().getFullYear()} Student Project. Todos los derechos reservados.
+          </td>
+        </tr>
+      </table>
+    </div>
+  `;
+}
+
+function sendTemplateEmail({ to, subject, content, text }) {
+  return transporter.sendMail({
+    from: `"Student Project" <${process.env.EMAIL_USER || 'alvaro@studentproject.es'}>`,
+    to,
+    subject,
+    html: buildEmailTemplate(content),
+    text,
+  });
+}
+
 // Google Sheets client
 const sheetsAuth = new google.auth.GoogleAuth({
   scopes: ['https://www.googleapis.com/auth/spreadsheets'],
@@ -230,25 +269,28 @@ app.post('/balances/:id/liquidar', async (req, res) => {
             metadata: { userId: id },
           });
           paymentUrl = session.url;
-          const html = `
-            <div style="background:#f7faf9;padding:20px;font-family:Arial,sans-serif;">
-              <h2 style="color:#034640;">Saldo pendiente</h2>
-              <p style="color:#034640;">Esto es lo que debes por tus clases, págalo lo antes posible.</p>
-              <a href="${paymentUrl}" style="display:inline-block;margin-top:10px;padding:10px 20px;background:#046654;color:#fff;text-decoration:none;border-radius:4px;">Pagar ${amountToPay}€</a>
-            </div>`;
-          await transporter.sendMail({
+          const content = `
+            <p>Hola,</p>
+            <p>Tienes un <strong>saldo pendiente de ${amountToPay}€</strong> por tus clases. Regularízalo lo antes posible:</p>
+            <p style="text-align:center;margin:30px 0;">
+              <a href="${paymentUrl}" style="display:inline-block;padding:12px 24px;background:${BRAND_GREEN};color:#ffffff;text-decoration:none;border-radius:6px;font-weight:bold;">Pagar ${amountToPay}€</a>
+            </p>
+            <p>Gracias por confiar en <strong>Student Project</strong>.</p>
+          `;
+          await sendTemplateEmail({
             to: mail,
             subject: 'Liquidación de saldo',
-            html,
+            content,
             text: `Debes ${amountToPay}€`,
           });
         } else {
           const msg = `Se te va a ingresar en tu número de cuenta ${saldo}€`;
-          await transporter.sendMail({
-            to: mail,
-            subject: 'Liquidación de saldo',
-            text: msg,
-          });
+          const content = `
+            <p>Hola,</p>
+            <p>En breve te ingresaremos <strong>${saldo}€</strong> en tu número de cuenta.</p>
+            <p>Gracias por tu dedicación.</p>
+          `;
+          await sendTemplateEmail({ to: mail, subject: 'Liquidación de saldo', content, text: msg });
         }
       }
     } catch (e) {
@@ -920,40 +962,35 @@ app.post('/cancel-offer', async (req, res) => {
 
     await client.query('COMMIT');
 
-    const from = `"Student Project" <${process.env.EMAIL_USER || 'alvaro@studentproject.es'}>`;
     const emails = [];
     if (role === 'tutor') {
       emails.push(
-        transporter.sendMail({
-          from,
+        sendTemplateEmail({
           to: profesor_email,
           subject: 'Solicitud cancelada',
-          html: `El tutor ${tutor_nombre || ''} ha cancelado la solicitud.`,
+          content: `<p>Hola ${profesor_nombre || 'profesor'},</p><p>El tutor <strong>${tutor_nombre || ''}</strong> ha cancelado la solicitud.</p>`
         })
       );
       emails.push(
-        transporter.sendMail({
-          from,
+        sendTemplateEmail({
           to: tutor_email,
           subject: 'Has cancelado la solicitud',
-          html: 'Has cancelado la solicitud de la clase.',
+          content: `<p>Hola ${tutor_nombre || 'tutor'},</p><p>Has cancelado la solicitud de la clase.</p>`
         })
       );
     } else {
       emails.push(
-        transporter.sendMail({
-          from,
+        sendTemplateEmail({
           to: tutor_email,
           subject: 'Clase disponible nuevamente',
-          html: `El profesor ${profesor_nombre || ''} ha cancelado la oferta. Tu clase vuelve a la lista de pujas.`,
+          content: `<p>Hola ${tutor_nombre || 'tutor'},</p><p>El profesor <strong>${profesor_nombre || ''}</strong> ha cancelado la oferta. Tu clase vuelve a la lista de pujas.</p>`
         })
       );
       emails.push(
-        transporter.sendMail({
-          from,
+        sendTemplateEmail({
           to: profesor_email,
           subject: 'Has cancelado la oferta',
-          html: 'Has cancelado tu oferta para la clase.',
+          content: `<p>Hola ${profesor_nombre || 'profesor'},</p><p>Has cancelado tu oferta para la clase.</p>`
         })
       );
     }
@@ -976,11 +1013,16 @@ app.post('/send-email', async (req, res) => {
   }
 
   try {
-    await transporter.sendMail({
-      from: `"Student Project" <${process.env.EMAIL_USER || 'alvaro@studentproject.es'}>`,
+    const content = `
+      <p>Hola ${name || 'usuario'},</p>
+      <p>¡Bienvenido a <strong>Student Project</strong>! Estamos encantados de que formes parte de nuestra comunidad.</p>
+      <p>A partir de ahora podrás conectar con los mejores profesores y alumnos para impulsar tu aprendizaje.</p>
+      <p>Si necesitas ayuda, responde a este correo y estaremos encantados de ayudarte.</p>
+    `;
+    await sendTemplateEmail({
       to: email,
       subject: 'Bienvenido a Student Project',
-      html: `<p>Hola ${name || 'usuario'}, bienvenido a nuestra plataforma.</p>`,
+      content,
     });
 
     res.json({ message: 'Correo enviado' });
@@ -996,11 +1038,16 @@ app.post('/send-verification-code', async (req, res) => {
     return res.status(400).json({ error: 'Datos incompletos' });
   }
   try {
-    await transporter.sendMail({
-      from: `"Student Project" <${process.env.EMAIL_USER || 'alvaro@studentproject.es'}>`,
+    const content = `
+      <p>Hola,</p>
+      <p>Utiliza el siguiente código para verificar tu cuenta:</p>
+      <div style="margin:20px auto;padding:15px 25px;background:#e8f8f3;border:1px solid ${BRAND_GREEN};border-radius:6px;display:inline-block;font-size:24px;letter-spacing:4px;font-weight:bold;color:#034640;">${code}</div>
+      <p>Este código caduca en unos minutos, así que úsalo cuanto antes.</p>
+    `;
+    await sendTemplateEmail({
       to: email,
       subject: 'Código de verificación',
-      html: `<p>Tu código de verificación es: <strong>${code}</strong></p>`
+      content,
     });
     res.json({ message: 'Código enviado' });
   } catch (error) {
@@ -1115,38 +1162,34 @@ app.post('/send-assignment-email', async (req, res) => {
       })()
     : '';
 
-  const from = `"Student Project" <${process.env.EMAIL_USER || 'alvaro@studentproject.es'}>`;
-
   const emails = [];
 
   if (['teacher', 'both'].includes(recipient) && teacherEmail) {
-    const html = `
-      <p>Hola ${teacherName || 'profesor'}, has sido seleccionado para impartir la clase del alumno ${studentName || ''}.</p>
-      ${scheduleText ? `<p>Horario propuesto:</p><p>${scheduleText}</p>` : ''}
+    const content = `
+      <p>Hola ${teacherName || 'profesor'}, has sido seleccionado para impartir la clase del alumno <strong>${studentName || ''}</strong>.</p>
+      ${scheduleText ? `<p><strong>Horario propuesto:</strong><br/>${scheduleText}</p>` : ''}
       <p>Debes aceptar la solicitud en <strong>Mis clases</strong> &gt; <strong>Ofertas</strong>.</p>
     `;
     emails.push(
-      transporter.sendMail({
-        from,
+      sendTemplateEmail({
         to: teacherEmail,
         subject: 'Solicitud de clase',
-        html,
+        content,
       })
     );
   }
 
   if (['student', 'both'].includes(recipient) && studentEmail) {
-    const html = `
+    const content = `
       <p>Hola ${tutorName || 'tutor'},</p>
       <p>¡El profesor <strong>${teacherName || ''}</strong>${teacherCareer ? `, estudiante de <strong>${teacherCareer}</strong>` : ''}, ha aceptado impartir la clase a <strong>${studentName || ''}</strong>!</p>
       <p>Está esperando tu confirmación para coordinar vuestra primera clase. Confírmalo en la sección <strong>Mis clases</strong> y comienza esta nueva aventura académica.</p>
     `;
     emails.push(
-      transporter.sendMail({
-        from,
+      sendTemplateEmail({
         to: studentEmail,
         subject: '¡Tu profesor te espera!',
-        html,
+        content,
       })
     );
   }
@@ -1177,19 +1220,18 @@ app.post('/notify-tutor-class', async (req, res) => {
     return res.status(400).json({ error: 'Falta correo del tutor' });
   }
 
-  const html = `
-      <p>Hola ${tutorName || 'tutor'}, el profesor ${teacherName || 'profesor'} ha registrado una nueva clase para ${studentName || ''}.</p>
+  const content = `
+      <p>Hola ${tutorName || 'tutor'}, el profesor <strong>${teacherName || 'profesor'}</strong> ha registrado una nueva clase para <strong>${studentName || ''}</strong>.</p>
       <p><strong>Fecha:</strong> ${classDate || ''}<br/>
       <strong>Hora:</strong> ${classTime || ''}${subject ? `<br/><strong>Asignatura:</strong> ${subject}` : ''}${duration ? `<br/><strong>Duración:</strong> ${duration}h` : ''}${classMode ? `<br/><strong>Modalidad:</strong> ${classMode}` : ''}</p>
-      <p>Accede a la pestaña "Mis clases" o al chat con el profesor para aceptarla o rechazarla si es incorrecta.</p>
+      <p>Accede a la pestaña <strong>Mis clases</strong> o al chat con el profesor para aceptarla o rechazarla si es incorrecta.</p>
     `;
 
   try {
-    await transporter.sendMail({
-      from: `"Student Project" <${process.env.EMAIL_USER || 'alvaro@studentproject.es'}>`,
+    await sendTemplateEmail({
       to: tutorEmail,
       subject: 'Nueva clase pendiente de confirmar',
-      html,
+      content,
     });
     res.json({ message: 'Correo enviado al tutor' });
   } catch (error) {
@@ -1307,14 +1349,13 @@ app.post('/accept-class', async (req, res) => {
     await client.query('COMMIT');
 
     // 5) Notificar al profesor
-    const html = `
-      <p>Hola ${teacherName || 'profesor'}, el alumno ${studentName || ''} ha aceptado la clase programada para el ${fecha_clase || ''} a las ${hora_clase || ''}.</p>
+    const content = `
+      <p>Hola ${teacherName || 'profesor'}, el alumno <strong>${studentName || ''}</strong> ha aceptado la clase programada para el <strong>${fecha_clase || ''}</strong> a las <strong>${hora_clase || ''}</strong>.</p>
       <p>La clase se ha registrado correctamente.</p>`;
-    await transporter.sendMail({
-      from: `"Student Project" <${process.env.EMAIL_USER || 'alvaro@studentproject.es'}>`,
+    await sendTemplateEmail({
       to: teacherEmail,
       subject: 'Clase aceptada por el alumno',
-      html,
+      content,
     });
 
     res.json({ message: 'Clase aceptada, saldos actualizados y correo enviado' });
@@ -1341,16 +1382,19 @@ app.post('/request-password-reset', async (req, res) => {
 
     const resetUrl = `${process.env.RESET_BASE_URL || 'http://localhost:3000/reset-password'}?token=${token}`;
 
-    const html = `
-      <p>Haz clic en el botón para restablecer tu contraseña:</p>
-      <p><a href="${resetUrl}" style="background:#ccf3e5;color:#034640;padding:12px 20px;border-radius:6px;text-decoration:none;">Restablecer contraseña</a></p>
+    const content = `
+      <p>Hola,</p>
+      <p>Hemos recibido una solicitud para restablecer tu contraseña. Si fuiste tú, haz clic en el botón de abajo:</p>
+      <p style="text-align:center;margin:30px 0;">
+        <a href="${resetUrl}" style="background:${BRAND_GREEN};color:#ffffff;padding:12px 24px;border-radius:6px;text-decoration:none;font-weight:bold;">Restablecer contraseña</a>
+      </p>
+      <p>Si no solicitaste este cambio, puedes ignorar este mensaje.</p>
     `;
 
-    await transporter.sendMail({
-      from: `"Student Project" <${process.env.EMAIL_USER || 'alvaro@studentproject.es'}>`,
+    await sendTemplateEmail({
       to: email,
       subject: 'Restablecer contraseña',
-      html,
+      content,
     });
 
     res.json({ message: 'Correo de restablecimiento enviado' });
