@@ -7,7 +7,7 @@ import { useAuth } from '../AuthContext';
 import { useNotification } from '../NotificationContext';
 import { db } from '../firebase/firebaseConfig';
 import { collection, getDocs, doc, setDoc, query, where } from 'firebase/firestore';
-import { fetchCursos, registerAlumno } from '../utils/api';
+import { fetchCursos, registerTutor, registerProfesor } from '../utils/api';
 
 const Page = styled.div`
   display: flex;
@@ -82,6 +82,7 @@ export default function CompletarDatosGoogle() {
 
   const [nombre, setNombre] = useState('');
   const [apellido, setApellido] = useState('');
+  const [genero, setGenero] = useState('Masculino');
   const [telefono, setTelefono] = useState('');
   const [confirmTelefono, setConfirmTelefono] = useState('');
   const [telefonoError, setTelefonoError] = useState('');
@@ -89,7 +90,7 @@ export default function CompletarDatosGoogle() {
   const [courseId, setCourseId] = useState('');
   const [courses, setCourses] = useState([]);
   const [nif, setNif] = useState('');
-  const [distritoFacturacion, setDistritoFacturacion] = useState('');
+  const [direccionFacturacion, setDireccionFacturacion] = useState('');
   const [nombreHijo, setNombreHijo] = useState('');
   const [apellidoHijo, setApellidoHijo] = useState('');
   const [nifAlumno, setNifAlumno] = useState('');
@@ -129,7 +130,7 @@ export default function CompletarDatosGoogle() {
     if (!ciudad) missing.push('Ciudad');
     if (rol !== 'profesor' && !courseId) missing.push('Curso');
     if (!nif) missing.push('NIF');
-    if (!distritoFacturacion) missing.push('Distrito facturación');
+    if (!direccionFacturacion) missing.push('Dirección facturación');
     if (missing.length) {
       show('Faltan: ' + missing.join(', '), 'error');
       return;
@@ -164,11 +165,12 @@ export default function CompletarDatosGoogle() {
         photoURL: user.photoURL,
         nombre,
         apellido,
+        genero,
         telefono,
         ciudad,
         rol,
         nif,
-        distritoFacturacion,
+        direccionFacturacion,
         createdAt: new Date()
       };
       if (rol === 'profesor') {
@@ -191,30 +193,59 @@ export default function CompletarDatosGoogle() {
         }
       }
       await setDoc(doc(db, 'usuarios', user.uid), data);
-      if (rol === 'tutor') {
-        try {
-          await registerAlumno({
-            tutor_email: user.email,
-            alumno: {
-              nombre: nombreHijo,
-              apellidos: apellidoHijo,
-              direccion: distritoAlumno,
-              NIF: nifAlumno,
-              telefono: null,
-              telefonoConfirm: null,
-              genero: generoHijo,
-              id_curso: parseInt(courseId),
-              distrito: distritoAlumno,
-              barrio: null,
-              codigo_postal: null,
-              ciudad,
-            },
-          });
-        } catch (e) {
-          console.error(e);
-        }
+
+      if (rol === 'profesor') {
+        await registerProfesor({
+          nombre,
+          apellidos: apellido,
+          genero,
+          telefono,
+          correo_electronico: user.email,
+          NIF: nif,
+          direccion_facturacion: direccionFacturacion,
+          distrito: null,
+          barrio: null,
+          codigo_postal: null,
+          ciudad,
+          IBAN: null,
+          carrera: null,
+          curso: null,
+          experiencia: null,
+          password: user.uid,
+        });
+      } else if (rol === 'tutor') {
+        await registerTutor({
+          tutor: {
+            nombre,
+            apellidos: apellido,
+            genero,
+            telefono,
+            correo_electronico: user.email,
+            NIF: nif,
+            direccion_facturacion: direccionFacturacion,
+            distrito: null,
+            barrio: null,
+            codigo_postal: null,
+            ciudad,
+            password: user.uid,
+          },
+          alumno: {
+            nombre: nombreHijo,
+            apellidos: apellidoHijo,
+            direccion: distritoAlumno,
+            NIF: nifAlumno,
+            telefono: null,
+            telefonoConfirm: null,
+            genero: generoHijo,
+            id_curso: parseInt(courseId),
+            distrito: distritoAlumno,
+            barrio: null,
+            codigo_postal: null,
+            ciudad,
+          },
+        });
       }
-      const target = rol === 'profesor' ? '/profesor' : rol === 'tutor' ? '/tutor' : '/home';
+      const target = rol === 'profesor' ? '/profesor' : '/tutor';
       navigate(target);
     } catch (err) {
       console.error(err);
@@ -239,6 +270,14 @@ export default function CompletarDatosGoogle() {
           <Field>
             <label>Apellidos</label>
             <input className="form-control" type="text" value={apellido} onChange={e => setApellido(e.target.value)} />
+          </Field>
+          <Field>
+            <label>Género</label>
+            <select className="form-control" value={genero} onChange={e => setGenero(e.target.value)}>
+              <option value="Masculino">Masculino</option>
+              <option value="Femenino">Femenino</option>
+              <option value="Otro">Otro</option>
+            </select>
           </Field>
           <Field>
             <label>NIF</label>
@@ -279,8 +318,8 @@ export default function CompletarDatosGoogle() {
             </select>
           </Field>
           <Field>
-            <label>Distrito facturación</label>
-            <input className="form-control" type="text" value={distritoFacturacion} onChange={e => setDistritoFacturacion(e.target.value)} />
+            <label>Dirección facturación</label>
+            <input className="form-control" type="text" value={direccionFacturacion} onChange={e => setDireccionFacturacion(e.target.value)} />
           </Field>
           {rol !== 'profesor' && (
             <Field>
