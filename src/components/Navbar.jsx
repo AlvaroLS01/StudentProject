@@ -6,6 +6,7 @@ import logo from '../assets/logonavbar.png';
 import googleLogo from '../assets/google.png';
 import appleLogo from '../assets/apple.png';
 import PasswordResetModal from './PasswordResetModal';
+import ReportIncidentModal from './ReportIncidentModal';
 
 // Firebase
 import { auth, db } from '../firebase/firebaseConfig';
@@ -291,6 +292,23 @@ const PopupLink = styled(Link)`
   }
 `;
 
+const PopupAction = styled.button`
+  display: block;
+  width: 100%;
+  background: none;
+  border: none;
+  color: #fff;
+  padding: 0.5rem 0.25rem;
+  margin-bottom: 0.75rem;
+  text-align: center;
+  font-size: 1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+  cursor: pointer;
+  &:hover {
+    color: ${({ theme }) => theme.colors.accent};
+  }
+`;
+
 const PopupRegister = styled.p`
   font-size: 0.9rem;
   text-align: center;
@@ -367,6 +385,7 @@ export default function Navbar() {
   const [loginPassword, setLoginPassword] = useState('');
   const [loginError, setLoginError] = useState('');
   const [loginOpen, setLoginOpen] = useState(false);
+  const [incidentOpen, setIncidentOpen] = useState(false);
   const [loggingIn, setLoggingIn] = useState(false);
   const [resetOpen, setResetOpen] = useState(false);
   const loginRef = useRef(null);
@@ -520,6 +539,9 @@ export default function Navbar() {
                 </AccessButton>
                 <LoginPopup show={loginOpen}>
                   <PopupLink to={`/perfil/${user?.uid}`}>Mi Cuenta</PopupLink>
+                  <PopupAction onClick={() => { setIncidentOpen(true); setLoginOpen(false); }}>
+                    Reportar incidencia
+                  </PopupAction>
                   <PopupButton onClick={handleLogout}>
                     Cerrar sesión
                   </PopupButton>
@@ -595,6 +617,12 @@ export default function Navbar() {
       </Container>
     </Nav>
     <PasswordResetModal open={resetOpen} onClose={() => setResetOpen(false)} />
+    <ReportIncidentModal
+      open={incidentOpen}
+      onClose={() => setIncidentOpen(false)}
+      defaultName={userData?.nombre || ''}
+      defaultEmail={user?.email || ''}
+    />
     </>
   );
 }

@@ -149,3 +149,12 @@ export async function cancelOffer({ offerId, pujaId, role }) {
   });
   return handleResponse(res);
 }
+
+export async function reportIncident(data) {
+  const res = await fetch(`${API_URL}/incidencias`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  });
+  return handleResponse(res);
+}

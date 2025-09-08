@@ -1368,6 +1368,40 @@ app.post('/accept-class', async (req, res) => {
   }
 });
 
+app.post('/incidencias', async (req, res) => {
+  const { nombre, email, mensaje } = req.body;
+  if (!nombre || !email || !mensaje) {
+    return res.status(400).json({ error: 'Datos incompletos' });
+  }
+  let client;
+  try {
+    client = await db.connect();
+    await client.query(
+      'INSERT INTO student_project.incidencias (nombre, correo, mensaje, fecha) VALUES ($1,$2,$3,NOW())',
+      [nombre, email, mensaje]
+    );
+    await admin.firestore().collection('incidencias').add({
+      nombre,
+      email,
+      mensaje,
+      fecha: admin.firestore.FieldValue.serverTimestamp(),
+    });
+    const content = `<p><strong>Nombre:</strong> ${nombre}</p><p><strong>Email:</strong> ${email}</p><p><strong>Mensaje:</strong></p><p>${mensaje}</p>`;
+    await sendTemplateEmail({
+      to: 'alvaro@studentproject.es, carlos@studentproject.es, luis@studentproject.es',
+      subject: 'Nueva incidencia reportada',
+      content,
+      text: `Nombre: ${nombre}\nEmail: ${email}\nMensaje: ${mensaje}`,
+    });
+    res.json({ message: 'Incidencia registrada' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Error registrando incidencia' });
+  } finally {
+    if (client) client.release();
+  }
+});
+
 app.post('/request-password-reset', async (req, res) => {
   const { email } = req.body;
   if (!email) return res.status(400).json({ error: 'Email requerido' });
