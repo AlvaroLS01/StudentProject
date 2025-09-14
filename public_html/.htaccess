@@ -1,0 +1,38 @@
+# React SPA en raíz del dominio
+Options -Indexes
+
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteBase /
+  # Si el archivo o carpeta existe, sírvelo tal cual
+  RewriteCond %{REQUEST_FILENAME} -f [OR]
+  RewriteCond %{REQUEST_FILENAME} -d
+  RewriteRule ^ - [L]
+  # Todo lo demás -> index.html (React Router)
+  RewriteRule . /index.html [L]
+</IfModule>
+
+# --- Opcionales ---
+# Forzar HTTPS
+#<IfModule mod_rewrite.c>
+#  RewriteCond %{HTTPS} !=on
+#  RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+#</IfModule>
+
+# Canonical: www -> sin www
+#RewriteCond %{HTTP_HOST} ^www\.studentproject\.es$ [NC]
+#RewriteRule ^(.*)$ https://studentproject.es/$1 [L,R=301]
+
+# Cache estáticos
+<IfModule mod_expires.c>
+  ExpiresActive On
+  ExpiresByType text/css "access plus 1 month"
+  ExpiresByType application/javascript "access plus 1 month"
+  ExpiresByType image/* "access plus 1 month"
+  ExpiresByType font/* "access plus 1 month"
+</IfModule>
+
+# Compresión
+<IfModule mod_deflate.c>
+  AddOutputFilterByType DEFLATE text/html text/plain text/css application/javascript application/json image/svg+xml
+</IfModule>
