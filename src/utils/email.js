@@ -1,11 +1,13 @@
 export async function sendAssignmentEmails({ teacherEmail, teacherName, teacherCareer, studentEmail, studentName, tutorName, schedule, recipient = 'both' }) {
   const payload = { teacherEmail, teacherName, teacherCareer, studentEmail, studentName, tutorName, schedule, recipient };
   try {
-    await fetch(process.env.REACT_APP_EMAIL_API || '/api/send-assignment-email', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    });
+    await fetch(
+      process.env.REACT_APP_EMAIL_API ||
+        'https://student-project-o6y8h.ondigitalocean.app/send-assignment-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
   } catch (err) {
     console.error('Failed to send emails', err);
   }
@@ -13,11 +15,13 @@ export async function sendAssignmentEmails({ teacherEmail, teacherName, teacherC
 
 export async function sendWelcomeEmail({ email, name }) {
   try {
-    await fetch(process.env.REACT_APP_WELCOME_API || 'http://localhost:3001/send-email', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, name })
-    });
+    await fetch(
+      process.env.REACT_APP_WELCOME_API ||
+        'https://student-project-o6y8h.ondigitalocean.app/send-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, name })
+      });
   } catch (err) {
     console.error('Failed to send welcome email', err);
   }
@@ -25,7 +29,10 @@ export async function sendWelcomeEmail({ email, name }) {
 
 export async function sendVerificationCode({ email, code }) {
   try {
-    const base = (process.env.REACT_APP_WELCOME_API || 'http://localhost:3001/send-email').replace('/send-email','');
+    const base = (
+      process.env.REACT_APP_WELCOME_API ||
+      'https://student-project-o6y8h.ondigitalocean.app/send-email'
+    ).replace('/send-email', '');
     await fetch(`${base}/send-verification-code`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -48,20 +55,22 @@ export async function notifyTutorClass({
   classMode,
 }) {
   try {
-    await fetch(process.env.REACT_APP_NOTIFY_CLASS_API || '/api/notify-tutor-class', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        tutorEmail,
-        tutorName,
-        teacherName,
-        studentName,
-        classDate,
-        classTime,
-        subject,
-        duration,
-        classMode,
-      })
+    await fetch(
+      process.env.REACT_APP_NOTIFY_CLASS_API ||
+        'https://student-project-o6y8h.ondigitalocean.app/notify-tutor-class', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          tutorEmail,
+          tutorName,
+          teacherName,
+          studentName,
+          classDate,
+          classTime,
+          subject,
+          duration,
+          classMode,
+        })
     });
   } catch (err) {
     console.error('Failed to send class notification email', err);

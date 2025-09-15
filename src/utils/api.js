@@ -1,4 +1,6 @@
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001';
+const API_URL =
+  process.env.REACT_APP_API_URL ||
+  'https://student-project-o6y8h.ondigitalocean.app';
 
 async function handleResponse(res) {
   if (!res.ok) {

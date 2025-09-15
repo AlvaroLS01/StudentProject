@@ -1,7 +1,8 @@
 export async function requestPasswordReset(email) {
   try {
     await fetch(
-      process.env.REACT_APP_PASSWORD_RESET_API || 'http://localhost:3001/request-password-reset',
+      process.env.REACT_APP_PASSWORD_RESET_API ||
+        'https://student-project-o6y8h.ondigitalocean.app/request-password-reset',
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -16,7 +17,8 @@ export async function requestPasswordReset(email) {
 
 export async function resetPassword({ token, password }) {
   const res = await fetch(
-    process.env.REACT_APP_CHANGE_PASSWORD_API || 'http://localhost:3001/reset-password',
+    process.env.REACT_APP_CHANGE_PASSWORD_API ||
+      'https://student-project-o6y8h.ondigitalocean.app/reset-password',
     {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
