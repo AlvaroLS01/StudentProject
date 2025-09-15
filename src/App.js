@@ -74,6 +74,7 @@ function AppContent() {
     <AppContainer>
       {loading && <LoadingScreen fullscreen />}
       <Routes>
+          <Route path="/" element={<Navigate to="/home" replace />} />
           {/* Sin Navbar/Footer */}
           <Route path="/alta-profesor" element={<SignUpProfesor />} />
           <Route path="/alta-tutor"    element={<SignUpTutor />} />
