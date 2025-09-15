@@ -94,8 +94,8 @@ const AddButton = styled.button`
   color: #fff;
   border: none;
   border-radius: 6px;
-  padding: 0.3rem 0.6rem;
-  font-size: 0.85rem;
+  padding: 0.5rem 1rem;
+  font-size: 1rem;
   display: flex;
   align-items: center;
   justify-content: center;
